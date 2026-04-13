@@ -1,3 +1,15 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>학교 연수 등록 시스템</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
     <style>
         body {
@@ -76,15 +88,14 @@
         const { useState, useRef, useEffect, useMemo } = React;
         
         // --- Lucide React Helper ---
-        // 브라우저 환경에서 Lucide 아이콘을 React 컴포넌트로 변환하기 위한 헬퍼
         const Icon = ({ name, size = 24, className = "", strokeWidth = 2 }) => {
             const iconRef = useRef(null);
             
             useEffect(() => {
-                if (iconRef.current) {
-                    lucide.createIcons({
+                if (iconRef.current && window.lucide) {
+                    window.lucide.createIcons({
                         targets: [iconRef.current],
-                        icons: { [name]: lucide.icons[name] },
+                        icons: { [name]: window.lucide.icons[name] },
                         attrs: {
                             class: className,
                             width: size,
@@ -98,7 +109,6 @@
             return <i ref={iconRef} data-lucide={name} className={className}></i>;
         };
 
-        // 기존의 컴포넌트 방식 대신 Icon 헬퍼를 사용하는 래퍼 컴포넌트들
         const Users = (props) => <Icon name="users" {...props} />;
         const Plus = (props) => <Icon name="plus" {...props} />;
         const Calendar = (props) => <Icon name="calendar" {...props} />;
@@ -119,7 +129,6 @@
         const LogOut = (props) => <Icon name="log-out" {...props} />;
         const Loader2 = (props) => <Icon name="loader-2" {...props} />;
 
-        // --- Configuration ---
         const GAS_APP_URL = "https://script.google.com/macros/s/AKfycbzbLAYsi6x1TV-KxIFVspjqg3s0WIqQvdxgUhW1WYVnyrTrBD8VegswbcZBFPaTAnSP/exec"; 
         const ABSENCE_REASONS = ["출장", "연가", "병가", "조퇴", "병조퇴", "휴가", "기타"];
 
@@ -236,6 +245,17 @@
                 setIsLoading(false);
             };
 
+            const handlePrint = (training) => {
+                fetchRegistrations(training.id).then(() => {
+                    setSelectedTraining(training);
+                    setIsPrinting(true);
+                    setTimeout(() => {
+                        window.print();
+                        setIsPrinting(false);
+                    }, 500);
+                });
+            };
+
             const exportToCSV = (training) => {
                 fetchRegistrations(training.id).then(() => {
                     const headers = ['번호', '직위', '성명', '소속/학급', '상태', '내용(사유/링크)'];
@@ -290,7 +310,7 @@
 
             if (isPrinting && selectedTraining) {
                 return (
-                    <div className="p-10 bg-white min-h-screen text-black print:p-0 font-['Noto_Sans_KR']">
+                    <div className="p-10 bg-white min-h-screen text-black font-['Noto_Sans_KR']">
                         <div className="max-w-4xl mx-auto border-2 border-black p-8">
                             <h1 className="text-3xl font-bold text-center underline mb-8">{selectedTraining.title} 등록부</h1>
                             <div className="grid grid-cols-2 gap-4 mb-6 border-b-2 border-black pb-4">
@@ -325,7 +345,7 @@
                                             </td>
                                         </tr>
                                     ))}
-                                    {[...Array(Math.max(0, 10 - selectedRegs.length))].map((_, i) => (
+                                    {[...Array(Math.max(0, 15 - selectedRegs.length))].map((_, i) => (
                                         <tr key={`empty-${i}`} className="h-10">
                                             <td className="border border-black p-2 text-center">{selectedRegs.length + i + 1}</td>
                                             <td className="border border-black p-2"></td>
