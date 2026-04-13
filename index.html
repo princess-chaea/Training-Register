@@ -129,6 +129,48 @@
         const LogOut = (props) => <Icon name="log-out" {...props} />;
         const Loader2 = (props) => <Icon name="loader-2" {...props} />;
 
+        // --- Utils ---
+        const formatTime = (timeValue) => {
+            if (!timeValue) return "";
+            try {
+                // "14:30" 형식의 문자열인 경우 그대로 반환
+                if (typeof timeValue === 'string' && /^\d{2}:\d{2}$/.test(timeValue)) return timeValue;
+                
+                const date = new Date(timeValue);
+                if (isNaN(date.getTime())) return String(timeValue);
+                
+                // 한국 시간(KST) 기준으로 시/분 추출
+                return date.toLocaleTimeString('ko-KR', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: false,
+                    timeZone: 'Asia/Seoul'
+                });
+            } catch (e) {
+                return String(timeValue);
+            }
+        };
+
+        const formatDateTime = (dateValue) => {
+            if (!dateValue) return "";
+            try {
+                const date = new Date(dateValue);
+                if (isNaN(date.getTime())) return String(dateValue);
+                
+                return date.toLocaleString('ko-KR', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: false,
+                    timeZone: 'Asia/Seoul'
+                }).replace(/\. /g, '-').replace(/\./g, '');
+            } catch (e) {
+                return String(dateValue);
+            }
+        };
+
         const GAS_APP_URL = "https://script.google.com/macros/s/AKfycbzbLAYsi6x1TV-KxIFVspjqg3s0WIqQvdxgUhW1WYVnyrTrBD8VegswbcZBFPaTAnSP/exec"; 
         const ABSENCE_REASONS = ["출장", "연가", "병가", "조퇴", "병조퇴", "휴가", "기타"];
 
@@ -315,7 +357,7 @@
                             <h1 className="text-3xl font-bold text-center underline mb-8">{selectedTraining.title} 등록부</h1>
                             <div className="grid grid-cols-2 gap-4 mb-6 border-b-2 border-black pb-4">
                                 <p><strong>장소:</strong> {selectedTraining.location}</p>
-                                <p><strong>일시:</strong> {selectedTraining.startTime} {selectedTraining.endTime ? `~ ${selectedTraining.endTime}` : ''}</p>
+                                <p><strong>일시:</strong> {formatTime(selectedTraining.startTime)} {selectedTraining.endTime ? `~ ${formatTime(selectedTraining.endTime)}` : ''}</p>
                             </div>
                             <table className="w-full border-collapse border border-black text-sm">
                                 <thead>
@@ -324,7 +366,7 @@
                                         <th className="border border-black p-2 w-24 text-center">직위</th>
                                         <th className="border border-black p-2 w-24 text-center">성명</th>
                                         <th className="border border-black p-2 w-32 text-center">소속/학급</th>
-                                        <th className="border border-black p-2 text-center">서명 또는 사유</th>
+                                        <th className="border border-black p-2 text-center">서명</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -337,7 +379,7 @@
                                             <td className="border border-black p-1 text-center">
                                                 {reg.status === 'attended' ? (
                                                     reg.content.startsWith('http') ?
-                                                        <img src={reg.content} alt="서명" className="h-8 mx-auto" /> :
+                                                        <img src={reg.content} alt="서명" className="h-10 mx-auto block" style={{ maxWidth: '100px', objectFit: 'contain' }} /> :
                                                         <span className="text-[10px] text-gray-400">서명완료</span>
                                                 ) : (
                                                     <span className="text-red-600 font-bold">{reg.content}</span>
@@ -357,7 +399,7 @@
                                 </tbody>
                             </table>
                             <p className="mt-10 text-right font-bold text-lg">위와 같이 연수에 참석하였음을 확인합니다.</p>
-                            <p className="mt-4 text-right">{new Date().toLocaleDateString()}</p>
+                            <p className="mt-4 text-right font-mono">{formatDateTime(new Date())}</p>
                         </div>
                     </div>
                 );
@@ -459,7 +501,7 @@
                                                     <h3 className="font-black text-xl text-slate-800">{t.title}</h3>
                                                     <div className="flex gap-4 text-sm text-slate-400 font-semibold mt-1">
                                                         <span className="flex items-center gap-1.5"><MapPin size={14} className="text-slate-300" /> {t.location}</span>
-                                                        <span className="flex items-center gap-1.5"><Clock size={14} className="text-slate-300" /> {t.startTime} {t.endTime && `~ ${t.endTime}`}</span>
+                                                        <span className="flex items-center gap-1.5"><Clock size={14} className="text-slate-300" /> {formatTime(t.startTime)} {t.endTime && `~ ${formatTime(t.endTime)}`}</span>
                                                     </div>
                                                 </div>
                                                 <div className="flex items-center gap-2">
@@ -528,7 +570,7 @@
                                                             <p className="font-black text-slate-700 text-lg group-hover:text-indigo-700">{t.title}</p>
                                                             <div className="flex gap-4 text-xs text-slate-300 font-bold mt-1.5 uppercase">
                                                                 <span className="flex items-center gap-1"><MapPin size={12} /> {t.location}</span>
-                                                                <span className="flex items-center gap-1"><Clock size={12} /> {t.startTime}</span>
+                                                                <span className="flex items-center gap-1"><Clock size={12} /> {formatTime(t.startTime)}</span>
                                                             </div>
                                                         </div>
                                                         <div className="w-10 h-10 bg-slate-50 group-hover:bg-indigo-600 group-hover:text-white rounded-2xl flex items-center justify-center transition-all">
