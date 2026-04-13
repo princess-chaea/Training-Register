@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>학교 연수 등록 시스템</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap"
+        rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            font-family: 'Inter', 'Noto Sans KR', sans-serif;
+            overflow-x: hidden;
+        }
+
+        .font-outfit {
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .animate-in {
+            animation: animate-in 0.5s ease-out;
+        }
+
+        @keyframes animate-in {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .canvas-container {
+            touch-action: none;
+            position: relative;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #e2e8f0;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #cbd5e1;
+        }
+
+        .btn-hover {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .btn-hover:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-hover:active {
+            transform: translateY(0);
+        }
+    </style>
+</head>
+
+<body class="bg-[#f8fafc]">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useRef, useEffect, useMemo } = React;
+        const {
+            Users, Plus, Calendar, Download, Printer, CheckCircle2,
+            ChevronRight, UserCheck, PenTool, ArrowLeft, Settings,
+            Search, MapPin, Clock, XCircle, Info, Trash2, QrCode,
+            LayoutDashboard, LogOut, Loader2, AlertCircle, Share2
+        } = lucide;
+
+        // --- Configuration ---
+        const GAS_APP_URL = "https://script.google.com/macros/s/AKfycbzbLAYsi6x1TV-KxIFVspjqg3s0WIqQvdxgUhW1WYVnyrTrBD8VegswbcZBFPaTAnSP/exec"; // 배포된 GAS 웹 앱 URL (비어있으면 로컬 환경으로 간파)
+        const ABSENCE_REASONS = ["출장", "연가", "병가", "조퇴", "병조퇴", "휴가", "기타"];
+
+        const App = () => {
+            const [view, setView] = useState('user'); // 'user' | 'admin'
+            const [adminSubView, setAdminSubView] = useState('list'); // 'list' | 'dashboard' | 'add'
+            const [isLoading, setIsLoading] = useState(false);
+            const [isPrinting, setIsPrinting] = useState(false);
+
+            const [trainings, setTrainings] = useState([]);
+            const [allStaff, setAllStaff] = useState([]);
+            const [dashboardStats, setDashboardStats] = useState([]);
+            const [selectedRegs, setSelectedRegs] = useState([]);
+
+            // Registration State
+            const [step, setStep] = useState(1);
+            const [selectedTraining, setSelectedTraining] = useState(null);
+            const [searchName, setSearchName] = useState('');
+            const [chosenStaff, setChosenStaff] = useState(null);
+            const [regStatus, setRegStatus] = useState('attended');
+            const [absenceReason, setAbsenceReason] = useState('');
+            const [qrModalUrl, setQrModalUrl] = useState(null);
+
+            // Admin Form
+            const [newTraining, setNewTraining] = useState({ title: '', location: '', startTime: '', endTime: '' });
+
+            const canvasRef = useRef(null);
+            const [isDrawing, setIsDrawing] = useState(false);
+
+            useEffect(() => { fetchInitialData(); }, []);
+
+            const fetchInitialData = async () => {
+                if (!GAS_APP_URL) {
+                    // Mock Data for local testing
+                    setTrainings([
+                        { id: '1', title: '에듀테크 인공지능 활용 연수', location: '시청각실', startTime: '15:00', endTime: '16:30' },
+                        { id: '2', title: '민주적 학교문화 조성 워크숍', location: '도서관', startTime: '14:30', endTime: '16:00' }
+                    ]);
+                    setAllStaff([
+                        { id: '1', name: '홍길동', position: '교사', grade: '6-1' },
+                        { id: '2', name: '김철수', position: '교사', grade: '5-2' }
+                    ]);
+                    return;
+                }
+                setIsLoading(true);
+                try {
+                    const res = await fetch(`${GAS_APP_URL}?action=getInitialData`);
+                    const data = await res.json();
+                    setTrainings(data.trainings || []);
+                    setAllStaff(data.staff || []);
+                } catch (err) { console.error(err); }
+                setIsLoading(false);
+            };
+
+            const fetchDashboardStats = async () => {
+                if (!GAS_APP_URL) {
+                    setDashboardStats([
+                        { id: '1', title: '에듀테크 연수', total: 10, attended: 8, absent: 2 },
+                        { id: '2', title: '학교무화 워크숍', total: 5, attended: 5, absent: 0 }
+                    ]);
+                    return;
+                }
+                setIsLoading(true);
+                try {
+                    const res = await fetch(`${GAS_APP_URL}?action=getDashboard`);
+                    const data = await res.json();
+                    setDashboardStats(data || []);
+                } catch (err) { console.error(err); }
+                setIsLoading(false);
+            };
+
+            const fetchRegistrations = async (trainingId) => {
+                if (!GAS_APP_URL) {
+                    setSelectedRegs([
+                        { id: 1, name: '홍길동', position: '교사', grade: '6-1', status: 'attended', content: 'https://via.placeholder.com/100x40?text=Sign' }
+                    ]);
+                    return;
+                }
+                setIsLoading(true);
+                try {
+                    const res = await fetch(`${GAS_APP_URL}?action=getRegistrations&trainingId=${trainingId}`);
+                    const data = await res.json();
+                    setSelectedRegs(data);
+                } catch (err) { console.error(err); }
+                setIsLoading(false);
+            };
+
+            const handleAddTraining = async () => {
+                if (!newTraining.title || !GAS_APP_URL) return;
+                setIsLoading(true);
+                await fetch(GAS_APP_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'addTraining', ...newTraining })
+                });
+                setNewTraining({ title: '', location: '', startTime: '', endTime: '' });
+                setAdminSubView('list');
+                fetchInitialData();
+            };
+
+            const handleDeleteTraining = async (id) => {
+                if (!window.confirm('이 연수 등록부를 삭제하시겠습니까? 등록된 내역은 시트에 유지되지만 목록에서는 사라집니다.')) return;
+                setIsLoading(true);
+                try {
+                    await fetch(GAS_APP_URL, {
+                        method: 'POST',
+                        body: JSON.stringify({ action: 'deleteTraining', id })
+                    });
+                    fetchInitialData();
+                    if (adminSubView === 'dashboard') fetchDashboardStats();
+                } catch (err) { console.error(err); }
+                setIsLoading(false);
+            };
+
+            const handleRegister = async () => {
+                const content = regStatus === 'attended' ? canvasRef.current.toDataURL('image/png') : absenceReason;
+                setIsLoading(true);
+                try {
+                    const res = await fetch(GAS_APP_URL, {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            action: 'register',
+                            trainingId: selectedTraining.id,
+                            trainingTitle: selectedTraining.title,
+                            name: chosenStaff.name,
+                            position: chosenStaff.position,
+                            grade: chosenStaff.grade,
+                            status: regStatus,
+                            content: content
+                        })
+                    });
+                    const data = await res.json();
+                    if (data.error) {
+                        alert(data.error);
+                    } else {
+                        setStep(5);
+                    }
+                } catch (err) { alert('등록 중 오류가 발생했습니다.'); }
+                setIsLoading(false);
+            };
+
+            const exportToCSV = (training) => {
+                fetchRegistrations(training.id).then(() => {
+                    const headers = ['번호', '직위', '성명', '소속/학급', '상태', '내용(사유/링크)'];
+                    const rows = selectedRegs.map((r, i) => [i + 1, r.position, r.name, r.grade, r.status === 'attended' ? '참석' : '불참', r.content]);
+                    const csvContent = "\uFEFF" + [headers, ...rows].map(e => e.join(",")).join("\n");
+                    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                    const link = document.createElement("a");
+                    link.href = URL.createObjectURL(blob);
+                    link.setAttribute("download", `${training.title}_등록부_${new Date().toLocaleDateString()}.csv`);
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                });
+            };
+
+            // Canvas Logic
+            useEffect(() => {
+                if (step === 4 && regStatus === 'attended' && canvasRef.current) {
+                    const canvas = canvasRef.current;
+                    const ctx = canvas.getContext('2d');
+                    ctx.strokeStyle = '#1e293b';
+                    ctx.lineWidth = 3;
+                    ctx.lineCap = 'round';
+                    ctx.lineJoin = 'round';
+                }
+            }, [step, regStatus]);
+
+            const getPos = (e) => {
+                const rect = canvasRef.current.getBoundingClientRect();
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                return { x: clientX - rect.left, y: clientY - rect.top };
+            };
+
+            const startDrawing = (e) => {
+                setIsDrawing(true);
+                const pos = getPos(e);
+                canvasRef.current.getContext('2d').beginPath();
+                canvasRef.current.getContext('2d').moveTo(pos.x, pos.y);
+            };
+
+            const draw = (e) => {
+                if (!isDrawing) return;
+                const pos = getPos(e);
+                canvasRef.current.getContext('2d').lineTo(pos.x, pos.y);
+                canvasRef.current.getContext('2d').stroke();
+            };
+
+            // Filtering
+            const filteredStaffList = useMemo(() => {
+                if (searchName.trim().length === 0) return [];
+                return allStaff.filter(s => s.name.includes(searchName));
+            }, [searchName, allStaff]);
+
+            // Print View
+            if (isPrinting && selectedTraining) {
+                return (
+                    <div className="p-10 bg-white min-h-screen text-black print:p-0 font-['Noto_Sans_KR']">
+                        <div className="max-w-4xl mx-auto border-2 border-black p-8">
+                            <h1 className="text-3xl font-bold text-center underline mb-8">{selectedTraining.title} 등록부</h1>
+                            <div className="grid grid-cols-2 gap-4 mb-6 border-b-2 border-black pb-4">
+                                <p><strong>장소:</strong> {selectedTraining.location}</p>
+                                <p><strong>일시:</strong> {selectedTraining.startTime} {selectedTraining.endTime ? `~ ${selectedTraining.endTime}` : ''}</p>
+                            </div>
+                            <table className="w-full border-collapse border border-black text-sm">
+                                <thead>
+                                    <tr className="bg-gray-100">
+                                        <th className="border border-black p-2 w-12 text-center">번호</th>
+                                        <th className="border border-black p-2 w-24 text-center">직위</th>
+                                        <th className="border border-black p-2 w-24 text-center">성명</th>
+                                        <th className="border border-black p-2 w-32 text-center">소속/학급</th>
+                                        <th className="border border-black p-2 text-center">서명 또는 사유</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {selectedRegs.map((reg, idx) => (
+                                        <tr key={idx} className="h-10">
+                                            <td className="border border-black p-2 text-center">{idx + 1}</td>
+                                            <td className="border border-black p-2 text-center">{reg.position}</td>
+                                            <td className="border border-black p-2 text-center font-bold">{reg.name}</td>
+                                            <td className="border border-black p-2 text-center">{reg.grade}</td>
+                                            <td className="border border-black p-1 text-center">
+                                                {reg.status === 'attended' ? (
+                                                    reg.content.startsWith('http') ?
+                                                        <img src={reg.content} alt="서명" className="h-8 mx-auto" /> :
+                                                        <span className="text-[10px] text-gray-400">서명완료</span>
+                                                ) : (
+                                                    <span className="text-red-600 font-bold">{reg.content}</span>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                    {[...Array(Math.max(0, 10 - selectedRegs.length))].map((_, i) => (
+                                        <tr key={`empty-${i}`} className="h-10">
+                                            <td className="border border-black p-2 text-center">{selectedRegs.length + i + 1}</td>
+                                            <td className="border border-black p-2"></td>
+                                            <td className="border border-black p-2"></td>
+                                            <td className="border border-black p-2"></td>
+                                            <td className="border border-black p-2"></td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                            <p className="mt-10 text-right font-bold text-lg">위와 같이 연수에 참석하였음을 확인합니다.</p>
+                            <p className="mt-4 text-right">{new Date().toLocaleDateString()}</p>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="min-h-screen pb-20 overflow-x-hidden">
+                    {/* QR Modal */}
+                    {qrModalUrl && (
+                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in">
+                            <div className="bg-white rounded-3xl p-8 max-w-sm w-full text-center space-y-4 shadow-2xl">
+                                <h3 className="text-xl font-bold text-slate-800">연수 등록 QR 코드</h3>
+                                <p className="text-slate-500 text-sm">참석자들이 스캔하여 등록할 수 있습니다.</p>
+                                <div className="bg-white p-4 rounded-2xl border-2 border-slate-100 shadow-inner flex justify-center items-center mx-auto">
+                                    <img src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrModalUrl)}`} alt="QR Code" className="w-48 h-48" />
+                                </div>
+                                <button onClick={() => setQrModalUrl(null)} className="w-full py-3 bg-slate-900 text-white rounded-xl font-bold mt-4">닫기</button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Navigation */}
+                    <nav className="glass sticky top-0 z-50 w-full px-6 py-4 mb-4">
+                        <div className="max-w-5xl mx-auto flex justify-between items-center text-slate-800">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-indigo-600 rounded-xl text-white shadow-lg shadow-indigo-200">
+                                    <Users size={24} strokeWidth={2.5} />
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="font-outfit font-black text-xl tracking-tight leading-none text-indigo-900">TRAINING</span>
+                                    <span className="text-[10px] font-bold text-indigo-500 tracking-[0.2em] uppercase">Registrar</span>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => {
+                                    const nextView = view === 'user' ? 'admin' : 'user';
+                                    setView(nextView);
+                                    setStep(1);
+                                    if (nextView === 'admin') setAdminSubView('list');
+                                }}
+                                className="flex items-center gap-2 bg-white border border-slate-200 hover:bg-slate-50 px-5 py-2.5 rounded-2xl text-sm font-bold transition-all shadow-sm"
+                            >
+                                {view === 'user' ? <Settings size={18} className="text-indigo-600" /> : <LogOut size={18} className="text-slate-400" />}
+                                {view === 'user' ? '관리 모드' : '사용자 화면'}
+                            </button>
+                        </div>
+                    </nav>
+
+                    <main className="max-w-4xl mx-auto px-6">
+                        {view === 'admin' ? (
+                            <div className="space-y-6 animate-in">
+                                {/* Admin Sidebar-like Tabs */}
+                                <div className="flex bg-slate-200/50 p-1 rounded-2xl w-fit mb-8 mx-auto md:mx-0">
+                                    <button onClick={() => setAdminSubView('list')} className={`px-6 py-2 rounded-xl text-sm font-bold transition-all ${adminSubView === 'list' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>목록 관리</button>
+                                    <button onClick={() => { setAdminSubView('dashboard'); fetchDashboardStats(); }} className={`px-6 py-2 rounded-xl text-sm font-bold transition-all ${adminSubView === 'dashboard' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>대시보드</button>
+                                    <button onClick={() => setAdminSubView('add')} className={`px-6 py-2 rounded-xl text-sm font-bold transition-all ${adminSubView === 'add' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>신규 생성</button>
+                                </div>
+
+                                {adminSubView === 'add' && (
+                                    <div className="bg-white p-8 rounded-[2rem] border border-slate-200 shadow-xl shadow-slate-200/50">
+                                        <h2 className="text-2xl font-black mb-6 text-slate-800 flex items-center gap-3">
+                                            <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center"><Plus size={20} /></div>
+                                            연수 등록부 생성
+                                        </h2>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <div className="md:col-span-2">
+                                                <label className="text-xs font-black text-indigo-400 mb-2 block uppercase tracking-wider ml-1">연수 프로그램명</label>
+                                                <input type="text" placeholder="예: 2024 학기 소프트웨어 연수" value={newTraining.title} onChange={e => setNewTraining({ ...newTraining, title: e.target.value })}
+                                                    className="w-full px-6 py-4 rounded-2xl border-2 border-slate-50 focus:border-indigo-400 bg-slate-50/50 focus:bg-white transition-all outline-none text-lg font-bold" />
+                                            </div>
+                                            <div>
+                                                <label className="text-xs font-black text-indigo-400 mb-2 block uppercase tracking-wider ml-1">장소</label>
+                                                <input type="text" placeholder="시청각실, 각 교실 등" value={newTraining.location} onChange={e => setNewTraining({ ...newTraining, location: e.target.value })}
+                                                    className="w-full px-5 py-3.5 rounded-2xl border-2 border-slate-50 focus:border-indigo-400 bg-slate-50/50 focus:bg-white transition-all outline-none font-bold" />
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-3">
+                                                <div>
+                                                    <label className="text-xs font-black text-indigo-400 mb-2 block uppercase tracking-wider ml-1">시작</label>
+                                                    <input type="time" value={newTraining.startTime} onChange={e => setNewTraining({ ...newTraining, startTime: e.target.value })}
+                                                        className="w-full px-5 py-3.5 rounded-2xl border-2 border-slate-50 focus:border-indigo-400 bg-slate-50/50 focus:bg-white transition-all outline-none font-bold" />
+                                                </div>
+                                                <div>
+                                                    <label className="text-xs font-black text-indigo-400 mb-2 block uppercase tracking-wider ml-1">종료</label>
+                                                    <input type="time" value={newTraining.endTime} onChange={e => setNewTraining({ ...newTraining, endTime: e.target.value })}
+                                                        className="w-full px-5 py-3.5 rounded-2xl border-2 border-slate-50 focus:border-indigo-400 bg-slate-50/50 focus:bg-white transition-all outline-none font-bold" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <button onClick={handleAddTraining} className="w-full mt-8 bg-indigo-600 text-white font-black py-5 rounded-[1.5rem] hover:bg-indigo-700 shadow-lg shadow-indigo-100 transition-all text-lg">생성하기</button>
+                                    </div>
+                                )}
+
+                                {adminSubView === 'list' && (
+                                    <div className="grid grid-cols-1 gap-4">
+                                        {trainings.map(t => (
+                                            <div key={t.id} className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6 hover:shadow-md transition-shadow">
+                                                <div className="flex-1">
+                                                    <div className="flex items-center gap-2 mb-1">
+                                                        <span className="px-2.5 py-1 bg-indigo-50 text-indigo-600 text-[10px] font-black rounded-lg uppercase tracking-wide">AVAILABLE</span>
+                                                        <span className="text-xs text-slate-400 font-bold">{new Date().toLocaleDateString()}</span>
+                                                    </div>
+                                                    <h3 className="font-black text-xl text-slate-800">{t.title}</h3>
+                                                    <div className="flex gap-4 text-sm text-slate-400 font-semibold mt-1">
+                                                        <span className="flex items-center gap-1.5"><MapPin size={14} className="text-slate-300" /> {t.location}</span>
+                                                        <span className="flex items-center gap-1.5"><Clock size={14} className="text-slate-300" /> {t.startTime} {t.endTime && `~ ${t.endTime}`}</span>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <button onClick={() => setQrModalUrl(`${window.location.href.split('?')[0]}?trainingId=${t.id}`)} className="p-3 bg-slate-50 text-slate-600 rounded-2xl hover:bg-slate-100 transition-all border border-slate-100" title="QR 생성"><QrCode size={20} /></button>
+                                                    <button onClick={() => handlePrint(t)} className="p-3 bg-indigo-50 text-indigo-600 rounded-2xl hover:bg-indigo-100 transition-all border border-indigo-100" title="인쇄"><Printer size={20} /></button>
+                                                    <button onClick={() => exportToCSV(t)} className="p-3 bg-emerald-50 text-emerald-600 rounded-2xl hover:bg-emerald-100 transition-all border border-emerald-100" title="엑셀 저장"><Download size={20} /></button>
+                                                    <button onClick={() => handleDeleteTraining(t.id)} className="p-3 bg-rose-50 text-rose-500 rounded-2xl hover:bg-rose-100 transition-all border border-rose-100" title="삭제"><Trash2 size={20} /></button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                        {trainings.length === 0 && <div className="text-center py-20 text-slate-400 font-bold">등록된 연수가 없습니다.</div>}
+                                    </div>
+                                )}
+
+                                {adminSubView === 'dashboard' && (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                        {dashboardStats.map(stat => (
+                                            <div key={stat.id} className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-4">
+                                                <h4 className="font-bold text-slate-800 truncate">{stat.title}</h4>
+                                                <div className="flex justify-between items-end">
+                                                    <div>
+                                                        <span className="text-3xl font-black text-indigo-600">{stat.attended}</span>
+                                                        <span className="text-slate-300 text-sm font-bold ml-1">/ {stat.total}</span>
+                                                    </div>
+                                                    <span className="text-xs font-bold text-emerald-500 bg-emerald-50 px-2 py-1 rounded-lg">참석률 {Math.round((stat.attended / (stat.total || 1)) * 100)}%</span>
+                                                </div>
+                                                <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden flex">
+                                                    <div className="bg-indigo-500 h-full" style={{ width: `${(stat.attended / (stat.total || 1)) * 100}%` }}></div>
+                                                    <div className="bg-rose-400 h-full" style={{ width: `${(stat.absent / (stat.total || 1)) * 100}%` }}></div>
+                                                </div>
+                                                <div className="flex justify-between text-[10px] font-bold uppercase tracking-tight">
+                                                    <span className="text-indigo-500">참석: {stat.attended}</span>
+                                                    <span className="text-rose-400">불참: {stat.absent}</span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            <div className="max-w-xl mx-auto py-4">
+                                <div className="bg-white p-8 md:p-12 rounded-[2.5rem] shadow-2xl shadow-indigo-100 border border-slate-50 min-h-[500px] flex flex-col relative overflow-hidden">
+                                    <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-500"></div>
+
+                                    {step < 5 && (
+                                        <div className="flex justify-between items-center mb-8">
+                                            <div className="flex gap-2">
+                                                {[1, 2, 3, 4].map(i => (
+                                                    <div key={i} className={`h-1.5 rounded-full transition-all duration-300 ${step >= i ? 'w-8 bg-indigo-600' : 'w-2 bg-slate-100'}`}></div>
+                                                ))}
+                                            </div>
+                                            <span className="text-[10px] font-black text-indigo-300 uppercase tracking-widest">STEP {step} / 4</span>
+                                        </div>
+                                    )}
+
+                                    {step === 1 && (
+                                        <div className="space-y-8 animate-in">
+                                            <div className="text-center space-y-2">
+                                                <h2 className="text-3xl font-black text-slate-800 tracking-tight">연수 선택</h2>
+                                                <p className="text-slate-400 font-medium">참석하신 연수 일정을 선택해 주세요</p>
+                                            </div>
+                                            <div className="space-y-4">
+                                                {trainings.map(t => (
+                                                    <button key={t.id} onClick={() => { setSelectedTraining(t); setStep(2); }} className="w-full group text-left p-6 rounded-3xl border-2 border-slate-50 hover:border-indigo-200 hover:bg-slate-50/50 transition-all flex items-center justify-between">
+                                                        <div className="flex-1">
+                                                            <p className="font-black text-slate-700 text-lg group-hover:text-indigo-700">{t.title}</p>
+                                                            <div className="flex gap-4 text-xs text-slate-300 font-bold mt-1.5 uppercase">
+                                                                <span className="flex items-center gap-1"><MapPin size={12} /> {t.location}</span>
+                                                                <span className="flex items-center gap-1"><Clock size={12} /> {t.startTime}</span>
+                                                            </div>
+                                                        </div>
+                                                        <div className="w-10 h-10 bg-slate-50 group-hover:bg-indigo-600 group-hover:text-white rounded-2xl flex items-center justify-center transition-all">
+                                                            <ChevronRight size={20} />
+                                                        </div>
+                                                    </button>
+                                                ))}
+                                                {trainings.length === 0 && <div className="text-center py-10 text-slate-300 font-bold italic">현재 열려있는 연수가 없습니다.</div>}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {step === 2 && (
+                                        <div className="space-y-8 animate-in">
+                                            <button onClick={() => setStep(1)} className="text-slate-300 hover:text-indigo-600 flex items-center gap-1.5 text-xs font-black uppercase tracking-widest"><ArrowLeft size={14} /> BACK</button>
+                                            <div className="text-center space-y-2">
+                                                <h2 className="text-3xl font-black text-slate-800 tracking-tight">본인 확인</h2>
+                                                <p className="text-slate-400 font-medium">성함을 검색하여 선택해 주세요</p>
+                                            </div>
+                                            <div className="relative group">
+                                                <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-indigo-500 transition-colors" size={20} />
+                                                <input type="text" placeholder="성함 입력 시 자동 검색" value={searchName} onChange={e => setSearchName(e.target.value)}
+                                                    className="w-full pl-16 pr-6 py-5 rounded-3xl border-2 border-slate-50 focus:border-indigo-400 bg-slate-50/50 focus:bg-white outline-none text-xl font-bold transition-all shadow-inner" />
+                                            </div>
+                                            <div className="space-y-3 max-h-64 overflow-y-auto pr-2 custom-scroll">
+                                                {filteredStaffList.map(s => (
+                                                    <button key={s.id} onClick={() => { setChosenStaff(s); setStep(3); }} className="w-full flex items-center justify-between p-5 rounded-2xl border border-slate-50 hover:border-indigo-100 hover:bg-indigo-50/30 transition-all animate-in group">
+                                                        <div><span className="font-black text-slate-700 text-lg">{s.name}</span> <span className="text-xs text-slate-300 font-black ml-3 uppercase tracking-tighter">{s.position}</span></div>
+                                                        <span className="text-xs font-black text-indigo-400 bg-indigo-50 px-3 py-1.5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity">SELECT</span>
+                                                    </button>
+                                                ))}
+                                                {searchName.length > 0 && filteredStaffList.length === 0 && <div className="text-center py-6 text-slate-300 font-bold">검색 결과가 없습니다.</div>}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {step === 3 && (
+                                        <div className="space-y-10 animate-in text-center flex-1 flex flex-col justify-center">
+                                            <div className="absolute top-8 left-8">
+                                                <button onClick={() => setStep(2)} className="text-slate-300 hover:text-indigo-600 flex items-center gap-1.5 text-xs font-black uppercase tracking-widest"><ArrowLeft size={14} /> BACK</button>
+                                            </div>
+                                            <div className="space-y-3">
+                                                <div className="w-20 h-20 bg-indigo-50 rounded-[2rem] flex items-center justify-center mx-auto mb-4 border-2 border-white shadow-xl">
+                                                    <UserCheck size={36} className="text-indigo-600" />
+                                                </div>
+                                                <h2 className="text-3xl font-black text-slate-800 tracking-tight">{chosenStaff.name}님, 확인되었습니다</h2>
+                                                <p className="text-slate-400 font-medium">참석 여부와 방식의 하나를 선택해 주세요</p>
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-6">
+                                                <button onClick={() => { setRegStatus('attended'); setStep(4); }} className="p-8 rounded-[2rem] border-2 border-slate-50 hover:border-indigo-500 bg-slate-50/30 hover:bg-white transition-all group flex flex-col items-center gap-4 shadow-sm hover:shadow-xl">
+                                                    <div className="w-14 h-14 bg-white text-indigo-600 rounded-2xl flex items-center justify-center shadow-md group-hover:scale-110 transition-transform"><PenTool size={28} /></div>
+                                                    <span className="font-black text-lg text-slate-700">참석 (서명)</span>
+                                                </button>
+                                                <button onClick={() => { setRegStatus('absent'); setStep(4); }} className="p-8 rounded-[2rem] border-2 border-slate-50 hover:border-rose-500 bg-slate-50/30 hover:bg-white transition-all group flex flex-col items-center gap-4 shadow-sm hover:shadow-xl">
+                                                    <div className="w-14 h-14 bg-white text-rose-500 rounded-2xl flex items-center justify-center shadow-md group-hover:scale-110 transition-transform"><XCircle size={28} /></div>
+                                                    <span className="font-black text-lg text-slate-700">불참 (기타)</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {step === 4 && (
+                                        <div className="space-y-8 animate-in text-center flex-1 flex flex-col">
+                                            <div className="absolute top-8 left-8">
+                                                <button onClick={() => setStep(3)} className="text-slate-300 hover:text-indigo-600 flex items-center gap-1.5 text-xs font-black uppercase tracking-widest"><ArrowLeft size={14} /> BACK</button>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <h2 className="text-3xl font-black text-slate-800 tracking-tight">
+                                                    {regStatus === 'attended' ? '서명' : '사유 선택'}
+                                                </h2>
+                                                <p className="text-slate-400 font-medium">
+                                                    {regStatus === 'attended' ? '아래 공간에 서명해 주세요' : '불참하시는 사유를 선택해 주세요'}
+                                                </p>
+                                            </div>
+
+                                            {regStatus === 'attended' ? (
+                                                <div className="space-y-6 flex-1 flex flex-col">
+                                                    <div className="canvas-container flex-1 bg-slate-50 border-4 border-dashed border-slate-100 rounded-[2rem] relative shadow-inner overflow-hidden min-h-[220px]">
+                                                        <canvas ref={canvasRef} width={500} height={250}
+                                                            onMouseDown={startDrawing} onMouseMove={draw} onMouseUp={() => setIsDrawing(false)}
+                                                            onTouchStart={startDrawing} onTouchMove={draw} onTouchEnd={() => setIsDrawing(false)}
+                                                            className="absolute inset-0 w-full h-full cursor-crosshair" />
+                                                    </div>
+                                                    <div className="flex justify-between items-center px-2">
+                                                        <button onClick={() => { const ctx = canvasRef.current.getContext('2d'); ctx.clearRect(0, 0, 500, 250); }}
+                                                            className="text-xs font-black text-rose-400 hover:text-rose-600 uppercase tracking-widest flex items-center gap-1">
+                                                            <Trash2 size={14} /> 전체 지우기
+                                                        </button>
+                                                        <span className="text-[10px] font-black text-slate-300 italic">서명 후 [등록 완료] 버튼을 눌러주세요</span>
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <div className="grid grid-cols-2 gap-3 flex-1">
+                                                    {ABSENCE_REASONS.map(r => (
+                                                        <button key={r} onClick={() => setAbsenceReason(r)}
+                                                            className={`p-4 rounded-2xl border-2 transition-all font-black ${absenceReason === r ? 'border-indigo-600 bg-indigo-50 text-indigo-700 shadow-lg' : 'border-slate-50 text-slate-300 hover:bg-slate-50 hover:text-slate-500'}`}>
+                                                            {r}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
+
+                                            <button disabled={isLoading || (regStatus === 'absent' && !absenceReason)} onClick={handleRegister}
+                                                className="w-full bg-indigo-600 text-white font-black py-5 rounded-[1.8rem] hover:bg-indigo-700 shadow-xl shadow-indigo-200 transition-all text-xl disabled:bg-slate-200 disabled:shadow-none flex items-center justify-center gap-3">
+                                                {isLoading ? <Loader2 className="animate-spin" /> : <CheckCircle2 size={24} />}
+                                                등록 완료
+                                            </button>
+                                        </div>
+                                    )}
+
+                                    {step === 5 && (
+                                        <div className="text-center py-10 space-y-10 animate-in flex flex-col items-center justify-center flex-1">
+                                            <div className="relative">
+                                                <div className="absolute inset-0 bg-emerald-400 blur-2xl opacity-20 animate-pulse"></div>
+                                                <div className="relative w-28 h-28 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center border-4 border-white shadow-2xl">
+                                                    <CheckCircle2 size={64} strokeWidth={2.5} />
+                                                </div>
+                                            </div>
+                                            <div className="space-y-4">
+                                                <h2 className="text-4xl font-black text-slate-800 tracking-tighter">등록이 완료되었습니다!</h2>
+                                                <p className="text-slate-400 font-bold px-4 leading-relaxed">성실하게 연수에 참여해 주셔서 감사합니다.<br />이제 창을 닫으셔도 좋습니다.</p>
+                                            </div>
+                                            <div className="w-full max-w-xs pt-4">
+                                                <button onClick={() => { setStep(1); setSearchName(''); setAbsenceReason(''); setSelectedTraining(null); }}
+                                                    className="w-full bg-slate-900 text-white px-8 py-5 rounded-[1.5rem] font-black text-lg btn-hover">처음으로</button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                                <p className="text-center text-[10px] text-slate-300 font-black mt-8 tracking-[0.3em] uppercase opacity-50">School Training Management System v2.0</p>
+                            </div>
+                        )}
+                    </main>
+
+                    {isLoading && view === 'user' && step !== 4 && (
+                        <div className="fixed inset-0 bg-slate-900/10 backdrop-blur-sm flex items-center justify-center z-[100] animate-in">
+                            <div className="bg-white p-6 rounded-3xl shadow-2xl flex flex-col items-center gap-4">
+                                <Loader2 className="animate-spin text-indigo-600" size={40} />
+                                <span className="font-black text-slate-800 tracking-wider">처리 중입니다...</span>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+
+</html>
