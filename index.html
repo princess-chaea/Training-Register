@@ -1,18 +1,4 @@
-<!DOCTYPE html>
-<html lang="ko">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>학교 연수 등록 시스템</title>
-    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap"
-        rel="stylesheet">
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
     <style>
         body {
             font-family: 'Inter', 'Noto Sans KR', sans-serif;
@@ -88,29 +74,66 @@
 
     <script type="text/babel">
         const { useState, useRef, useEffect, useMemo } = React;
-        const {
-            Users, Plus, Calendar, Download, Printer, CheckCircle2,
-            ChevronRight, UserCheck, PenTool, ArrowLeft, Settings,
-            Search, MapPin, Clock, XCircle, Info, Trash2, QrCode,
-            LayoutDashboard, LogOut, Loader2, AlertCircle, Share2
-        } = lucide;
+        
+        // --- Lucide React Helper ---
+        // 브라우저 환경에서 Lucide 아이콘을 React 컴포넌트로 변환하기 위한 헬퍼
+        const Icon = ({ name, size = 24, className = "", strokeWidth = 2 }) => {
+            const iconRef = useRef(null);
+            
+            useEffect(() => {
+                if (iconRef.current) {
+                    lucide.createIcons({
+                        targets: [iconRef.current],
+                        icons: { [name]: lucide.icons[name] },
+                        attrs: {
+                            class: className,
+                            width: size,
+                            height: size,
+                            'stroke-width': strokeWidth
+                        }
+                    });
+                }
+            }, [name, size, className, strokeWidth]);
+            
+            return <i ref={iconRef} data-lucide={name} className={className}></i>;
+        };
+
+        // 기존의 컴포넌트 방식 대신 Icon 헬퍼를 사용하는 래퍼 컴포넌트들
+        const Users = (props) => <Icon name="users" {...props} />;
+        const Plus = (props) => <Icon name="plus" {...props} />;
+        const Calendar = (props) => <Icon name="calendar" {...props} />;
+        const Download = (props) => <Icon name="download" {...props} />;
+        const Printer = (props) => <Icon name="printer" {...props} />;
+        const CheckCircle2 = (props) => <Icon name="check-circle-2" {...props} />;
+        const ChevronRight = (props) => <Icon name="chevron-right" {...props} />;
+        const UserCheck = (props) => <Icon name="user-check" {...props} />;
+        const PenTool = (props) => <Icon name="pen-tool" {...props} />;
+        const ArrowLeft = (props) => <Icon name="arrow-left" {...props} />;
+        const Settings = (props) => <Icon name="settings" {...props} />;
+        const Search = (props) => <Icon name="search" {...props} />;
+        const MapPin = (props) => <Icon name="map-pin" {...props} />;
+        const Clock = (props) => <Icon name="clock" {...props} />;
+        const XCircle = (props) => <Icon name="x-circle" {...props} />;
+        const Trash2 = (props) => <Icon name="trash-2" {...props} />;
+        const QrCode = (props) => <Icon name="qr-code" {...props} />;
+        const LogOut = (props) => <Icon name="log-out" {...props} />;
+        const Loader2 = (props) => <Icon name="loader-2" {...props} />;
 
         // --- Configuration ---
-        const GAS_APP_URL = "https://script.google.com/macros/s/AKfycbzbLAYsi6x1TV-KxIFVspjqg3s0WIqQvdxgUhW1WYVnyrTrBD8VegswbcZBFPaTAnSP/exec"; // 배포된 GAS 웹 앱 URL (비어있으면 로컬 환경으로 간파)
+        const GAS_APP_URL = "https://script.google.com/macros/s/AKfycbzbLAYsi6x1TV-KxIFVspjqg3s0WIqQvdxgUhW1WYVnyrTrBD8VegswbcZBFPaTAnSP/exec"; 
         const ABSENCE_REASONS = ["출장", "연가", "병가", "조퇴", "병조퇴", "휴가", "기타"];
 
         const App = () => {
-            const [view, setView] = useState('user'); // 'user' | 'admin'
-            const [adminSubView, setAdminSubView] = useState('list'); // 'list' | 'dashboard' | 'add'
+            const [view, setView] = useState('user'); 
+            const [adminSubView, setAdminSubView] = useState('list'); 
             const [isLoading, setIsLoading] = useState(false);
             const [isPrinting, setIsPrinting] = useState(false);
-
+            
             const [trainings, setTrainings] = useState([]);
             const [allStaff, setAllStaff] = useState([]);
             const [dashboardStats, setDashboardStats] = useState([]);
             const [selectedRegs, setSelectedRegs] = useState([]);
 
-            // Registration State
             const [step, setStep] = useState(1);
             const [selectedTraining, setSelectedTraining] = useState(null);
             const [searchName, setSearchName] = useState('');
@@ -119,7 +142,6 @@
             const [absenceReason, setAbsenceReason] = useState('');
             const [qrModalUrl, setQrModalUrl] = useState(null);
 
-            // Admin Form
             const [newTraining, setNewTraining] = useState({ title: '', location: '', startTime: '', endTime: '' });
 
             const canvasRef = useRef(null);
@@ -128,18 +150,7 @@
             useEffect(() => { fetchInitialData(); }, []);
 
             const fetchInitialData = async () => {
-                if (!GAS_APP_URL) {
-                    // Mock Data for local testing
-                    setTrainings([
-                        { id: '1', title: '에듀테크 인공지능 활용 연수', location: '시청각실', startTime: '15:00', endTime: '16:30' },
-                        { id: '2', title: '민주적 학교문화 조성 워크숍', location: '도서관', startTime: '14:30', endTime: '16:00' }
-                    ]);
-                    setAllStaff([
-                        { id: '1', name: '홍길동', position: '교사', grade: '6-1' },
-                        { id: '2', name: '김철수', position: '교사', grade: '5-2' }
-                    ]);
-                    return;
-                }
+                if (!GAS_APP_URL) return;
                 setIsLoading(true);
                 try {
                     const res = await fetch(`${GAS_APP_URL}?action=getInitialData`);
@@ -151,13 +162,7 @@
             };
 
             const fetchDashboardStats = async () => {
-                if (!GAS_APP_URL) {
-                    setDashboardStats([
-                        { id: '1', title: '에듀테크 연수', total: 10, attended: 8, absent: 2 },
-                        { id: '2', title: '학교무화 워크숍', total: 5, attended: 5, absent: 0 }
-                    ]);
-                    return;
-                }
+                if (!GAS_APP_URL) return;
                 setIsLoading(true);
                 try {
                     const res = await fetch(`${GAS_APP_URL}?action=getDashboard`);
@@ -168,12 +173,7 @@
             };
 
             const fetchRegistrations = async (trainingId) => {
-                if (!GAS_APP_URL) {
-                    setSelectedRegs([
-                        { id: 1, name: '홍길동', position: '교사', grade: '6-1', status: 'attended', content: 'https://via.placeholder.com/100x40?text=Sign' }
-                    ]);
-                    return;
-                }
+                if (!GAS_APP_URL) return;
                 setIsLoading(true);
                 try {
                     const res = await fetch(`${GAS_APP_URL}?action=getRegistrations&trainingId=${trainingId}`);
@@ -251,7 +251,6 @@
                 });
             };
 
-            // Canvas Logic
             useEffect(() => {
                 if (step === 4 && regStatus === 'attended' && canvasRef.current) {
                     const canvas = canvasRef.current;
@@ -284,13 +283,11 @@
                 canvasRef.current.getContext('2d').stroke();
             };
 
-            // Filtering
             const filteredStaffList = useMemo(() => {
                 if (searchName.trim().length === 0) return [];
                 return allStaff.filter(s => s.name.includes(searchName));
             }, [searchName, allStaff]);
 
-            // Print View
             if (isPrinting && selectedTraining) {
                 return (
                     <div className="p-10 bg-white min-h-screen text-black print:p-0 font-['Noto_Sans_KR']">
@@ -348,7 +345,6 @@
 
             return (
                 <div className="min-h-screen pb-20 overflow-x-hidden">
-                    {/* QR Modal */}
                     {qrModalUrl && (
                         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in">
                             <div className="bg-white rounded-3xl p-8 max-w-sm w-full text-center space-y-4 shadow-2xl">
@@ -362,7 +358,6 @@
                         </div>
                     )}
 
-                    {/* Navigation */}
                     <nav className="glass sticky top-0 z-50 w-full px-6 py-4 mb-4">
                         <div className="max-w-5xl mx-auto flex justify-between items-center text-slate-800">
                             <div className="flex items-center gap-3">
@@ -392,7 +387,6 @@
                     <main className="max-w-4xl mx-auto px-6">
                         {view === 'admin' ? (
                             <div className="space-y-6 animate-in">
-                                {/* Admin Sidebar-like Tabs */}
                                 <div className="flex bg-slate-200/50 p-1 rounded-2xl w-fit mb-8 mx-auto md:mx-0">
                                     <button onClick={() => setAdminSubView('list')} className={`px-6 py-2 rounded-xl text-sm font-bold transition-all ${adminSubView === 'list' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>목록 관리</button>
                                     <button onClick={() => { setAdminSubView('dashboard'); fetchDashboardStats(); }} className={`px-6 py-2 rounded-xl text-sm font-bold transition-all ${adminSubView === 'dashboard' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>대시보드</button>
