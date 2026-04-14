@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>\uD559\uAD50 \uC5F0\uC218 \uB4F1\uB85D \uC2DC\uC2A4\uD15C</title>
+    <title>학교 연수 등록 시스템</title>
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -49,7 +49,7 @@
         );
 
         const GAS_APP_URL = "https://script.google.com/macros/s/AKfycbzbLAYsi6x1TV-KxIFVspjqg3s0WIqQvdxgUhW1WYVnyrTrBD8VegswbcZBFPaTAnSP/exec";
-        const ABSENCE_REASONS = ["\uCD9C\uC7A5", "\uC5F0\uAC00", "\uBCD1\uAC00", "\uC870\uD1F4", "\uBCD1\uC870\uD1F4", "\uD734\uAC00", "\uAE30\uD0C0"];
+        const ABSENCE_REASONS = ["출장", "연가", "병가", "조퇴", "병조퇴", "휴가", "기타"];
 
         const formatTime = (v) => {
             if (!v) return "";
@@ -68,8 +68,8 @@
             try {
                 const d = new Date(v);
                 if (isNaN(d.getTime())) return String(v);
-                const w = ['\uC77C', '\u1106\u116F\u11AF', '\uD654', '\uC218', '\uBAA9', '\uAE08', '\uD1A0'];
-                return d.toLocaleDateString('ko-KR', { year:'numeric', month:'long', day:'numeric' }) + ` (${w[d.getDay()]})`;
+                const w = ['일', '월', '화', '수', '목', '금', '토'];
+                return d.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' }) + ` (${w[d.getDay()]})`;
             } catch (e) { return String(v); }
         };
 
@@ -92,17 +92,17 @@
             const [customAlert, setCustomAlert] = useState(null);
             const [showOverwriteConfirm, setShowOverwriteConfirm] = useState(false);
             const [isManualMode, setIsManualMode] = useState(false);
-            const [manualInfo, setManualInfo] = useState({ school: '\uD558\uC900\uCD08\uB4F1\uD559\uAD50', position: '', name: '' });
+            const [manualInfo, setManualInfo] = useState({ school: '하주초등학교', position: '', name: '' });
             
             const canvasRef = useRef(null);
             const [isDrawing, setIsDrawing] = useState(false);
 
             useLayoutEffect(() => {
-                if (window.lucide) {
-                    const observer = new MutationObserver(() => lucide.createIcons());
-                    observer.observe(document.getElementById('root'), { childList: true, subtree: true });
-                    lucide.createIcons();
-                }
+                const initIcons = () => { if (window.lucide) window.lucide.createIcons(); };
+                initIcons();
+                const observer = new MutationObserver(initIcons);
+                observer.observe(document.getElementById('root'), { childList: true, subtree: true });
+                return () => observer.disconnect();
             }, []);
 
             useEffect(() => { fetchInitialData(); }, []);
@@ -157,9 +157,9 @@
                         })
                     });
                     const data = await res.json();
-                    if (data.error) setCustomAlert({ title: '\uC624\uB958', message: data.error });
+                    if (data.error) setCustomAlert({ title: '오류', message: data.error });
                     else setStep(5);
-                } catch (e) { setCustomAlert({ title: '\uC624\uB958', message: '\uB4F1\uB85D \uC911 \uC624\uB958\uAC00 \uBC1C\uC0DD\uD548\uC2B5\uB2C8\uB2E4.' }); }
+                } catch (e) { setCustomAlert({ title: '오류', message: '등록 중 오류가 발생했습니다.' }); }
                 setIsLoading(false);
             };
 
@@ -181,8 +181,8 @@
                         const targets = JSON.parse(training.targetParticipants || "[]");
                         displayList = targets.map(name => {
                             const r = regs.find(reg => reg.name === name);
-                            const s = allStaff.find(st => st.name === name);
-                            return r || { name, position: s?.position || '', grade: s?.grade || '', status: 'none', content: '' };
+                            const staff = allStaff.find(st => st.name === name);
+                            return r || { name, position: staff?.position || '', grade: staff?.grade || '', status: 'none', content: '' };
                         });
                     } catch (e) { displayList = []; }
                 }
@@ -200,30 +200,30 @@
                     <table style="width:100%; border-collapse:collapse; font-size:8pt; table-layout:fixed;">
                         <thead><tr style="background:#f3f3f3;">
                             <th style="border:1pt solid black; width:30px;">No.</th>
-                            <th style="border:1pt solid black; width:${dual?'80px':'130px'};">\uC18C\uC18D</th>
-                            <th style="border:1pt solid black; width:${dual?'60px':'90px'};">\uC9C1\uC704</th>
-                            <th style="border:1pt solid black; width:${dual?'70px':'110px'};">\uC131\uBA85</th>
-                            <th style="border:1pt solid black; width:${dual?'110px':'160px'};">\uC11C\uBA85</th>
-                            <th style="border:1pt solid black;">\uBE44\uACE0</th>
+                            <th style="border:1pt solid black; width:${dual?'80px':'130px'};">소속</th>
+                            <th style="border:1pt solid black; width:${dual?'60px':'90px'};">직위</th>
+                            <th style="border:1pt solid black; width:${dual?'70px':'110px'};">성명</th>
+                            <th style="border:1pt solid black; width:${dual?'110px':'160px'};">서명</th>
+                            <th style="border:1pt solid black;">비고</th>
                         </tr></thead>
                         <tbody>${list.map((r, i) => `
                             <tr style="height:35px;">
                                 <td style="border:1pt solid black; text-align:center;">${startVal + i + 1}</td>
-                                <td style="border:1pt solid black; text-align:center;">${r.grade || '\uD558\uC900\uCD08\uB4F1\uD559\uAD50'}</td>
+                                <td style="border:1pt solid black; text-align:center;">${r.grade || '하주초등학교'}</td>
                                 <td style="border:1pt solid black; text-align:center;">${r.position}</td>
                                 <td style="border:1pt solid black; text-align:center;"><strong>${r.name}</strong></td>
                                 <td style="border:1pt solid black; text-align:center;">
-                                    ${r.status==='attended'?(r.content.startsWith('http')?`<img src="${r.content}" style="height:25px;"/>`:'\uC11C\uBA85\uC644\uB8CC'):''}
+                                    ${r.status==='attended'?(r.content.startsWith('http')?`<img src="${r.content}" style="height:25px;"/>`:'서명완료'):''}
                                 </td>
                                 <td style="border:1pt solid black; font-size:7pt; color:red; padding:2px;">${r.status==='absent'?r.content:''}</td>
                             </tr>`).join('')}</tbody>
                     </table>`;
 
                 win.document.write(`<html><head><title>Print</title><style>@page{size:A4; margin:10mm;} body{font-family:sans-serif;} .cols{display:flex; gap:10px;}</style></head>
-                    <body><h1 style="text-align:center; text-decoration:underline;">${training.title} \uC5F0\uC218 \uD2B9\uB85D\uBD80</h1>
-                    <div style="text-align:right; margin-bottom:5px; font-weight:bold;">\uD558\uC900\uCD08\uB4F1\uD559\uAD50</div>
+                    <body><h1 style="text-align:center; text-decoration:underline;">${training.title} 연수 등록부</h1>
+                    <div style="text-align:right; margin-bottom:5px; font-weight:bold;">하주초등학교</div>
                     <div class="cols"><div style="flex:1;">${renderTable(leftCol, 0, isDual)}</div>${isDual?`<div style="flex:1;">${renderTable(rightCol, half, true)}</div>`:''}</div>
-                    <p style="text-align:right; font-weight:bold; margin-top:10px;">\uC714\uC640 \uAC19\uC774 \uC5F0\uC218\uC5D0 \uCC38\uC11D\uD558\uC600\uC74C\uC744 \uD654\uC778\uD569\uB2C8\uB2E4.</p>
+                    <p style="text-align:right; font-weight:bold; margin-top:10px;">위와 같이 연수에 참석하였음을 확인합니다.</p>
                     <script>window.onload=()=>{setTimeout(()=>{window.print();window.close();},800);};<\/script></body></html>`);
                 win.document.close();
             };
@@ -251,7 +251,7 @@
                 const p = getPos(e);
                 const ctx = canvasRef.current.getContext('2d');
                 ctx.beginPath();
-                ctx.lineWidth = 6;
+                ctx.lineWidth = 3;
                 ctx.lineCap = 'round';
                 ctx.lineJoin = 'round';
                 ctx.strokeStyle = '#000000';
@@ -272,11 +272,11 @@
                         <div className="max-w-5xl mx-auto flex justify-between items-center text-slate-800">
                             <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 bg-indigo-50 rounded-2xl flex items-center justify-center shadow-sm"><Icon name="users" size={20} className="text-indigo-600" /></div>
-                                <div className="flex flex-col"><span className="font-outfit font-black text-xl tracking-tight text-indigo-900">\uC5F0\uC218 \uD2B9\uB85D\uBD80</span><span className="text-[9px] font-bold text-indigo-400 uppercase tracking-widest mt-0.5">Training Registrar</span></div>
+                                <div className="flex flex-col"><span className="font-outfit font-black text-xl tracking-tight text-indigo-900">연수 등록부</span><span className="text-[9px] font-bold text-indigo-400 uppercase tracking-widest mt-0.5">Training Registrar</span></div>
                             </div>
                             <button onClick={() => { setView(view==='user'?'admin':'user'); setStep(1); }} className="flex items-center gap-2.5 bg-white border border-slate-200 px-5 py-2.5 rounded-2xl text-sm font-bold transition-all shadow-sm active:scale-95 group">
                                 {view === 'user' ? <Icon name="settings" size={18} className="text-indigo-500 group-hover:rotate-45 transition-transform" /> : <Icon name="log-out" size={18} className="text-slate-400" />}
-                                <span className={view === 'user' ? 'text-indigo-600' : 'text-slate-500'}>{view === 'user' ? '\uAD00\uB9AC \uBAA8\uB4DC' : '\uC0AC\uC6A9\uC790 \uD654\uBA74'}</span>
+                                <span className={view === 'user' ? 'text-indigo-600' : 'text-slate-500'}>{view === 'user' ? '관리 모드' : '사용자 화면'}</span>
                             </button>
                         </div>
                     </nav>
@@ -285,21 +285,21 @@
                         {view === 'admin' ? (
                             <div className="space-y-6 animate-in">
                                 <div className="flex bg-slate-200/50 p-1 rounded-2xl w-fit mb-8 mx-auto md:mx-0">
-                                    <button onClick={() => setAdminSubView('list')} className={`px-6 py-2 rounded-xl text-sm font-bold ${adminSubView==='list'?'bg-white text-indigo-600 shadow-sm':'text-slate-500'}`}>\uBAA9\uB85D \uAD00\uB9AC</button>
-                                    <button onClick={() => { setAdminSubView('dashboard'); fetchDashboardStats(); }} className={`px-6 py-2 rounded-xl text-sm font-bold ${adminSubView==='dashboard'?'bg-white text-indigo-600 shadow-sm':'text-slate-500'}`}>\uB300\uC2DC\uBCF4\uB4DC</button>
+                                    <button onClick={() => setAdminSubView('list')} className={`px-6 py-2 rounded-xl text-sm font-bold ${adminSubView==='list'?'bg-white text-indigo-600 shadow-sm':'text-slate-500'}`}>목록 관리</button>
+                                    <button onClick={() => { setAdminSubView('dashboard'); fetchDashboardStats(); }} className={`px-6 py-2 rounded-xl text-sm font-bold ${adminSubView==='dashboard'?'bg-white text-indigo-600 shadow-sm':'text-slate-500'}`}>대시보드</button>
                                 </div>
 
                                 {adminSubView === 'dashboard' ? (
                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                        {dashboardStats.map(s => (
-                                            <div key={s.id} className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-4">
-                                                <h4 className="font-bold text-slate-800 truncate">{s.title}</h4>
+                                        {dashboardStats.map(stat => (
+                                            <div key={stat.id} className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-4">
+                                                <h4 className="font-bold text-slate-800 truncate">{stat.title}</h4>
                                                 <div className="flex justify-between items-end">
-                                                    <div><span className="text-3xl font-black text-indigo-600">{s.attended}</span><span className="text-slate-300 text-sm font-bold ml-1">/ {s.total}</span></div>
-                                                    <span className="text-xs font-bold text-emerald-500 bg-emerald-50 px-2 py-1 rounded-lg">\uCC38\uC11D\uB960 {Math.round((s.attended/(s.total||1))*100)}%</span>
+                                                    <div><span className="text-3xl font-black text-indigo-600">{stat.attended}</span><span className="text-slate-300 text-sm font-bold ml-1">/ {stat.total}</span></div>
+                                                    <span className="text-xs font-bold text-emerald-500 bg-emerald-50 px-2 py-1 rounded-lg">참석률 {Math.round((stat.attended / (stat.total || 1)) * 100)}%</span>
                                                 </div>
-                                                <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden flex"><div className="bg-indigo-500 h-full" style={{width:`${(s.attended/(s.total||1))*100}%`}}></div><div className="bg-rose-400 h-full" style={{width:`${(s.absent/(s.total||1))*100}%`}}></div></div>
-                                                <div className="flex justify-between text-[10px] font-bold uppercase tracking-tight"><span className="text-indigo-500">\uCC38\uC11D: {s.attended}</span><span className="text-rose-400">\uBD88\uCC38: {s.absent}</span></div>
+                                                <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden flex"><div className="bg-indigo-500 h-full" style={{ width: `${(stat.attended / (stat.total || 1)) * 100}%` }}></div><div className="bg-rose-400 h-full" style={{ width: `${(stat.absent / (stat.total || 1)) * 100}%` }}></div></div>
+                                                <div className="flex justify-between text-[10px] font-bold uppercase tracking-tight"><span className="text-indigo-500">참석: {stat.attended}</span><span className="text-rose-400">불참: {stat.absent}</span></div>
                                             </div>
                                         ))}
                                     </div>
@@ -310,7 +310,7 @@
                                                 <div className="flex-1"><h3 className="font-black text-xl text-slate-800">{t.title}</h3><div className="flex gap-4 text-sm text-slate-400 font-semibold mt-1"><span><Icon name="map-pin" size={14} className="mr-1"/>{t.location}</span><span><Icon name="clock" size={14} className="mr-1"/>{formatTime(t.startTime)}~</span></div></div>
                                                 <div className="flex items-center gap-2">
                                                     <button onClick={() => setQrModalUrl(`${window.location.href.split('?')[0]}?trainingId=${t.id}`)} className="p-3 bg-slate-50 text-slate-600 rounded-xl hover:bg-slate-100 transition-all border border-slate-100"><Icon name="qr-code" size={18}/></button>
-                                                    <button onClick={() => handlePrint(t)} className="px-5 py-2.5 bg-indigo-50 text-indigo-600 rounded-xl hover:bg-indigo-100 transition-all border border-indigo-100 font-bold text-sm flex items-center gap-2"><Icon name="printer" size={18}/>\uC778\uC144 \uCD9C\uB825</button>
+                                                    <button onClick={() => handlePrint(t)} className="px-5 py-2.5 bg-indigo-50 text-indigo-600 rounded-xl hover:bg-indigo-100 transition-all border border-indigo-100 font-bold text-sm flex items-center gap-2"><Icon name="printer" size={18}/>인쇄물 출력</button>
                                                     <button onClick={() => window.open(`${GAS_APP_URL}?action=exportToExcel&id=${t.id}`, '_blank')} className="p-3 bg-emerald-50 text-emerald-600 rounded-xl hover:bg-emerald-100 border border-emerald-100 transition-all"><Icon name="download" size={18}/></button>
                                                 </div>
                                             </div>
@@ -332,7 +332,7 @@
 
                                     {step === 1 && (
                                         <div className="space-y-8 animate-in text-center">
-                                            <div className="space-y-2"><h2 className="text-3xl font-black text-slate-800 tracking-tight">\uC5F0\uC218 \uC120\uD0DD</h2><p className="text-slate-400 font-medium">\uCC38\uC11D\uD558\uC2E0 \uC5F0\uC218 \uC77C\uC815\uC744 \uC120\uD0DD\uD574 \uC9FC\uC138\uC694</p></div>
+                                            <div className="space-y-2"><h2 className="text-3xl font-black text-slate-800 tracking-tight">연수 선택</h2><p className="text-slate-400 font-medium">참석하신 연수 일정을 선택해 주세요</p></div>
                                             <div className="space-y-4">
                                                 {trainings.map(t => (
                                                     <button key={t.id} onClick={() => { setSelectedTraining(t); setStep(2); fetchRegistrations(t.id, t.title); }} className="w-full text-left p-6 rounded-3xl border-2 border-slate-50 hover:border-indigo-200 hover:bg-slate-50/50 transition-all flex items-center justify-between group">
@@ -346,20 +346,20 @@
 
                                     {step === 2 && (
                                         <div className="space-y-6 animate-in flex-1 flex flex-col text-center">
-                                            <h2 className="text-3xl font-black text-slate-800 tracking-tight">{isManualMode ? '\uCD94\uAC00 \uB4F1\uB85D' : '\uBC23\uC778 \uD655\uC778'}</h2>
+                                            <h2 className="text-3xl font-black text-slate-800 tracking-tight">{isManualMode ? '추가 등록' : '본인 확인'}</h2>
                                             {isManualMode ? (
                                                 <div className="space-y-4 text-left">
-                                                    <div><label className="text-[10px] font-black text-indigo-400 uppercase">\uC18C\uC18D / \uD559\uAD50\uBA85</label><input type="text" value={manualInfo.school} onChange={e=>setManualInfo({...manualInfo, school:e.target.value})} className="w-full p-4 border-2 border-slate-50 rounded-2xl focus:border-indigo-400 outline-none font-bold text-lg"/></div>
-                                                    <div><label className="text-[10px] font-black text-indigo-400 uppercase">\uC9C1\uC704</label><input type="text" value={manualInfo.position} onChange={e=>setManualInfo({...manualInfo, position:e.target.value})} className="w-full p-4 border-2 border-slate-50 rounded-2xl focus:border-indigo-400 outline-none font-bold text-lg"/></div>
-                                                    <div><label className="text-[10px] font-black text-indigo-400 uppercase">\uC131\uBA85</label><input type="text" value={manualInfo.name} onChange={e=>setManualInfo({...manualInfo, name:e.target.value})} className="w-full p-4 border-2 border-slate-50 rounded-2xl focus:border-indigo-400 outline-none font-bold text-lg"/></div>
-                                                    <button onClick={() => { if(!manualInfo.name) return; setChosenStaff({name:manualInfo.name, position:manualInfo.position, grade:manualInfo.school}); setRegStatus('attended'); setStep(4); }} className="w-full py-5 bg-indigo-600 text-white rounded-3xl font-black text-xl">\uC11C\uBA85 \uB2E8\uACC4\uB85C \uC774\uB3D9</button>
+                                                    <div><label className="text-[10px] font-black text-indigo-400 uppercase">소속 / 학교명</label><input type="text" value={manualInfo.school} onChange={e=>setManualInfo({...manualInfo, school:e.target.value})} className="w-full p-4 border-2 border-slate-50 rounded-2xl focus:border-indigo-400 outline-none font-bold text-lg"/></div>
+                                                    <div><label className="text-[10px] font-black text-indigo-400 uppercase">직위</label><input type="text" value={manualInfo.position} onChange={e=>setManualInfo({...manualInfo, position:e.target.value})} className="w-full p-4 border-2 border-slate-50 rounded-2xl focus:border-indigo-400 outline-none font-bold text-lg"/></div>
+                                                    <div><label className="text-[10px] font-black text-indigo-400 uppercase">성명</label><input type="text" value={manualInfo.name} onChange={e=>setManualInfo({...manualInfo, name:e.target.value})} className="w-full p-4 border-2 border-slate-50 rounded-2xl focus:border-indigo-400 outline-none font-bold text-lg"/></div>
+                                                    <button onClick={() => { if(!manualInfo.name) return; setChosenStaff({name:manualInfo.name, position:manualInfo.position, grade:manualInfo.school}); setRegStatus('attended'); setStep(4); }} className="w-full py-5 bg-indigo-600 text-white rounded-3xl font-black text-xl">서명 단계로 이동</button>
                                                 </div>
                                             ) : (
                                                 <>
-                                                    <div className="relative"><input type="text" placeholder="\uC131\uD568 \uAC80\uC0C9" value={searchName} onChange={e=>setSearchName(e.target.value)} className="w-full pl-14 pr-6 py-5 rounded-3xl border-2 border-slate-50 focus:border-indigo-400 bg-slate-50 outline-none text-xl font-bold transition-all"/><Icon name="search" size={22} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300"/></div>
+                                                    <div className="relative"><input type="text" placeholder="성함 검색" value={searchName} onChange={e=>setSearchName(e.target.value)} className="w-full pl-14 pr-6 py-5 rounded-3xl border-2 border-slate-50 focus:border-indigo-400 bg-slate-50 outline-none text-xl font-bold transition-all"/><Icon name="search" size={22} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300"/></div>
                                                     <div className="space-y-2 max-h-64 overflow-y-auto pr-2 flex-1">
                                                         {filteredStaffList.map(s => <button key={s.id} onClick={() => { setChosenStaff(s); if(selectedRegs.some(r=>r.name===s.name)) setShowOverwriteConfirm(true); else setStep(3); }} className="w-full flex items-center justify-between p-5 rounded-2xl border border-slate-50 hover:border-indigo-100 hover:bg-indigo-50/30 transition-all font-black text-lg text-slate-700"><span>{s.name} <span className="opacity-40 text-sm">{s.position}</span></span><Icon name="chevron-right" size={20}/></button>)}
-                                                        <button onClick={() => setIsManualMode(true)} className="w-full py-5 rounded-2xl border-2 border-dashed border-slate-100 text-slate-400 font-bold hover:bg-indigo-50/30 flex flex-col items-center gap-2 mt-4"><Icon name="plus-circle" size={24}/>\uBAA9\uB85D\uC5D0 \uC5C6\uB2E4\uBA74? \uC218\uAE30 \uB4F1\uB85D</button>
+                                                        <button onClick={() => setIsManualMode(true)} className="w-full py-5 rounded-2xl border-2 border-dashed border-slate-100 text-slate-400 font-bold hover:bg-indigo-50/30 flex flex-col items-center gap-2 mt-4"><Icon name="plus-circle" size={24}/>명단에 없다면? 수기 등록</button>
                                                     </div>
                                                 </>
                                             )}
@@ -368,32 +368,32 @@
 
                                     {step === 3 && (
                                         <div className="space-y-10 text-center py-10 animate-in flex flex-col justify-center flex-1">
-                                            <div className="space-y-3"><div className="w-20 h-20 bg-indigo-50 rounded-[2rem] flex items-center justify-center mx-auto mb-4 shadow-xl text-indigo-600"><Icon name="user-check" size={36}/></div><h2 className="text-3xl font-black text-slate-800 tracking-tight">{chosenStaff.name}\uB2D8 \uBC23\uC778\uB418\uC5C8\uC2B5\uB2C8\uB2E4</h2><p className="text-slate-400 font-medium">\uCC38\uC11D \uC5EC\uBD80\uB97C \uC120\uD0DD\uD574 \uC9FC\uC138\uC694</p></div>
+                                            <div className="space-y-3"><div className="w-20 h-20 bg-indigo-50 rounded-[2rem] flex items-center justify-center mx-auto mb-4 shadow-xl text-indigo-600"><Icon name="user-check" size={36}/></div><h2 className="text-3xl font-black text-slate-800 tracking-tight">{chosenStaff.name}님 확인되었습니다</h2><p className="text-slate-400 font-medium">참석 여부를 선택해 주세요</p></div>
                                             <div className="grid grid-cols-2 gap-4">
-                                                <button onClick={() => { setRegStatus('attended'); setStep(4); }} className="p-8 rounded-[2rem] border-2 border-slate-50 hover:border-indigo-500 bg-white shadow-sm hover:shadow-xl transition-all flex flex-col items-center gap-3"><Icon name="pen-tool" size={32} className="text-indigo-600"/><span className="font-black text-lg text-slate-700">\uCC38\uC11D (\uC11C\uBA85)</span></button>
-                                                <button onClick={() => { setRegStatus('absent'); setStep(4); }} className="p-8 rounded-[2rem] border-2 border-slate-50 hover:border-rose-500 bg-white shadow-sm hover:shadow-xl transition-all flex flex-col items-center gap-3"><Icon name="x-circle" size={32} className="text-rose-500"/><span className="font-black text-lg text-slate-700">\uBD88\uCC38 (\uC0AC\uC720)</span></button>
+                                                <button onClick={() => { setRegStatus('attended'); setStep(4); }} className="p-8 rounded-[2rem] border-2 border-slate-50 hover:border-indigo-500 bg-white shadow-sm hover:shadow-xl transition-all flex flex-col items-center gap-3"><Icon name="pen-tool" size={32} className="text-indigo-600"/><span className="font-black text-lg text-slate-700">참석 (서명)</span></button>
+                                                <button onClick={() => { setRegStatus('absent'); setStep(4); }} className="p-8 rounded-[2rem] border-2 border-slate-50 hover:border-rose-500 bg-white shadow-sm hover:shadow-xl transition-all flex flex-col items-center gap-3"><Icon name="x-circle" size={32} className="text-rose-500"/><span className="font-black text-lg text-slate-700">불참 (사유)</span></button>
                                             </div>
                                         </div>
                                     )}
 
                                     {step === 4 && (
                                         <div className="space-y-6 animate-in text-center flex-1 flex flex-col py-4">
-                                            <h2 className="text-3xl font-black text-slate-800">{regStatus === 'attended' ? '\uC815\uC131\uC2A4\uB7FD\uAC8C \uC11C\uBA85' : '\uBD88\uCC38 \uC0AC\uC720 \uC120\uD0DD'}</h2>
+                                            <h2 className="text-3xl font-black text-slate-800">{regStatus === 'attended' ? '정성스럽게 서명' : '불참 사유 선택'}</h2>
                                             {regStatus === 'attended' ? (
                                                 <div className="space-y-4 flex-1 flex flex-col">
                                                     <div className="canvas-container flex-1 bg-white border-4 border-dashed border-slate-100 rounded-[2rem] relative shadow-inner overflow-hidden min-h-[220px]">
                                                         <canvas ref={canvasRef} width={1000} height={500} onMouseDown={startDrawing} onMouseMove={draw} onMouseUp={() => setIsDrawing(false)} onTouchStart={startDrawing} onTouchMove={draw} onTouchEnd={() => setIsDrawing(false)} className="absolute inset-0 w-full h-full cursor-crosshair bg-white"/>
                                                     </div>
-                                                    <div className="flex justify-between items-center"><button onClick={() => { const ctx = canvasRef.current.getContext('2d'); ctx.clearRect(0, 0, 1000, 500); ctx.beginPath(); }} className="text-xs font-black text-rose-400 flex items-center gap-1"><Icon name="trash-2" size={14}/>\uC9C0\uC6B0\uAE30</button><span className="text-[10px] font-black text-slate-300 italic">\uC11C\uBA85 \uD604 \uB4F1\uB85D\uD558\uAE30 \uBC84\uD2BC\uC744 \uB20C\uB7EC\uC8FC\uC138\uC694</span></div>
+                                                    <div className="flex justify-between items-center"><button onClick={() => { const ctx = canvasRef.current.getContext('2d'); ctx.clearRect(0, 0, 1000, 500); ctx.beginPath(); }} className="text-xs font-black text-rose-400 flex items-center gap-1"><Icon name="trash-2" size={14}/>지우기</button><span className="text-[10px] font-black text-slate-300 italic">서명 후 등록하기 버튼을 눌러주세요</span></div>
                                                 </div>
                                             ) : (
                                                 <div className="grid grid-cols-2 gap-3 flex-1 overflow-y-auto">
                                                     {ABSENCE_REASONS.map(r => <button key={r} onClick={() => setAbsenceReason(r)} className={`p-5 rounded-2xl border-2 font-black transition-all ${absenceReason===r?'border-indigo-600 bg-indigo-50 text-indigo-700 shadow-md':'border-slate-50 bg-white text-slate-300'}`}>{r}</button>)}
                                                 </div>
                                             )}
-                                            <button disabled={isLoading || (regStatus==='absent'&&!absenceReason)} onClick={handleRegister} className="w-full bg-slate-900 text-white font-black py-5 rounded-[2rem] shadow-xl text-xl transition-all active:scale-98 flex items-center justify-center gap-3">
+                                            <button disabled={isLoading} onClick={handleRegister} className="w-full bg-slate-900 text-white font-black py-5 rounded-[2rem] shadow-xl text-xl transition-all active:scale-98 flex items-center justify-center gap-3">
                                                 {isLoading ? <Icon name="loader-2" size={24} className="animate-spin"/> : <Icon name="check-circle-2" size={24}/>}
-                                                \uB4F1\uB85D\uD558\uAE30
+                                                등록하기
                                             </button>
                                         </div>
                                     )}
@@ -401,8 +401,8 @@
                                     {step === 5 && (
                                         <div className="text-center py-10 space-y-10 animate-in flex flex-col items-center justify-center flex-1">
                                             <div className="w-28 h-28 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center border-4 border-white shadow-2xl animate-bounce"><Icon name="check-circle-2" size={64} /></div>
-                                            <div className="space-y-4 text-center"><h2 className="text-4xl font-black text-slate-800 tracking-tighter">\uB4F1\uB85D\uC774 \uC644\uB8CC\uB418\uC5C8\uC2B5\uB2C8\uB2E4!</h2><p className="text-slate-400 font-bold">\uC218\uACE0\uD558\uC168\uC2B5\uB2C8\uB2E4. \uC774\uC81C \uCC3D\uC744 \uB2EB\uC73C\uC154\uB3C4 \uC811\uC2B5\uB2C8\uB2E4.</p></div>
-                                            <button onClick={()=>{setStep(1); setSearchName(""); setAbsenceReason(""); setSelectedTraining(null);}} className="w-full max-w-xs bg-slate-900 text-white px-8 py-5 rounded-[1.5rem] font-black text-lg btn-hover">\uCC98\uC74C\uC73C\uB85C</button>
+                                            <div className="space-y-4 text-center"><h2 className="text-4xl font-black text-slate-800 tracking-tighter">등록이 완료되었습니다!</h2><p className="text-slate-400 font-bold">수고하셨습니다. 이제 창을 닫으셔도 좋습니다.</p></div>
+                                            <button onClick={()=>{setStep(1); setSearchName(""); setAbsenceReason(""); setSelectedTraining(null);}} className="w-full max-w-xs bg-slate-900 text-white px-8 py-5 rounded-[1.5rem] font-black text-lg btn-hover">처음으로</button>
                                         </div>
                                     )}
 
@@ -410,8 +410,8 @@
                                         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in">
                                             <div className="bg-white rounded-3xl p-8 max-w-sm w-full text-center space-y-6 shadow-2xl">
                                                 <div className="w-16 h-16 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center mx-auto"><Icon name="alert-triangle" size={32}/></div>
-                                                <div className="space-y-2"><h3 className="text-xl font-bold text-slate-800">\uC774\uBBF8 \uB4F1\uB85D\uB418\uC5B4 \uC73C\uC2B5\uB2C8\uB2E4</h3><p className="text-slate-500 text-sm">\uC774\uBBF8 \uC11C\uBA85\uC744 \uC644\uB8CC\uD558\uC168\uC2B5\uB2C8\uB2E4.<br/>\uAE30\uC874 \uB4F1\uB85D\uC744 \uC218\uC815 \uD639\uC740 \uC0C8\uB85C \uC11C\uBA85\uD558\uC2DC\uACA0\uC2B5\uB2C8\uAE4C?</p></div>
-                                                <div className="flex gap-3"><button onClick={()=>setShowOverwriteConfirm(false)} className="flex-1 py-3 bg-slate-100 text-slate-600 rounded-xl font-bold">\uCDE8\uC18C</button><button onClick={()=>{setShowOverwriteConfirm(false); setStep(3);}} className="flex-1 py-3 bg-indigo-600 text-white rounded-xl font-bold shadow-lg">\uC0C8\uB85C \uC11C\uBA85</button></div>
+                                                <div className="space-y-2"><h3 className="text-xl font-bold text-slate-800">이미 등록되어 있습니다</h3><p className="text-slate-500 text-sm">이미 서명을 완료하셨습니다.<br/>기존 등록을 수정 혹은 새로 서명하시겠습니까?</p></div>
+                                                <div className="flex gap-3"><button onClick={()=>setShowOverwriteConfirm(false)} className="flex-1 py-3 bg-slate-100 text-slate-600 rounded-xl font-bold">취소</button><button onClick={()=>{setShowOverwriteConfirm(false); setStep(3);}} className="flex-1 py-3 bg-indigo-600 text-white rounded-xl font-bold shadow-lg">새로 서명</button></div>
                                             </div>
                                         </div>
                                     )}
@@ -419,9 +419,9 @@
                                     {qrModalUrl && (
                                         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in">
                                             <div className="bg-white rounded-3xl p-8 max-w-sm w-full text-center space-y-4 shadow-2xl">
-                                                <h3 className="text-xl font-bold text-slate-800">QR \uD654\uBA74</h3>
+                                                <h3 className="text-xl font-bold text-slate-800">QR 화면</h3>
                                                 <div className="bg-white p-4 border rounded-2xl flex justify-center"><img src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrModalUrl)}`} className="w-48 h-48"/></div>
-                                                <button onClick={()=>setQrModalUrl(null)} className="w-full py-3 bg-slate-900 text-white rounded-xl font-bold">OK</button>
+                                                <button onClick={()=>setQrModalUrl(null)} className="w-full py-3 bg-slate-900 text-white rounded-xl font-bold">닫기</button>
                                             </div>
                                         </div>
                                     )}
@@ -431,7 +431,7 @@
                                             <div className="bg-white rounded-3xl p-8 max-w-sm w-full text-center space-y-4 shadow-2xl">
                                                 <div className="w-12 h-12 bg-indigo-50 text-indigo-500 rounded-full flex items-center justify-center mx-auto"><Icon name="info" size={24}/></div>
                                                 <h3 className="text-xl font-bold text-slate-800">{customAlert.title}</h3><p className="text-slate-500 text-sm whitespace-pre-line">{customAlert.message}</p>
-                                                <button onClick={()=>setCustomAlert(null)} className="w-full py-3 bg-slate-900 text-white rounded-xl font-bold">OK</button>
+                                                <button onClick={()=>setCustomAlert(null)} className="w-full py-3 bg-slate-900 text-white rounded-xl font-bold">확인</button>
                                             </div>
                                         </div>
                                     )}
