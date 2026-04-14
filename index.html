@@ -538,8 +538,8 @@
                         fullList.push({ name: '', grade: '', position: '', content: '', status: '' });
                     }
 
-                    const rowHeight = '21.5px';
-                    const imgHeight = '18';
+                    const rowHeight = '20px';
+                    const imgHeight = '16';
                     const sigWidth = '65';
                     const fontSize = '7.5pt';
 
@@ -560,7 +560,7 @@
                             </thead>
                             <tbody style="font-size: ${fontSize};">
                                 ${list.map((reg, idx) => {
-                                    const school = reg.grade || '하주초등학교';
+                                    const school = reg.name ? (reg.grade || '하주초등학교') : '';
                                     const isAbsent = reg.status === 'absent';
                                     const getImg = (content) => {
                                         if (content && content.startsWith('http')) {
@@ -691,16 +691,16 @@
 
                         tableRows += `
                             <tr style="height: 15pt;">
-                                <td style="border: 1pt solid black; text-align: center; vertical-align: middle; font-size: 8pt;">${L.name ? i + 1 : ''}</td>
-                                <td style="border: 1pt solid black; text-align: center; vertical-align: middle; font-size: 8pt;">${L.grade || (L.name ? '하주초등학교' : '')}</td>
+                                <td style="border: 1pt solid black; text-align: center; vertical-align: middle; font-size: 8pt;">${i + 1}</td>
+                                <td style="border: 1pt solid black; text-align: center; vertical-align: middle; font-size: 8pt;">${L.name ? (L.grade || '하주초등학교') : ''}</td>
                                 <td style="border: 1pt solid black; text-align: center; vertical-align: middle; font-size: 8pt;">${L.position || ''}</td>
                                 <td style="border: 1pt solid black; text-align: center; vertical-align: middle; font-weight: bold;">${L.name || ''}</td>
                                 <td style="border: 1pt solid black; text-align: center; vertical-align: middle; padding: 0;">${getExcelSig(L)}</td>
                                 <td style="border: 1pt solid black; text-align: center; vertical-align: middle; font-size: 8pt;">${getExcelRemark(L)}</td>
                                 ${R ? `
                                 <td style="width: 15px; border: none;"></td>
-                                <td style="border: 1pt solid black; text-align: center; vertical-align: middle; font-size: 8pt;">${R.name ? i + maxRowsPerCol + 1 : ''}</td>
-                                <td style="border: 1pt solid black; text-align: center; vertical-align: middle; font-size: 8pt;">${R.grade || (R.name ? '하주초등학교' : '')}</td>
+                                <td style="border: 1pt solid black; text-align: center; vertical-align: middle; font-size: 8pt;">${i + maxRowsPerCol + 1}</td>
+                                <td style="border: 1pt solid black; text-align: center; vertical-align: middle; font-size: 8pt;">${R.name ? (R.grade || '하주초등학교') : ''}</td>
                                 <td style="border: 1pt solid black; text-align: center; vertical-align: middle; font-size: 8pt;">${R.position || ''}</td>
                                 <td style="border: 1pt solid black; text-align: center; vertical-align: middle; font-weight: bold;">${R.name || ''}</td>
                                 <td style="border: 1pt solid black; text-align: center; vertical-align: middle; padding: 0;">${getExcelSig(R)}</td>
