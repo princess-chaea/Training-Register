@@ -12,29 +12,47 @@
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
     <style>
         body { font-family: 'Inter', 'Noto Sans KR', sans-serif; overflow-x: hidden; background-color: #f8fafc !important; color: #1e293b !important; }
-        .font-outfit { font-family: 'Outfit', sans-serif; }
-        .glass { background: rgba(255, 255, 255, 0.9) !important; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.3); }
-        .animate-in { animation: animate-in 0.5s ease-out; }
-        @keyframes animate-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .btn-hover { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
-        .btn-hover:hover { transform: translateY(-1px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
-        @keyframes loading-bar-anim { 0% { transform: translateX(-100%); } 100% { transform: translateX(250%); } }
         .loading-bar { position: fixed; top: 0; left: 0; width: 100%; height: 3px; background: rgba(226, 232, 240, 0.3); overflow: hidden; z-index: 9999; }
         .loading-bar::after { content: ""; position: absolute; top: 0; left: 0; width: 40%; height: 100%; background: linear-gradient(90deg, #4f46e5, #818cf8, #4f46e5); animation: loading-bar-anim 1.2s infinite ease-in-out; }
+        @keyframes loading-bar-anim { 0% { transform: translateX(-100%); } 100% { transform: translateX(250%); } }
+        #debug-log { position: fixed; bottom: 0; left: 0; width: 100%; background: #fee2e2; color: #991b1b; font-family: monospace; font-size: 10px; max-height: 100px; overflow-y: auto; z-index: 10000; padding: 5px; border-top: 1px solid #f87171; display: none; }
     </style>
+    <script>
+        window.onerror = function(msg, url, line) {
+            var debug = document.getElementById('debug-log');
+            if (debug) {
+                debug.style.display = 'block';
+                debug.innerText += '\n[Error] ' + msg + ' (Line: ' + line + ')';
+            }
+        };
+    </script>
 </head>
 <body class="bg-[#f8fafc]">
+    <div id="debug-log">Debug Console:</div>
     <div id="root">
-        <div class="fixed inset-0 flex items-center justify-center bg-white/50 backdrop-blur-sm">
-            <div class="w-24 h-1 bg-slate-100 rounded-full overflow-hidden relative">
+        <div class="fixed inset-0 flex flex-col items-center justify-center bg-white">
+            <div class="w-48 h-1 bg-slate-100 rounded-full overflow-hidden relative mb-4">
                 <div class="absolute inset-0 bg-indigo-600 w-1/2 animate-[loading-bar-anim_1.2s_infinite_ease-in-out]"></div>
             </div>
+            <p id="loading-text" class="text-slate-400 text-sm font-medium">App Initializing...</p>
+            <div id="retry-btn" class="mt-4 hidden"><button onclick="location.reload()" class="px-4 py-2 bg-slate-900 text-white rounded-lg text-xs font-bold">Retry Now</button></div>
         </div>
     </div>
+    <script>
+        setTimeout(function() { 
+            var txt = document.getElementById('loading-text');
+            if (txt) txt.innerText = 'Connecting to Google Server...';
+        }, 3000);
+        setTimeout(function() { 
+            var btn = document.getElementById('retry-btn');
+            if (btn) btn.classList.remove('hidden');
+        }, 10000);
+    </script>
+
     <script type="text/babel">
         const { useState, useRef, useEffect, useMemo, useLayoutEffect } = React;
         const Icon = ({ name, size = 20, className = "" }) => (
-            <span className={`inline-flex items-center justify-center shrink-0 ${className}`} style={{ width: size, height: size, minWidth: size, minHeight: size }}>
+            <span className={`inline-flex items-center justify-center shrink-0 ${className}`} style={{ width: size, height: size }}>
                 <i data-lucide={name} style={{ width: size, height: size }}></i>
             </span>
         );
@@ -42,42 +60,11 @@
         const Settings = (p) => <Icon name="settings" {...p} />;
         const LogOut = (p) => <Icon name="log-out" {...p} />;
         const Plus = (p) => <Icon name="plus" {...p} />;
-        const MapPin = (p) => <Icon name="map-pin" {...p} />;
-        const Clock = (p) => <Icon name="clock" {...p} />;
-        const QrCode = (p) => <Icon name="qr-code" {...p} />;
-        const Printer = (p) => <Icon name="printer" {...p} />;
-        const Download = (p) => <Icon name="download" {...p} />;
-        const Trash2 = (p) => <Icon name="trash-2" {...p} />;
-        const ArrowLeft = (p) => <Icon name="arrow-left" {...p} />;
-        const Search = (p) => <Icon name="search" {...p} />;
-        const UserCheck = (p) => <Icon name="user-check" {...p} />;
-        const PenTool = (p) => <Icon name="pen-tool" {...p} />;
-        const XCircle = (p) => <Icon name="x-circle" {...p} />;
-        const CheckCircle2 = (p) => <Icon name="check-circle-2" {...p} />;
         const ChevronRight = (p) => <Icon name="chevron-right" {...p} />;
-        const Loader2 = (p) => <Icon name="loader-2" {...p} />;
-        const Info = (p) => <Icon name="info" {...p} />;
-        const AlertTriangle = (p) => <Icon name="alert-triangle" {...p} />;
-        const PlusCircle = (p) => <Icon name="plus-circle" {...p} />;
+        const Printer = (p) => <Icon name="printer" {...p} />;
+        const CheckCircle2 = (p) => <Icon name="check-circle-2" {...p} />;
 
         const GAS_APP_URL = "https://script.google.com/macros/s/AKfycbzbLAYsi6x1TV-KxIFVspjqg3s0WIqQvdxgUhW1WYVnyrTrBD8VegswbcZBFPaTAnSP/exec";
-        const ABSENCE_REASONS = ["\uCD9C\uC7A5", "\uC5F0\uAC00", "\uBCD1\uAC00", "\uC870\uD1F4", "\uBCD1\uC870\uD1F4", "\uD734\uAC00", "\uAE30\uD0C0"];
-
-        const formatTime = (v) => {
-            if (!v) return "";
-            const s = String(v).trim();
-            const m = s.match(/(\d{1,2}):(\d{1,2})/);
-            if (m) return `${m[1].padStart(2, '0')}:${m[2].padStart(2, '0')}`;
-            return s;
-        };
-
-        const formatDateKoreanLong = (v) => {
-            if (!v) return "";
-            const d = new Date(v);
-            if (isNaN(d.getTime())) return String(v);
-            const w = ["\uC77C", "\uC6D4", "\uD654", "\uC218", "\uBAA9", "\uAE08", "\uD1A0"][d.getDay()];
-            return d.toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric" }) + ` (${w})`;
-        };
 
         const App = () => {
             const [view, setView] = useState("user");
@@ -85,75 +72,45 @@
             const [trainings, setTrainings] = useState([]);
             const [allStaff, setAllStaff] = useState([]);
             const [selectedTraining, setSelectedTraining] = useState(null);
-            const [selectedRegs, setSelectedRegs] = useState([]);
             const [searchName, setSearchName] = useState("");
             const [step, setStep] = useState(1);
             const [chosenStaff, setChosenStaff] = useState(null);
             const [regStatus, setRegStatus] = useState("attended");
-            const [absenceReason, setAbsenceReason] = useState("\uCD9C\uC7A5");
             const [isLoading, setIsLoading] = useState(true);
-            const [isDrawing, setIsDrawing] = useState(false);
             const [customAlert, setCustomAlert] = useState(null);
-            const [newTraining, setNewTraining] = useState({ title: "", location: "", date: "", startTime: "", endTime: "", targetParticipants: [], targetType: "SELECT" });
             const canvasRef = useRef(null);
 
             useLayoutEffect(() => {
-                const observer = new MutationObserver(() => lucide.createIcons());
-                observer.observe(document.getElementById("root"), { childList: true, subtree: true });
-                lucide.createIcons();
-                return () => observer.disconnect();
+                if (window.lucide) {
+                    const observer = new MutationObserver(() => lucide.createIcons());
+                    observer.observe(document.getElementById("root"), { childList: true, subtree: true });
+                    lucide.createIcons();
+                }
             }, []);
 
-            useEffect(() => { fetchInitialData(); }, []);
+            useEffect(() => { 
+                fetchInitialData(); 
+            }, []);
 
             const fetchInitialData = async () => {
-                setIsLoading(true);
                 try {
                     const res = await fetch(`${GAS_APP_URL}?action=getInitialData`);
                     const data = await res.json();
+                    if (data.error) throw new Error(data.error);
                     setTrainings(data.trainings || []);
                     setAllStaff(data.staff || []);
                 } catch (e) {
-                    setCustomAlert({ title: "\uC624\uB958", message: "\uB370\uC774\uD130\uB97C \uBD88\uB7EC\uC624\uC9C0 \uBABB\uD518\uB2E4." });
+                    console.error(e);
+                    setCustomAlert({ title: "\uC624\uB958", message: "\uB370\uC774\uD130 \uB85C\uB4DC \uC2E4\uD328: " + e.message });
+                } finally {
+                    setIsLoading(false);
                 }
-                setIsLoading(false);
-            };
-
-            const fetchRegistrations = async (tid, title) => {
-                try {
-                    const res = await fetch(`${GAS_APP_URL}?action=getRegistrations&trainingId=${tid}&trainingTitle=${encodeURIComponent(title)}`);
-                    return await res.json();
-                } catch (e) { return []; }
-            };
-
-            const handleSaveTraining = async () => {
-                if (!newTraining.title || !newTraining.date || !newTraining.startTime) {
-                    return setCustomAlert({ title: "\uC785\uB825 \uC624\uB958", message: "\uC81C\uBAA9, \uB0A0\uC9DC, \uC2DC\uC791 \uC2DC\uAC04\uC740 \uD544\uC218\uC785\uB2C8\uB2E4." });
-                }
-                setIsLoading(true);
-                try {
-                    const params = {
-                        action: "addTraining",
-                        id: Date.now(),
-                        title: newTraining.title,
-                        location: newTraining.location,
-                        date: newTraining.date,
-                        startTime: newTraining.startTime,
-                        endTime: newTraining.endTime,
-                        targetParticipants: JSON.stringify(newTraining.targetParticipants)
-                    };
-                    await fetch(GAS_APP_URL, { method: "POST", body: JSON.stringify(params) });
-                    setCustomAlert({ title: "\uC131\uAC35", message: "\uC5F0\uC218\uAC00 \uC0DD\uC131\uB418\uC5C8\uC2B5\uB2C8\uB2E4." });
-                    fetchInitialData();
-                    setAdminSubView("list");
-                } catch (e) {}
-                setIsLoading(false);
             };
 
             const handleRegister = async () => {
                 setIsLoading(true);
                 try {
-                    const signature = regStatus === "attended" ? canvasRef.current.toDataURL() : absenceReason;
+                    const signature = regStatus === "attended" ? canvasRef.current.toDataURL() : "";
                     const params = {
                         action: "register",
                         trainingId: selectedTraining.id,
@@ -166,121 +123,58 @@
                     };
                     await fetch(GAS_APP_URL, { method: "POST", body: JSON.stringify(params) });
                     setStep(5);
-                } catch (e) {}
+                } catch (e) { alert(e.message); }
                 setIsLoading(false);
             };
 
             const handlePrint = (training) => {
-                setIsLoading(true);
-                fetchRegistrations(training.id, training.title).then((regs) => {
-                    setIsLoading(false);
-                    const win = window.open("", "_blank");
-                    const targetNames = JSON.parse(training.targetParticipants || "[]");
-                    let list = targetNames.length > 0 ? targetNames.map(n => {
-                        const r = regs.find(reg => reg.name === n);
-                        const s = allStaff.find(st => st.name === n);
-                        return r || { name: n, position: s?.position || "", grade: s?.grade || "", status: "absent", content: "" };
-                    }) : regs;
-                    
-                    const isDual = list.length > 20;
-                    const half = isDual ? Math.ceil(list.length / 2) : list.length;
-                    const left = list.slice(0, half);
-                    const right = list.slice(half);
-
-                    const tableHtml = (l, s) => `
-                        <table style="width:100%; border-collapse:collapse; font-size:9pt; margin-bottom:10px;">
-                            <thead><tr style="background:#f3f3f3;">
-                                <th style="border:1pt solid black; width:30px;">No.</th>
-                                <th style="border:1pt solid black; width:100px;">\uC18C\uC18D</th>
-                                <th style="border:1pt solid black; width:60px;">\uC9C1\uC704</th>
-                                <th style="border:1pt solid black; width:70px;">\uC131\uBA85</th>
-                                <th style="border:1pt solid black; width:100px;">\uC11C\uBA85</th>
-                                <th style="border:1pt solid black;">\uBE44\uACE0</th>
-                            </tr></thead>
-                            <tbody>${l.map((r, i) => `
-                                <tr style="height:35px;">
-                                    <td style="border:1pt solid black; text-align:center;">${s + i + 1}</td>
-                                    <td style="border:1pt solid black; text-align:center;">${r.grade || "\uD558\uC900\uCD08\uB4F1\uD559\uAD50"}</td>
-                                    <td style="border:1pt solid black; text-align:center;">${r.position}</td>
-                                    <td style="border:1pt solid black; text-align:center;">${r.name}</td>
-                                    <td style="border:1pt solid black; text-align:center;">${r.status==="attended"?"V":""}</td>
-                                    <td style="border:1pt solid black;">${r.status==="absent"?r.content:""}</td>
-                                </tr>`).join("")}</tbody>
-                        </table>`;
-
-                    win.document.write(`<html><head><title>Print</title><style>body{font-family:sans-serif;} .container{display:flex; gap:10px;}</style></head>
-                        <body><h1 style="text-align:center;">${training.title}</h1>
-                        <div class="container"><div style="flex:1;">${tableHtml(left, 0)}</div>${isDual ? `<div style="flex:1;">${tableHtml(right, half)}</div>` : ""}</div>
-                        <script>window.onload=()=>{window.print();window.close();};<\/script></body></html>`);
-                    win.document.close();
-                });
+                window.open(`${GAS_APP_URL}?action=getRegistrations&trainingId=${training.id}&trainingTitle=${encodeURIComponent(training.title)}`, '_blank');
             };
 
             const filteredStaffList = useMemo(() => {
                 if (!searchName.trim()) return [];
-                let pool = allStaff;
-                if (selectedTraining && String(selectedTraining.targetParticipants).toUpperCase() !== "ALL") {
-                    try {
-                        const targets = JSON.parse(selectedTraining.targetParticipants);
-                        pool = allStaff.filter(s => targets.includes(s.name));
-                    } catch (e) {}
-                }
-                return pool.filter(s => s.name.includes(searchName));
-            }, [searchName, allStaff, selectedTraining]);
+                return allStaff.filter(s => s.name.includes(searchName));
+            }, [searchName, allStaff]);
+
+            if (isLoading) return null;
 
             return (
-                <div className="min-h-screen pb-20">
-                    {isLoading && <div className="loading-bar"></div>}
-                    <nav className="glass sticky top-0 z-50 w-full px-6 py-4 mb-8">
+                <div className="min-h-screen pb-20 animate-in">
+                    <nav className="sticky top-0 z-50 w-full px-6 py-4 bg-white/80 backdrop-blur-md border-b">
                         <div className="max-w-5xl mx-auto flex justify-between items-center">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 bg-indigo-50 rounded-2xl flex items-center justify-center"><Users size={20} className="text-indigo-600" /></div>
-                                <span className="font-outfit font-black text-xl text-indigo-900">\uC5F0\uC218 \uD2B9\uB85D\uBD80</span>
-                            </div>
-                            <button onClick={() => setView(view === "user" ? "admin" : "user")} className="flex items-center gap-2 px-4 py-2 bg-white border rounded-xl font-bold">
-                                {view === "user" ? <Settings size={18}/> : <LogOut size={18}/>}
+                            <span className="font-bold text-xl text-indigo-900">\uC5F0\uC218 \uD2B9\uB85D\uBD80</span>
+                            <button onClick={() => setView(view === "user" ? "admin" : "user")} className="px-4 py-2 border rounded-xl text-sm font-bold">
                                 {view === "user" ? "\uAD00\uB9AC \uBAA8\uB4DC" : "\uC0AC\uC6A9\uC790 \uD654\uBA74"}
                             </button>
                         </div>
                     </nav>
-                    <main className="max-w-4xl mx-auto px-6">
+                    <main className="max-w-xl mx-auto px-6 mt-8">
                         {view === "admin" ? (
-                            <div className="space-y-6 animate-in">
-                                <div className="flex bg-slate-200/50 p-1 rounded-2xl w-fit mx-auto md:mx-0">
-                                    <button onClick={() => setAdminSubView("list")} className={`px-6 py-2 rounded-xl text-sm font-bold ${adminSubView === "list"?"bg-white shadow-sm":""}`}>\uBAA9\uB85D</button>
-                                    <button onClick={() => setAdminSubView("add")} className={`px-6 py-2 rounded-xl text-sm font-bold ${adminSubView === "add"?"bg-white shadow-sm":""}`}>\uCD94\uAC00</button>
-                                </div>
-                                {adminSubView === "add" && (
-                                    <div className="bg-white p-8 rounded-[2rem] shadow-xl space-y-4">
-                                        <input type="text" placeholder="\uC5F0\uC218 \uC81C\uBAA9" className="w-full p-4 border rounded-xl" value={newTraining.title} onChange={e=>setNewTraining({...newTraining, title:e.target.value})}/>
-                                        <input type="date" className="w-full p-4 border rounded-xl" value={newTraining.date} onChange={e=>setNewTraining({...newTraining, date:e.target.value})}/>
-                                        <input type="text" placeholder="\uC2DC\uC791 \uC2DC\uAC04 (14:30)" className="w-full p-4 border rounded-xl" value={newTraining.startTime} onChange={e=>setNewTraining({...newTraining, startTime:e.target.value})}/>
-                                        <button onClick={handleSaveTraining} className="w-full bg-indigo-600 text-white p-4 rounded-xl font-bold">\uC800\uC7A5\uD558\uAE30</button>
-                                    </div>
-                                )}
-                                {adminSubView === "list" && trainings.map(t => (
-                                    <div key={t.id} className="bg-white p-6 rounded-3xl shadow-sm flex justify-between items-center">
-                                        <div><h3 className="font-black text-lg">{t.title}</h3><p className="text-sm text-slate-400">{t.date}</p></div>
+                            <div className="space-y-4">
+                                <h2 className="text-xl font-bold">\uC5F0\uC218 \uBAA9\uB85D</h2>
+                                {trainings.map(t => (
+                                    <div key={t.id} className="bg-white p-4 rounded-2xl border flex justify-between items-center">
+                                        <div><p className="font-bold">{t.title}</p><p className="text-xs text-slate-400">{t.date}</p></div>
                                         <button onClick={()=>handlePrint(t)} className="p-2 bg-slate-100 rounded-lg"><Printer size={18}/></button>
                                     </div>
                                 ))}
                             </div>
                         ) : (
-                            <div className="max-w-xl mx-auto bg-white p-8 rounded-[2.5rem] shadow-2xl min-h-[500px]">
+                            <div className="bg-white p-8 rounded-[2.5rem] shadow-xl min-h-[400px]">
                                 {step === 1 && (
-                                    <div className="space-y-6 animate-in text-center">
-                                        <h2 className="text-2xl font-black">\uC5F0\uC218 \uC120\uD0DD</h2>
+                                    <div className="space-y-4">
+                                        <h2 className="text-xl font-bold text-center">\uC5F0\uC218 \uC120\uD0DD</h2>
                                         {trainings.map(t => (
-                                            <button key={t.id} onClick={()=>{setSelectedTraining(t); setStep(2);}} className="w-full p-6 border-2 rounded-3xl hover:border-indigo-500 text-left flex justify-between">
-                                                <span>{t.title}</span><ChevronRight/>
+                                            <button key={t.id} onClick={()=>{setSelectedTraining(t); setStep(2);}} className="w-full p-5 border rounded-2xl text-left flex justify-between items-center hover:bg-slate-50 transition-colors">
+                                                <span>{t.title}</span><ChevronRight size={18} className="text-slate-300"/>
                                             </button>
                                         ))}
                                     </div>
                                 )}
                                 {step === 2 && (
-                                    <div className="space-y-6 animate-in">
-                                        <input type="text" placeholder="\uC131\uD568 \uAC80\uC0C9" className="w-full p-4 border-2 rounded-2xl" value={searchName} onChange={e=>setSearchName(e.target.value)}/>
-                                        <div className="space-y-2">
+                                    <div className="space-y-4">
+                                        <input type="text" placeholder="\uC131\uD568 \uAC80\uC0C9" className="w-full p-4 border rounded-2xl" value={searchName} onChange={e=>setSearchName(e.target.value)}/>
+                                        <div className="space-y-2 max-h-60 overflow-y-auto">
                                             {filteredStaffList.map(s => (
                                                 <button key={s.id} onClick={()=>{setChosenStaff(s); setStep(3);}} className="w-full p-4 border rounded-xl text-left font-bold hover:bg-indigo-50">{s.name} ({s.position})</button>
                                             ))}
@@ -288,48 +182,44 @@
                                     </div>
                                 )}
                                 {step === 3 && (
-                                    <div className="space-y-8 animate-in text-center py-10">
-                                        <h2 className="text-2xl font-black">{chosenStaff.name}\uB2D8, \uCC38\uC11D\uD558\uC2DC\uB098\uC694?</h2>
-                                        <div className="flex gap-4">
-                                            <button onClick={()=>{setRegStatus("attended"); setStep(4);}} className="flex-1 p-8 border rounded-3xl font-bold bg-indigo-50 text-indigo-600">\uCC38\uC11D</button>
-                                            <button onClick={()=>{setRegStatus("absent"); setStep(4);}} className="flex-1 p-8 border rounded-3xl font-bold">\uBD88\uCC38</button>
+                                    <div className="space-y-6 text-center py-4">
+                                        <h2 className="text-xl font-bold">{chosenStaff.name}\uB2D8 \uD655\uC778</h2>
+                                        <div className="flex gap-3">
+                                            <button onClick={()=>{setRegStatus("attended"); setStep(4);}} className="flex-1 p-6 border rounded-2xl font-bold bg-indigo-600 text-white">\uCC38\uC11D</button>
+                                            <button onClick={()=>{setRegStatus("absent"); setStep(4);}} className="flex-1 p-6 border rounded-2xl font-bold hover:bg-slate-50">\uBD88\uCC38</button>
                                         </div>
                                     </div>
                                 )}
                                 {step === 4 && (
-                                    <div className="space-y-6 animate-in text-center">
-                                        <h2 className="text-2xl font-black">{regStatus==="attended"?"\uC11C\uBA85\uD574 \uC9FC\uC138\uC694":"\uBD88\uCC38 \uC0AC\uC720"}</h2>
-                                        {regStatus === "attended" ? (
-                                            <div className="border-4 border-dashed rounded-3xl h-60 bg-slate-50 relative overflow-hidden">
+                                    <div className="space-y-6">
+                                        <h2 className="text-xl font-bold text-center">{regStatus==="attended"?"\uC11C\uBA85":"\uBD88\uCC38 \uD655\uC778"}</h2>
+                                        {regStatus === "attended" && (
+                                            <div className="border border-slate-200 rounded-2xl h-48 bg-slate-50 overflow-hidden">
                                                 <canvas ref={canvasRef} width={800} height={400} className="w-full h-full cursor-crosshair"
-                                                    onMouseDown={e=>{setIsDrawing(true); const c=canvasRef.current.getContext("2d"); const rect=canvasRef.current.getBoundingClientRect(); c.beginPath(); c.moveTo((e.clientX-rect.left)*(800/rect.width),(e.clientY-rect.top)*(400/rect.height));}}
-                                                    onMouseMove={e=>{if(!isDrawing)return; const c=canvasRef.current.getContext("2d"); const rect=canvasRef.current.getBoundingClientRect(); c.lineTo((e.clientX-rect.left)*(800/rect.width),(e.clientY-rect.top)*(400/rect.height)); c.stroke();}}
-                                                    onMouseUp={()=>setIsDrawing(false)}/>
+                                                    onMouseDown={e=>{this.isD=true; const c=canvasRef.current.getContext("2d"); const r=canvasRef.current.getBoundingClientRect(); c.beginPath(); c.moveTo((e.clientX-r.left)*(800/r.width),(e.clientY-r.top)*(400/r.height));}}
+                                                    onMouseMove={e=>{if(!this.isD)return; const c=canvasRef.current.getContext("2d"); const r=canvasRef.current.getBoundingClientRect(); c.lineTo((e.clientX-r.left)*(800/r.width),(e.clientY-r.top)*(400/r.height)); c.stroke();}}
+                                                    onMouseUp={()=>this.isD=false}/>
                                             </div>
-                                        ) : (
-                                            <select className="w-full p-4 border rounded-xl" onChange={e=>setAbsenceReason(e.target.value)}>
-                                                {ABSENCE_REASONS.map(r=><option key={r} value={r}>{r}</option>)}
-                                            </select>
                                         )}
-                                        <button onClick={handleRegister} className="w-full bg-indigo-600 text-white p-5 rounded-3xl font-black text-xl">\uB4F1\uB85D \uC644\uB8CC</button>
+                                        <button onClick={handleRegister} className="w-full bg-indigo-600 text-white p-4 rounded-xl font-bold">\uB4F1\uB85D \uC644\uB8CC</button>
                                     </div>
                                 )}
                                 {step === 5 && (
-                                    <div className="text-center py-20 animate-in space-y-6">
-                                        <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto"><CheckCircle2 size={48}/></div>
-                                        <h2 className="text-3xl font-black">\uB4F1\uB85D\uC774 \uC644\uB8CC\uB418\uC5C8\uC2B5\uB2C8\uB2E4.</h2>
-                                        <button onClick={()=>{setStep(1); setSearchName("");}} className="px-8 py-3 bg-slate-900 text-white rounded-xl">\uCC98\uC74C\uC73C\uB85C</button>
+                                    <div className="text-center py-10 space-y-4">
+                                        <div className="flex justify-center"><CheckCircle2 size={48} className="text-emerald-500"/></div>
+                                        <h2 className="text-2xl font-bold">\uB4F1\uB85D \uC644\uB8CC</h2>
+                                        <button onClick={()=>{setStep(1); setSearchName("");}} className="px-6 py-2 bg-slate-900 text-white rounded-lg">\uCC98\uC74C\uC73C\uB85C</button>
                                     </div>
                                 )}
                             </div>
                         )}
                     </main>
                     {customAlert && (
-                        <div className="fixed inset-0 flex items-center justify-center z-[100] p-6 bg-slate-900/40 backdrop-blur-sm">
-                            <div className="bg-white p-8 rounded-[2rem] shadow-2xl max-w-sm w-full text-center space-y-4">
+                        <div className="fixed inset-0 flex items-center justify-center z-[100] p-6 bg-black/50 backdrop-blur-sm">
+                            <div className="bg-white p-8 rounded-3xl shadow-2xl max-w-sm w-full text-center space-y-4">
                                 <h3 className="text-xl font-bold">{customAlert.title}</h3>
-                                <p className="text-slate-600">{customAlert.message}</p>
-                                <button onClick={()=>setCustomAlert(null)} className="w-full bg-slate-900 text-white p-4 rounded-xl font-bold">OK</button>
+                                <p className="text-slate-600 break-all">{customAlert.message}</p>
+                                <button onClick={()=>setCustomAlert(null)} className="w-full bg-slate-900 text-white p-3 rounded-xl font-bold">OK</button>
                             </div>
                         </div>
                     )}
