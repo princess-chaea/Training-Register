@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>School Training System Premium</title>
+    <title>\uD559\uAD50 \uC5F0\uC218 \uB4F1\uB85D \uC2DC\uC2A4\uD15C</title>
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -12,24 +12,30 @@
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
     <style>
         body { font-family: 'Inter', 'Noto Sans KR', sans-serif; overflow-x: hidden; background-color: #f8fafc !important; color: #1e293b !important; }
+        @media (max-width: 640px) { .mobile-p-4 { padding: 1rem !important; } .mobile-p-6 { padding: 1.5rem !important; } .mobile-text-2xl { font-size: 1.5rem !important; } .mobile-min-h-500 { min-height: 400px !important; } }
         .font-outfit { font-family: 'Outfit', sans-serif; }
         .glass { background: rgba(255, 255, 255, 0.9) !important; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.3); }
         .animate-in { animation: animate-in 0.5s ease-out; }
         @keyframes animate-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .canvas-container { touch-action: none; position: relative; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #cbd5e1; }
         .btn-hover { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
-        .btn-hover:hover { transform: translateY(-1px); box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1); }
+        .btn-hover:hover { transform: translateY(-1px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+        .btn-hover:active { transform: translateY(0); }
+        @keyframes loading-bar-anim { 0% { transform: translateX(-100%); } 100% { transform: translateX(250%); } }
         .loading-bar { position: fixed; top: 0; left: 0; width: 100%; height: 3px; background: rgba(226, 232, 240, 0.3); overflow: hidden; z-index: 9999; }
         .loading-bar::after { content: ""; position: absolute; top: 0; left: 0; width: 40%; height: 100%; background: linear-gradient(90deg, #4f46e5, #818cf8, #4f46e5); animation: loading-bar-anim 1.2s infinite ease-in-out; }
-        @keyframes loading-bar-anim { 0% { transform: translateX(-100%); } 100% { transform: translateX(250%); } }
     </style>
 </head>
 <body class="bg-[#f8fafc]">
     <div id="root">
-        <div class="fixed inset-0 flex flex-col items-center justify-center bg-white">
-            <div class="w-48 h-1 bg-slate-100 rounded-full overflow-hidden relative mb-4">
+        <div class="fixed inset-0 flex items-center justify-center bg-white/50 backdrop-blur-sm">
+            <div class="w-24 h-1 bg-slate-100 rounded-full overflow-hidden relative">
                 <div class="absolute inset-0 bg-indigo-600 w-1/2 animate-[loading-bar-anim_1.2s_infinite_ease-in-out]"></div>
             </div>
-            <p class="text-slate-400 text-sm font-medium">System Initializing...</p>
         </div>
     </div>
 
@@ -37,7 +43,7 @@
         const { useState, useRef, useEffect, useMemo, useLayoutEffect } = React;
 
         const Icon = ({ name, size = 20, className = "" }) => (
-            <span className={`inline-flex items-center justify-center shrink-0 ${className}`} style={{ width: size, height: size }}>
+            <span className={`inline-flex items-center justify-center shrink-0 ${className}`} style={{ width: size, height: size, minWidth: size, minHeight: size }}>
                 <i data-lucide={name} style={{ width: size, height: size }}></i>
             </span>
         );
@@ -45,81 +51,115 @@
         const GAS_APP_URL = "https://script.google.com/macros/s/AKfycbzbLAYsi6x1TV-KxIFVspjqg3s0WIqQvdxgUhW1WYVnyrTrBD8VegswbcZBFPaTAnSP/exec";
         const ABSENCE_REASONS = ["\uCD9C\uC7A5", "\uC5F0\uAC00", "\uBCD1\uAC00", "\uC870\uD1F4", "\uBCD1\uC870\uD1F4", "\uD734\uAC00", "\uAE30\uD0C0"];
 
+        const formatTime = (v) => {
+            if (!v) return "";
+            try {
+                const s = String(v).trim();
+                const m = s.match(/(\d{1,2}):(\d{1,2})/);
+                if (m) return `${m[1].padStart(2, '0')}:${m[2].padStart(2, '0')}`;
+                const d = new Date(v);
+                if (isNaN(d.getTime())) return s;
+                return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+            } catch (e) { return String(v); }
+        };
+
+        const formatDateKoreanLong = (v) => {
+            if (!v) return "";
+            try {
+                const d = new Date(v);
+                if (isNaN(d.getTime())) return String(v);
+                const w = ['\uC77C', '\u1106\u116F\u11AF', '\uD654', '\uC218', '\uBAA9', '\uAE08', '\uD1A0'];
+                return d.toLocaleDateString('ko-KR', { year:'numeric', month:'long', day:'numeric' }) + ` (${w[d.getDay()]})`;
+            } catch (e) { return String(v); }
+        };
+
         const App = () => {
-            const [view, setView] = useState("user");
-            const [adminSubView, setAdminSubView] = useState("dashboard");
-            const [isLoading, setIsLoading] = useState(true);
+            const [view, setView] = useState('user');
+            const [adminSubView, setAdminSubView] = useState('list');
+            const [isLoading, setIsLoading] = useState(false);
             const [trainings, setTrainings] = useState([]);
             const [allStaff, setAllStaff] = useState([]);
-            const [stats, setStats] = useState([]);
-            const [selectedTraining, setSelectedTraining] = useState(null);
-            const [searchName, setSearchName] = useState("");
+            const [dashboardStats, setDashboardStats] = useState([]);
+            const [selectedRegs, setSelectedRegs] = useState([]);
             const [step, setStep] = useState(1);
+            const [selectedTraining, setSelectedTraining] = useState(null);
+            const [searchName, setSearchName] = useState('');
             const [chosenStaff, setChosenStaff] = useState(null);
-            const [regStatus, setRegStatus] = useState("attended");
-            const [absenceReason, setAbsenceReason] = useState("\uCD9C\uC7A5");
+            const [regStatus, setRegStatus] = useState('attended');
+            const [absenceReason, setAbsenceReason] = useState('');
+            const [qrModalUrl, setQrModalUrl] = useState(null);
+            const [pendingDeleteId, setPendingDeleteId] = useState(null);
             const [customAlert, setCustomAlert] = useState(null);
+            const [showOverwriteConfirm, setShowOverwriteConfirm] = useState(false);
+            const [isManualMode, setIsManualMode] = useState(false);
+            const [manualInfo, setManualInfo] = useState({ school: '\uD558\uC900\uCD08\uB4F1\uD559\uAD50', position: '', name: '' });
             
             const canvasRef = useRef(null);
-            const isDrawingRef = useRef(false);
+            const [isDrawing, setIsDrawing] = useState(false);
 
             useLayoutEffect(() => {
                 if (window.lucide) {
                     const observer = new MutationObserver(() => lucide.createIcons());
-                    observer.observe(document.getElementById("root"), { childList: true, subtree: true });
+                    observer.observe(document.getElementById('root'), { childList: true, subtree: true });
                     lucide.createIcons();
                 }
             }, []);
 
-            useEffect(() => { 
-                fetchInitialData(); 
-            }, []);
+            useEffect(() => { fetchInitialData(); }, []);
 
             const fetchInitialData = async () => {
                 setIsLoading(true);
                 try {
-                    const [initRes, statsRes] = await Promise.all([
-                        fetch(`${GAS_APP_URL}?action=getInitialData`),
-                        fetch(`${GAS_APP_URL}?action=getDashboard`)
-                    ]);
-                    const initData = await initRes.json();
-                    const statsData = await statsRes.json();
-                    if (initData.error) throw new Error(initData.error);
-                    setTrainings(initData.trainings || []);
-                    setAllStaff(initData.staff || []);
-                    setStats(statsData || []);
-                } catch (e) {
-                    setCustomAlert({ title: "\uC624\uB958", message: e.message });
-                } finally {
-                    setIsLoading(false);
-                }
+                    const res = await fetch(`${GAS_APP_URL}?action=getInitialData`);
+                    const data = await res.json();
+                    setTrainings(data.trainings || []);
+                    setAllStaff(data.staff || []);
+                } catch (e) { console.error(e); }
+                setIsLoading(false);
+            };
+
+            const fetchDashboardStats = async () => {
+                setIsLoading(true);
+                try {
+                    const res = await fetch(`${GAS_APP_URL}?action=getDashboard`);
+                    const data = await res.json();
+                    setDashboardStats(data || []);
+                } catch (e) { console.error(e); }
+                setIsLoading(false);
             };
 
             const fetchRegistrations = async (tid, title) => {
+                setIsLoading(true);
                 try {
                     const res = await fetch(`${GAS_APP_URL}?action=getRegistrations&trainingId=${tid}&trainingTitle=${encodeURIComponent(title)}`);
-                    return await res.json();
-                } catch (e) { return []; }
+                    const data = await res.json();
+                    setSelectedRegs(data || []);
+                    setIsLoading(false);
+                    return data || [];
+                } catch (e) { setIsLoading(false); return []; }
             };
 
             const handleRegister = async () => {
                 setIsLoading(true);
                 try {
-                    const signature = regStatus === "attended" ? canvasRef.current.toDataURL() : absenceReason;
-                    const params = {
-                        action: "register",
-                        trainingId: selectedTraining.id,
-                        trainingTitle: selectedTraining.title,
-                        name: chosenStaff.name,
-                        position: chosenStaff.position,
-                        grade: chosenStaff.grade,
-                        status: regStatus,
-                        content: signature
-                    };
-                    await fetch(GAS_APP_URL, { method: "POST", body: JSON.stringify(params) });
-                    setStep(5);
-                    fetchInitialData(); // 통계 업데이트를 위해 다시 불러오기
-                } catch (e) { alert(e.message); }
+                    const content = regStatus === 'attended' ? canvasRef.current.toDataURL('image/png') : absenceReason;
+                    const res = await fetch(GAS_APP_URL, {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            action: 'register',
+                            trainingId: selectedTraining.id,
+                            trainingTitle: selectedTraining.title,
+                            name: chosenStaff.name,
+                            position: chosenStaff.position,
+                            grade: chosenStaff.grade,
+                            status: regStatus,
+                            content: content
+                        })
+                    });
+                    const data = await res.json();
+                    if (data.error) setCustomAlert({ title: '\uC624\uB958', message: data.error });
+                    else setStep(5);
+                } catch (e) { setCustomAlert({ title: '\uC624\uB958', message: '\uB4F1\uB85D \uC911 \uC624\uB958\uAC00 \uBC1C\uC0DD\uD548\uC2B5\uB2C8\uB2E4.' }); }
                 setIsLoading(false);
             };
 
@@ -127,59 +167,71 @@
                 setIsLoading(true);
                 const regs = await fetchRegistrations(training.id, training.title);
                 setIsLoading(false);
+                const win = window.open('', '_blank');
                 
-                const win = window.open("", "_blank");
-                let targetNames = [];
-                try { targetNames = JSON.parse(training.targetParticipants || "[]"); } catch(e){}
+                let displayList = [];
+                const isGlobal = String(training.targetParticipants || "").trim().toUpperCase() === "ALL";
+                if (isGlobal) {
+                    displayList = allStaff.map(s => {
+                        const r = regs.find(reg => reg.name === s.name);
+                        return r || { name: s.name, position: s.position, grade: s.grade, status: 'none', content: '' };
+                    });
+                } else {
+                    try {
+                        const targets = JSON.parse(training.targetParticipants || "[]");
+                        displayList = targets.map(name => {
+                            const r = regs.find(reg => reg.name === name);
+                            const s = allStaff.find(st => st.name === name);
+                            return r || { name, position: s?.position || '', grade: s?.grade || '', status: 'none', content: '' };
+                        });
+                    } catch (e) { displayList = []; }
+                }
                 
-                let list = targetNames.length > 0 ? targetNames.map(n => {
-                    const r = regs.find(reg => reg.name === n);
-                    const s = allStaff.find(st => st.name === n);
-                    return r || { name: n, position: s?.position || "", grade: s?.grade || "", status: "absent", content: "" };
-                }) : regs;
+                const baseNames = displayList.map(it => it.name);
+                const extras = regs.filter(r => !baseNames.includes(r.name));
+                displayList = [...displayList, ...extras];
 
-                // 수기 등록자(명단 외 인원) 추가
-                const attendedNames = regs.filter(r => r.status === 'attended').map(r => r.name);
-                const extraRegs = regs.filter(r => !targetNames.includes(r.name));
-                list = [...list, ...extraRegs];
+                const isDual = displayList.length > 20;
+                const half = isDual ? Math.ceil(displayList.length / 2) : displayList.length;
+                const leftCol = displayList.slice(0, half);
+                const rightCol = displayList.slice(half);
 
-                const isDual = list.length > 20;
-                const half = isDual ? Math.ceil(list.length / 2) : list.length;
-                const left = list.slice(0, half);
-                const right = list.slice(half);
-
-                const tableHtml = (l, skip) => `
-                    <table style="width:100%; border-collapse:collapse; font-size:9pt; margin-bottom:10px;">
+                const renderTable = (list, startVal, dual) => `
+                    <table style="width:100%; border-collapse:collapse; font-size:8pt; table-layout:fixed;">
                         <thead><tr style="background:#f3f3f3;">
                             <th style="border:1pt solid black; width:30px;">No.</th>
-                            <th style="border:1pt solid black; width:100px;">\uC18C\uC18D</th>
-                            <th style="border:1pt solid black; width:60px;">\uC9C1\uC704</th>
-                            <th style="border:1pt solid black; width:70px;">\uC131\uBA85</th>
-                            <th style="border:1pt solid black; width:100px;">\uC11C\uBA85</th>
+                            <th style="border:1pt solid black; width:${dual?'80px':'130px'};">\uC18C\uC18D</th>
+                            <th style="border:1pt solid black; width:${dual?'60px':'90px'};">\uC9C1\uC704</th>
+                            <th style="border:1pt solid black; width:${dual?'70px':'110px'};">\uC131\uBA85</th>
+                            <th style="border:1pt solid black; width:${dual?'110px':'160px'};">\uC11C\uBA85</th>
                             <th style="border:1pt solid black;">\uBE44\uACE0</th>
                         </tr></thead>
-                        <tbody>${l.map((r, i) => `
+                        <tbody>${list.map((r, i) => `
                             <tr style="height:35px;">
-                                <td style="border:1pt solid black; text-align:center;">${skip + i + 1}</td>
-                                <td style="border:1pt solid black; text-align:center;">${r.grade || "\uD558\uC900\uCD08\uB4F1\uD559\uAD50"}</td>
+                                <td style="border:1pt solid black; text-align:center;">${startVal + i + 1}</td>
+                                <td style="border:1pt solid black; text-align:center;">${r.grade || '\uD558\uC900\uCD08\uB4F1\uD559\uAD50'}</td>
                                 <td style="border:1pt solid black; text-align:center;">${r.position}</td>
-                                <td style="border:1pt solid black; text-align:center;">${r.name}</td>
-                                <td style="border:1pt solid black; text-align:center;">${r.status==="attended"?'V':''}</td>
-                                <td style="border:1pt solid black; text-align:center; color:red; font-size:8pt;">${r.status==="absent"?(r.content||""):""}</td>
-                            </tr>`).join("")}</tbody>
+                                <td style="border:1pt solid black; text-align:center;"><strong>${r.name}</strong></td>
+                                <td style="border:1pt solid black; text-align:center;">
+                                    ${r.status==='attended'?(r.content.startsWith('http')?`<img src="${r.content}" style="height:25px;"/>`:'\uC11C\uBA85\uC644\uB8CC'):''}
+                                </td>
+                                <td style="border:1pt solid black; font-size:7pt; color:red; padding:2px;">${r.status==='absent'?r.content:''}</td>
+                            </tr>`).join('')}</tbody>
                     </table>`;
 
-                win.document.write(`<html><head><title>Print</title><style>body{padding:20px; font-family:sans-serif;} .container{display:flex; gap:15px;}</style></head>
-                    <body><h1 style="text-align:center; margin-bottom:20px;">${training.title}</h1>
-                    <div class="container"><div style="flex:1;">${tableHtml(left, 0)}</div>${isDual ? `<div style="flex:1;">${tableHtml(right, half)}</div>` : ""}</div>
-                    <script>window.onload=()=>{window.print();window.close();};<\/script></body></html>`);
+                win.document.write(`<html><head><title>Print</title><style>@page{size:A4; margin:10mm;} body{font-family:sans-serif;} .cols{display:flex; gap:10px;}</style></head>
+                    <body><h1 style="text-align:center; text-decoration:underline;">${training.title} \uC5F0\uC218 \uD2B9\uB85D\uBD80</h1>
+                    <div style="text-align:right; margin-bottom:5px; font-weight:bold;">\uD558\uC900\uCD08\uB4F1\uD559\uAD50</div>
+                    <div class="cols"><div style="flex:1;">${renderTable(leftCol, 0, isDual)}</div>${isDual?`<div style="flex:1;">${renderTable(rightCol, half, true)}</div>`:''}</div>
+                    <p style="text-align:right; font-weight:bold; margin-top:10px;">\uC714\uC640 \uAC19\uC774 \uC5F0\uC218\uC5D0 \uCC38\uC11D\uD558\uC600\uC74C\uC744 \uD654\uC778\uD569\uB2C8\uB2E4.</p>
+                    <script>window.onload=()=>{setTimeout(()=>{window.print();window.close();},800);};<\/script></body></html>`);
                 win.document.close();
             };
 
             const filteredStaffList = useMemo(() => {
-                if (!searchName.trim()) return [];
+                if (searchName.trim().length === 0) return [];
                 let pool = allStaff;
-                if (selectedTraining && String(selectedTraining.targetParticipants).toUpperCase() !== "ALL") {
+                if (selectedTraining && selectedTraining.targetParticipants && String(selectedTraining.targetParticipants).toUpperCase() !== 'ALL') {
                     try {
                         const targets = JSON.parse(selectedTraining.targetParticipants);
                         pool = allStaff.filter(s => targets.includes(s.name));
@@ -188,66 +240,78 @@
                 return pool.filter(s => s.name.includes(searchName));
             }, [searchName, allStaff, selectedTraining]);
 
-            if (isLoading) {
-                return (
-                    <div className="fixed inset-0 flex flex-col items-center justify-center bg-white z-[9999]">
-                        <div className="w-48 h-1 bg-slate-100 rounded-full overflow-hidden relative mb-4">
-                            <div class="absolute inset-0 bg-indigo-600 w-1/2 animate-[loading-bar-anim_1.2s_infinite_ease-in-out]"></div>
-                        </div>
-                        <p class="text-slate-400 text-sm font-medium font-outfit">\uB370\uC774\uD130\uB97C \uBD88\uB7EC\uC624\uB294 \uC911\uC785\uB2C8\uB2E4...</p>
-                    </div>
-                );
-            }
+            const getPos = (e) => {
+                const r = canvasRef.current.getBoundingClientRect();
+                const cx = e.touches ? e.touches[0].clientX : e.clientX;
+                const cy = e.touches ? e.touches[0].clientY : e.clientY;
+                return { x: (cx - r.left) * (1000/r.width), y: (cy - r.top) * (500/r.height) };
+            };
+            const startDrawing = (e) => {
+                setIsDrawing(true);
+                const p = getPos(e);
+                const ctx = canvasRef.current.getContext('2d');
+                ctx.beginPath();
+                ctx.lineWidth = 6;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.strokeStyle = '#000000';
+                ctx.moveTo(p.x, p.y);
+            };
+            const draw = (e) => {
+                if (!isDrawing) return;
+                const p = getPos(e);
+                const ctx = canvasRef.current.getContext('2d');
+                ctx.lineTo(p.x, p.y);
+                ctx.stroke();
+            };
 
             return (
-                <div className="min-h-screen pb-20 animate-in">
-                    <nav className="sticky top-0 z-50 w-full px-6 py-4 glass border-b">
-                        <div className="max-w-5xl mx-auto flex justify-between items-center">
+                <div className="min-h-screen pb-20">
+                    {isLoading && <div className="loading-bar"></div>}
+                    <nav className="glass sticky top-0 z-50 w-full px-6 py-4 mb-4">
+                        <div className="max-w-5xl mx-auto flex justify-between items-center text-slate-800">
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 bg-indigo-50 rounded-2xl flex items-center justify-center"><Icon name="users" size={20} className="text-indigo-600" /></div>
-                                <span className="font-outfit font-black text-xl text-indigo-900">\uC5F0\uC218 \uD2B9\uB85D\uBD80</span>
+                                <div className="w-10 h-10 bg-indigo-50 rounded-2xl flex items-center justify-center shadow-sm"><Icon name="users" size={20} className="text-indigo-600" /></div>
+                                <div className="flex flex-col"><span className="font-outfit font-black text-xl tracking-tight text-indigo-900">\uC5F0\uC218 \uD2B9\uB85D\uBD80</span><span className="text-[9px] font-bold text-indigo-400 uppercase tracking-widest mt-0.5">Training Registrar</span></div>
                             </div>
-                            <button onClick={() => setView(view === "user" ? "admin" : "user")} className="flex items-center gap-2 px-4 py-2 bg-white border rounded-xl font-bold text-sm btn-hover shadow-sm">
-                                {view === "user" ? <Icon name="settings" size={16}/> : <Icon name="log-out" size={16}/>}
-                                {view === "user" ? "\uAD00\uB9AC \uBAA8\uB4DC" : "\uC0AC\uC6A9\uC790 \uD654\uBA74"}
+                            <button onClick={() => { setView(view==='user'?'admin':'user'); setStep(1); }} className="flex items-center gap-2.5 bg-white border border-slate-200 px-5 py-2.5 rounded-2xl text-sm font-bold transition-all shadow-sm active:scale-95 group">
+                                {view === 'user' ? <Icon name="settings" size={18} className="text-indigo-500 group-hover:rotate-45 transition-transform" /> : <Icon name="log-out" size={18} className="text-slate-400" />}
+                                <span className={view === 'user' ? 'text-indigo-600' : 'text-slate-500'}>{view === 'user' ? '\uAD00\uB9AC \uBAA8\uB4DC' : '\uC0AC\uC6A9\uC790 \uD654\uBA74'}</span>
                             </button>
                         </div>
                     </nav>
-                    <main className="max-w-4xl mx-auto px-6 mt-8">
-                        {view === "admin" ? (
-                            <div className="space-y-6">
-                                <div className="flex bg-slate-200/50 p-1 rounded-2xl w-fit mx-auto md:mx-0">
-                                    <button onClick={() => setAdminSubView('dashboard')} className={`px-6 py-2 rounded-xl text-sm font-bold ${adminSubView === 'dashboard'?'bg-white shadow-sm':''}`}>\uB300\uC2DC\uBCF4\uB4DC</button>
-                                    <button onClick={() => setAdminSubView('list')} className={`px-6 py-2 rounded-xl text-sm font-bold ${adminSubView === 'list'?'bg-white shadow-sm':''}`}>\uBAA9\uB85D & \uC778\uC104</button>
+
+                    <main className="max-w-4xl mx-auto px-6">
+                        {view === 'admin' ? (
+                            <div className="space-y-6 animate-in">
+                                <div className="flex bg-slate-200/50 p-1 rounded-2xl w-fit mb-8 mx-auto md:mx-0">
+                                    <button onClick={() => setAdminSubView('list')} className={`px-6 py-2 rounded-xl text-sm font-bold ${adminSubView==='list'?'bg-white text-indigo-600 shadow-sm':'text-slate-500'}`}>\uBAA9\uB85D \uAD00\uB9AC</button>
+                                    <button onClick={() => { setAdminSubView('dashboard'); fetchDashboardStats(); }} className={`px-6 py-2 rounded-xl text-sm font-bold ${adminSubView==='dashboard'?'bg-white text-indigo-600 shadow-sm':'text-slate-500'}`}>\uB300\uC2DC\uBCF4\uB4DC</button>
                                 </div>
-                                
-                                {adminSubView === 'dashboard' && (
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        {stats.map(s => (
-                                            <div key={s.id} className="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 flex flex-col justify-between">
-                                                <div>
-                                                    <div className="text-sm text-slate-400 font-bold mb-1">{s.title}</div>
-                                                    <div className="flex items-end gap-2">
-                                                        <span className="text-3xl font-black text-indigo-600">{s.attended}</span>
-                                                        <span className="text-lg font-bold text-slate-300">/ {s.total}\uBA85 (\uCC38\uC11D)</span>
-                                                    </div>
+
+                                {adminSubView === 'dashboard' ? (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                        {dashboardStats.map(s => (
+                                            <div key={s.id} className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-4">
+                                                <h4 className="font-bold text-slate-800 truncate">{s.title}</h4>
+                                                <div className="flex justify-between items-end">
+                                                    <div><span className="text-3xl font-black text-indigo-600">{s.attended}</span><span className="text-slate-300 text-sm font-bold ml-1">/ {s.total}</span></div>
+                                                    <span className="text-xs font-bold text-emerald-500 bg-emerald-50 px-2 py-1 rounded-lg">\uCC38\uC11D\uB960 {Math.round((s.attended/(s.total||1))*100)}%</span>
                                                 </div>
-                                                <div className="mt-6 flex gap-2">
-                                                    <button onClick={()=>handlePrint(trainings.find(t=>t.id===s.id))} className="flex-1 p-3 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors flex justify-center items-center gap-2 font-bold text-xs"><Icon name="printer" size={14}/>\uC778\uC144 \uCD9C\uB825</button>
-                                                    <button onClick={()=>window.open(`${GAS_APP_URL}?action=exportToExcel&id=${s.id}`, '_blank')} className="flex-1 p-3 bg-emerald-50 text-emerald-700 rounded-xl hover:bg-emerald-100 transition-colors flex justify-center items-center gap-2 font-bold text-xs"><Icon name="download" size={14}/>Excel</button>
-                                                </div>
+                                                <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden flex"><div className="bg-indigo-500 h-full" style={{width:`${(s.attended/(s.total||1))*100}%`}}></div><div className="bg-rose-400 h-full" style={{width:`${(s.absent/(s.total||1))*100}%`}}></div></div>
+                                                <div className="flex justify-between text-[10px] font-bold uppercase tracking-tight"><span className="text-indigo-500">\uCC38\uC11D: {s.attended}</span><span className="text-rose-400">\uBD88\uCC38: {s.absent}</span></div>
                                             </div>
                                         ))}
                                     </div>
-                                )}
-                                
-                                {adminSubView === 'list' && (
-                                    <div className="space-y-4">
+                                ) : (
+                                    <div className="grid grid-cols-1 gap-4">
                                         {trainings.map(t => (
-                                            <div key={t.id} className="bg-white p-6 rounded-3xl border flex justify-between items-center shadow-sm">
-                                                <div><p className="font-bold text-lg">{t.title}</p><p className="text-xs text-slate-400">{t.date}</p></div>
-                                                <div className="flex gap-2">
-                                                    <button onClick={()=>handlePrint(t)} className="p-3 bg-slate-100 rounded-xl hover:bg-slate-200 transition-colors"><Icon name="printer" size={20}/></button>
+                                            <div key={t.id} className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6 hover:shadow-md transition-shadow">
+                                                <div className="flex-1"><h3 className="font-black text-xl text-slate-800">{t.title}</h3><div className="flex gap-4 text-sm text-slate-400 font-semibold mt-1"><span><Icon name="map-pin" size={14} className="mr-1"/>{t.location}</span><span><Icon name="clock" size={14} className="mr-1"/>{formatTime(t.startTime)}~</span></div></div>
+                                                <div className="flex items-center gap-2">
+                                                    <button onClick={() => setQrModalUrl(`${window.location.href.split('?')[0]}?trainingId=${t.id}`)} className="p-3 bg-slate-50 text-slate-600 rounded-xl hover:bg-slate-100 transition-all border border-slate-100"><Icon name="qr-code" size={18}/></button>
+                                                    <button onClick={() => handlePrint(t)} className="px-5 py-2.5 bg-indigo-50 text-indigo-600 rounded-xl hover:bg-indigo-100 transition-all border border-indigo-100 font-bold text-sm flex items-center gap-2"><Icon name="printer" size={18}/>\uC778\uC144 \uCD9C\uB825</button>
+                                                    <button onClick={() => window.open(`${GAS_APP_URL}?action=exportToExcel&id=${t.id}`, '_blank')} className="p-3 bg-emerald-50 text-emerald-600 rounded-xl hover:bg-emerald-100 border border-emerald-100 transition-all"><Icon name="download" size={18}/></button>
                                                 </div>
                                             </div>
                                         ))}
@@ -255,114 +319,131 @@
                                 )}
                             </div>
                         ) : (
-                            <div className="max-w-xl mx-auto bg-white p-10 rounded-[3rem] shadow-2xl min-h-[500px] border border-slate-50">
-                                {step === 1 && (
-                                    <div className="space-y-6 animate-in">
-                                        <h2 className="text-2xl font-black text-center text-slate-900">\uC5F0\uC218\uB97C \uC120\uD0DD\uD574 \uC9FC\uC138\uC694</h2>
-                                        <div className="space-y-3">
-                                            {trainings.map(t => (
-                                                <button key={t.id} onClick={()=>{setSelectedTraining(t); setStep(2);}} className="w-full p-6 border-2 border-slate-50 bg-slate-50/50 rounded-3xl text-left flex justify-between items-center hover:border-indigo-500 hover:bg-indigo-50/30 transition-all group">
-                                                    <div><div className="font-bold text-lg group-hover:text-indigo-600 transition-colors">{t.title}</div><div className="text-xs text-slate-400 mt-1">{t.date} | {t.location}</div></div>
-                                                    <Icon name="chevron-right" size={20} className="text-slate-300 group-hover:text-indigo-500"/>
-                                                </button>
-                                            ))}
+                            <div className="max-w-xl mx-auto py-4">
+                                <div className="bg-white p-8 md:p-12 rounded-[2.5rem] shadow-2xl shadow-indigo-100 border border-slate-50 min-h-[500px] flex flex-col relative overflow-hidden">
+                                    <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-500"></div>
+
+                                    {step < 5 && (
+                                        <div className="flex justify-between items-center mb-10 z-10 w-full min-h-[40px]">
+                                            {step > 1 ? <button onClick={() => isManualMode && step === 2 ? setIsManualMode(false) : setStep(step-1)} className="group flex items-center gap-2 text-indigo-500 hover:text-indigo-700 transition-all"><Icon name="arrow-left" size={20}/></button> : <div className="w-10 h-10"></div>}
+                                            <div className="flex flex-col items-end gap-1"><div className="flex gap-1.5">{[1,2,3,4].map(i => <div key={i} className={`h-1 rounded-full transition-all duration-300 ${step >= i ? 'w-6 bg-indigo-600' : 'w-2 bg-slate-100'}`}></div>)}</div><span className="text-[9px] font-black text-indigo-300 uppercase tracking-widest">STEP {step} / 4</span></div>
                                         </div>
-                                    </div>
-                                )}
-                                {step === 2 && (
-                                    <div className="space-y-6 animate-in">
-                                        <div className="flex items-center gap-2 mb-4">
-                                            <button onClick={()=>setStep(1)} className="p-2 hover:bg-slate-100 rounded-full"><Icon name="arrow-left" size={20}/></button>
-                                            <h2 className="text-xl font-bold">\uC131\uD568\uC744 \uAC80\uC0C9\uD574 \uC9FC\uC138\uC694</h2>
-                                        </div>
-                                        <div className="relative">
-                                            <input type="text" placeholder="\uC131\uD568 \uC785\uB825 (\uC608: \uD64D\uAE38\uB3D9)" className="w-full p-5 pl-12 border-2 border-slate-100 rounded-[1.5rem] focus:border-indigo-500 outline-none font-bold text-lg" value={searchName} onChange={e=>setSearchName(e.target.value)} autoFocus/>
-                                            <Icon name="search" size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300"/>
-                                        </div>
-                                        <div className="space-y-2 max-h-72 overflow-y-auto pr-2 custom-scrollbar">
-                                            {filteredStaffList.map(s => (
-                                                <button key={s.id} onClick={()=>{setChosenStaff(s); setStep(3);}} className="w-full p-5 bg-white border border-slate-100 rounded-2xl text-left font-bold hover:bg-indigo-600 hover:text-white transition-all flex justify-between items-center">
-                                                    <span>{s.name} <span className="opacity-60 text-sm font-normal">({s.position})</span></span>
-                                                    <Icon name="plus-circle" size={18}/>
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-                                {step === 3 && (
-                                    <div className="space-y-10 text-center py-10 animate-in">
-                                        <div>
-                                            <h2 className="text-3xl font-black mb-2 text-indigo-600">{chosenStaff.name} \uB2D8</h2>
-                                            <p className="text-slate-400 font-bold">\uC5F0\uC218\uC5D0 \uCC38\uC11D\uD558\uC168\uB098\uC694?</p>
-                                        </div>
-                                        <div className="flex gap-4">
-                                            <button onClick={()=>{setRegStatus("attended"); setStep(4);}} className="flex-1 p-8 border-2 border-indigo-500 rounded-[2.5rem] font-black text-2xl bg-indigo-600 text-white shadow-lg shadow-indigo-100 active:scale-95 transition-transform">\uCC38\uC11D</button>
-                                            <button onClick={()=>{setRegStatus("absent"); setStep(4);}} className="flex-1 p-8 border-2 border-slate-100 rounded-[2.5rem] font-black text-2xl text-slate-400 hover:bg-slate-50 active:scale-95 transition-transform">\uBD88\uCC38</button>
-                                        </div>
-                                    </div>
-                                )}
-                                {step === 4 && (
-                                    <div className="space-y-8 animate-in text-center">
-                                        <h2 className="text-2xl font-black">{regStatus==="attended"?"\uC815\uC131\uC2A4\uB7FD\uAC8C \uC11C\uBA85\uD574 \uC9FC\uC138\uC694":"\uBD88\uCC38 \uC0AC\uC720\uB97C \uC120\uD0DD\uD574 \uC9FC\uC138\uC694"}</h2>
-                                        {regStatus === "attended" ? (
-                                            <div className="relative border-4 border-dashed border-slate-100 rounded-[2.5rem] h-64 bg-slate-50/50 overflow-hidden cursor-crosshair">
-                                                <canvas ref={canvasRef} width={800} height={400} className="w-full h-full"
-                                                    onMouseDown={e=>{
-                                                        isDrawingRef.current = true;
-                                                        const ctx = canvasRef.current.getContext("2d");
-                                                        const r = canvasRef.current.getBoundingClientRect();
-                                                        ctx.lineWidth = 6;
-                                                        ctx.lineCap = "round";
-                                                        ctx.lineJoin = "round";
-                                                        ctx.strokeStyle = "#1e293b";
-                                                        ctx.beginPath();
-                                                        ctx.moveTo((e.clientX - r.left) * (800 / r.width), (e.clientY - r.top) * (400 / r.height));
-                                                    }}
-                                                    onMouseMove={e=>{
-                                                        if (!isDrawingRef.current) return;
-                                                        const ctx = canvasRef.current.getContext("2d");
-                                                        const r = canvasRef.current.getBoundingClientRect();
-                                                        ctx.lineTo((e.clientX - r.left) * (800 / r.width), (e.clientY - r.top) * (400 / r.height));
-                                                        ctx.stroke();
-                                                    }}
-                                                    onMouseUp={() => { isDrawingRef.current = false; }}
-                                                    onMouseOut={() => { isDrawingRef.current = false; }}
-                                                />
-                                                <div className="absolute bottom-4 right-6 pointer-events-none opacity-20 font-black text-2xl italic text-slate-400">Signature Here</div>
-                                            </div>
-                                        ) : (
-                                            <div className="grid grid-cols-2 gap-3">
-                                                {ABSENCE_REASONS.map(reason => (
-                                                    <button key={reason} onClick={()=>setAbsenceReason(reason)} className={`p-5 rounded-2xl font-bold border-2 transition-all ${absenceReason === reason?'border-indigo-600 bg-indigo-50 text-indigo-600':'border-slate-100 bg-white text-slate-400'}`}>{reason}</button>
+                                    )}
+
+                                    {step === 1 && (
+                                        <div className="space-y-8 animate-in text-center">
+                                            <div className="space-y-2"><h2 className="text-3xl font-black text-slate-800 tracking-tight">\uC5F0\uC218 \uC120\uD0DD</h2><p className="text-slate-400 font-medium">\uCC38\uC11D\uD558\uC2E0 \uC5F0\uC218 \uC77C\uC815\uC744 \uC120\uD0DD\uD574 \uC9FC\uC138\uC694</p></div>
+                                            <div className="space-y-4">
+                                                {trainings.map(t => (
+                                                    <button key={t.id} onClick={() => { setSelectedTraining(t); setStep(2); fetchRegistrations(t.id, t.title); }} className="w-full text-left p-6 rounded-3xl border-2 border-slate-50 hover:border-indigo-200 hover:bg-slate-50/50 transition-all flex items-center justify-between group">
+                                                        <div className="flex-1 text-lg font-black text-slate-700 group-hover:text-indigo-700">{t.title}</div>
+                                                        <Icon name="chevron-right" size={24} className="text-slate-300 group-hover:text-indigo-600"/>
+                                                    </button>
                                                 ))}
                                             </div>
-                                        )}
-                                        <button onClick={handleRegister} className="w-full bg-slate-900 text-white p-6 rounded-[2rem] font-black text-xl shadow-xl shadow-slate-200 active:scale-98 transition-all hover:bg-black font-outfit">\uB4F1\uB85D \uC644\uB8CC (Submit)</button>
-                                    </div>
-                                )}
-                                {step === 5 && (
-                                    <div className="text-center py-16 space-y-8 animate-in">
-                                        <div className="flex justify-center"><div className="w-24 h-24 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center animate-bounce shadow-lg shadow-emerald-50"><Icon name="check-circle-2" size={64} /></div></div>
-                                        <div><h2 className="text-3xl font-black text-slate-900">\uB4F1\uB85D\uC774 \uC644\uB8CC\uB418\uC5C8\uC2B5\uB2C8\uB2E4!</h2><p className="text-slate-400 font-bold mt-2">\uC218\uACE0\uD558\uC168\uC2B5\uB2C8\uB2E4.</p></div>
-                                        <button onClick={()=>{setStep(1); setSearchName(""); setSelectedTraining(null);}} className="px-10 py-4 bg-slate-900 text-white rounded-[1.5rem] font-black shadow-lg shadow-slate-100 hover:scale-105 active:scale-95 transition-all text-lg">\uCC98\uC74C\uC73C\uB85C \uB3CC\uC544\uAC00\uAE30</button>
-                                    </div>
-                                )}
+                                        </div>
+                                    )}
+
+                                    {step === 2 && (
+                                        <div className="space-y-6 animate-in flex-1 flex flex-col text-center">
+                                            <h2 className="text-3xl font-black text-slate-800 tracking-tight">{isManualMode ? '\uCD94\uAC00 \uB4F1\uB85D' : '\uBC23\uC778 \uD655\uC778'}</h2>
+                                            {isManualMode ? (
+                                                <div className="space-y-4 text-left">
+                                                    <div><label className="text-[10px] font-black text-indigo-400 uppercase">\uC18C\uC18D / \uD559\uAD50\uBA85</label><input type="text" value={manualInfo.school} onChange={e=>setManualInfo({...manualInfo, school:e.target.value})} className="w-full p-4 border-2 border-slate-50 rounded-2xl focus:border-indigo-400 outline-none font-bold text-lg"/></div>
+                                                    <div><label className="text-[10px] font-black text-indigo-400 uppercase">\uC9C1\uC704</label><input type="text" value={manualInfo.position} onChange={e=>setManualInfo({...manualInfo, position:e.target.value})} className="w-full p-4 border-2 border-slate-50 rounded-2xl focus:border-indigo-400 outline-none font-bold text-lg"/></div>
+                                                    <div><label className="text-[10px] font-black text-indigo-400 uppercase">\uC131\uBA85</label><input type="text" value={manualInfo.name} onChange={e=>setManualInfo({...manualInfo, name:e.target.value})} className="w-full p-4 border-2 border-slate-50 rounded-2xl focus:border-indigo-400 outline-none font-bold text-lg"/></div>
+                                                    <button onClick={() => { if(!manualInfo.name) return; setChosenStaff({name:manualInfo.name, position:manualInfo.position, grade:manualInfo.school}); setRegStatus('attended'); setStep(4); }} className="w-full py-5 bg-indigo-600 text-white rounded-3xl font-black text-xl">\uC11C\uBA85 \uB2E8\uACC4\uB85C \uC774\uB3D9</button>
+                                                </div>
+                                            ) : (
+                                                <>
+                                                    <div className="relative"><input type="text" placeholder="\uC131\uD568 \uAC80\uC0C9" value={searchName} onChange={e=>setSearchName(e.target.value)} className="w-full pl-14 pr-6 py-5 rounded-3xl border-2 border-slate-50 focus:border-indigo-400 bg-slate-50 outline-none text-xl font-bold transition-all"/><Icon name="search" size={22} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300"/></div>
+                                                    <div className="space-y-2 max-h-64 overflow-y-auto pr-2 flex-1">
+                                                        {filteredStaffList.map(s => <button key={s.id} onClick={() => { setChosenStaff(s); if(selectedRegs.some(r=>r.name===s.name)) setShowOverwriteConfirm(true); else setStep(3); }} className="w-full flex items-center justify-between p-5 rounded-2xl border border-slate-50 hover:border-indigo-100 hover:bg-indigo-50/30 transition-all font-black text-lg text-slate-700"><span>{s.name} <span className="opacity-40 text-sm">{s.position}</span></span><Icon name="chevron-right" size={20}/></button>)}
+                                                        <button onClick={() => setIsManualMode(true)} className="w-full py-5 rounded-2xl border-2 border-dashed border-slate-100 text-slate-400 font-bold hover:bg-indigo-50/30 flex flex-col items-center gap-2 mt-4"><Icon name="plus-circle" size={24}/>\uBAA9\uB85D\uC5D0 \uC5C6\uB2E4\uBA74? \uC218\uAE30 \uB4F1\uB85D</button>
+                                                    </div>
+                                                </>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {step === 3 && (
+                                        <div className="space-y-10 text-center py-10 animate-in flex flex-col justify-center flex-1">
+                                            <div className="space-y-3"><div className="w-20 h-20 bg-indigo-50 rounded-[2rem] flex items-center justify-center mx-auto mb-4 shadow-xl text-indigo-600"><Icon name="user-check" size={36}/></div><h2 className="text-3xl font-black text-slate-800 tracking-tight">{chosenStaff.name}\uB2D8 \uBC23\uC778\uB418\uC5C8\uC2B5\uB2C8\uB2E4</h2><p className="text-slate-400 font-medium">\uCC38\uC11D \uC5EC\uBD80\uB97C \uC120\uD0DD\uD574 \uC9FC\uC138\uC694</p></div>
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <button onClick={() => { setRegStatus('attended'); setStep(4); }} className="p-8 rounded-[2rem] border-2 border-slate-50 hover:border-indigo-500 bg-white shadow-sm hover:shadow-xl transition-all flex flex-col items-center gap-3"><Icon name="pen-tool" size={32} className="text-indigo-600"/><span className="font-black text-lg text-slate-700">\uCC38\uC11D (\uC11C\uBA85)</span></button>
+                                                <button onClick={() => { setRegStatus('absent'); setStep(4); }} className="p-8 rounded-[2rem] border-2 border-slate-50 hover:border-rose-500 bg-white shadow-sm hover:shadow-xl transition-all flex flex-col items-center gap-3"><Icon name="x-circle" size={32} className="text-rose-500"/><span className="font-black text-lg text-slate-700">\uBD88\uCC38 (\uC0AC\uC720)</span></button>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {step === 4 && (
+                                        <div className="space-y-6 animate-in text-center flex-1 flex flex-col py-4">
+                                            <h2 className="text-3xl font-black text-slate-800">{regStatus === 'attended' ? '\uC815\uC131\uC2A4\uB7FD\uAC8C \uC11C\uBA85' : '\uBD88\uCC38 \uC0AC\uC720 \uC120\uD0DD'}</h2>
+                                            {regStatus === 'attended' ? (
+                                                <div className="space-y-4 flex-1 flex flex-col">
+                                                    <div className="canvas-container flex-1 bg-white border-4 border-dashed border-slate-100 rounded-[2rem] relative shadow-inner overflow-hidden min-h-[220px]">
+                                                        <canvas ref={canvasRef} width={1000} height={500} onMouseDown={startDrawing} onMouseMove={draw} onMouseUp={() => setIsDrawing(false)} onTouchStart={startDrawing} onTouchMove={draw} onTouchEnd={() => setIsDrawing(false)} className="absolute inset-0 w-full h-full cursor-crosshair bg-white"/>
+                                                    </div>
+                                                    <div className="flex justify-between items-center"><button onClick={() => { const ctx = canvasRef.current.getContext('2d'); ctx.clearRect(0, 0, 1000, 500); ctx.beginPath(); }} className="text-xs font-black text-rose-400 flex items-center gap-1"><Icon name="trash-2" size={14}/>\uC9C0\uC6B0\uAE30</button><span className="text-[10px] font-black text-slate-300 italic">\uC11C\uBA85 \uD604 \uB4F1\uB85D\uD558\uAE30 \uBC84\uD2BC\uC744 \uB20C\uB7EC\uC8FC\uC138\uC694</span></div>
+                                                </div>
+                                            ) : (
+                                                <div className="grid grid-cols-2 gap-3 flex-1 overflow-y-auto">
+                                                    {ABSENCE_REASONS.map(r => <button key={r} onClick={() => setAbsenceReason(r)} className={`p-5 rounded-2xl border-2 font-black transition-all ${absenceReason===r?'border-indigo-600 bg-indigo-50 text-indigo-700 shadow-md':'border-slate-50 bg-white text-slate-300'}`}>{r}</button>)}
+                                                </div>
+                                            )}
+                                            <button disabled={isLoading || (regStatus==='absent'&&!absenceReason)} onClick={handleRegister} className="w-full bg-slate-900 text-white font-black py-5 rounded-[2rem] shadow-xl text-xl transition-all active:scale-98 flex items-center justify-center gap-3">
+                                                {isLoading ? <Icon name="loader-2" size={24} className="animate-spin"/> : <Icon name="check-circle-2" size={24}/>}
+                                                \uB4F1\uB85D\uD558\uAE30
+                                            </button>
+                                        </div>
+                                    )}
+
+                                    {step === 5 && (
+                                        <div className="text-center py-10 space-y-10 animate-in flex flex-col items-center justify-center flex-1">
+                                            <div className="w-28 h-28 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center border-4 border-white shadow-2xl animate-bounce"><Icon name="check-circle-2" size={64} /></div>
+                                            <div className="space-y-4 text-center"><h2 className="text-4xl font-black text-slate-800 tracking-tighter">\uB4F1\uB85D\uC774 \uC644\uB8CC\uB418\uC5C8\uC2B5\uB2C8\uB2E4!</h2><p className="text-slate-400 font-bold">\uC218\uACE0\uD558\uC168\uC2B5\uB2C8\uB2E4. \uC774\uC81C \uCC3D\uC744 \uB2EB\uC73C\uC154\uB3C4 \uC811\uC2B5\uB2C8\uB2E4.</p></div>
+                                            <button onClick={()=>{setStep(1); setSearchName(""); setAbsenceReason(""); setSelectedTraining(null);}} className="w-full max-w-xs bg-slate-900 text-white px-8 py-5 rounded-[1.5rem] font-black text-lg btn-hover">\uCC98\uC74C\uC73C\uB85C</button>
+                                        </div>
+                                    )}
+
+                                    {showOverwriteConfirm && (
+                                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in">
+                                            <div className="bg-white rounded-3xl p-8 max-w-sm w-full text-center space-y-6 shadow-2xl">
+                                                <div className="w-16 h-16 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center mx-auto"><Icon name="alert-triangle" size={32}/></div>
+                                                <div className="space-y-2"><h3 className="text-xl font-bold text-slate-800">\uC774\uBBF8 \uB4F1\uB85D\uB418\uC5B4 \uC73C\uC2B5\uB2C8\uB2E4</h3><p className="text-slate-500 text-sm">\uC774\uBBF8 \uC11C\uBA85\uC744 \uC644\uB8CC\uD558\uC168\uC2B5\uB2C8\uB2E4.<br/>\uAE30\uC874 \uB4F1\uB85D\uC744 \uC218\uC815 \uD639\uC740 \uC0C8\uB85C \uC11C\uBA85\uD558\uC2DC\uACA0\uC2B5\uB2C8\uAE4C?</p></div>
+                                                <div className="flex gap-3"><button onClick={()=>setShowOverwriteConfirm(false)} className="flex-1 py-3 bg-slate-100 text-slate-600 rounded-xl font-bold">\uCDE8\uC18C</button><button onClick={()=>{setShowOverwriteConfirm(false); setStep(3);}} className="flex-1 py-3 bg-indigo-600 text-white rounded-xl font-bold shadow-lg">\uC0C8\uB85C \uC11C\uBA85</button></div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {qrModalUrl && (
+                                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in">
+                                            <div className="bg-white rounded-3xl p-8 max-w-sm w-full text-center space-y-4 shadow-2xl">
+                                                <h3 className="text-xl font-bold text-slate-800">QR \uD654\uBA74</h3>
+                                                <div className="bg-white p-4 border rounded-2xl flex justify-center"><img src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrModalUrl)}`} className="w-48 h-48"/></div>
+                                                <button onClick={()=>setQrModalUrl(null)} className="w-full py-3 bg-slate-900 text-white rounded-xl font-bold">OK</button>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {customAlert && (
+                                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in">
+                                            <div className="bg-white rounded-3xl p-8 max-w-sm w-full text-center space-y-4 shadow-2xl">
+                                                <div className="w-12 h-12 bg-indigo-50 text-indigo-500 rounded-full flex items-center justify-center mx-auto"><Icon name="info" size={24}/></div>
+                                                <h3 className="text-xl font-bold text-slate-800">{customAlert.title}</h3><p className="text-slate-500 text-sm whitespace-pre-line">{customAlert.message}</p>
+                                                <button onClick={()=>setCustomAlert(null)} className="w-full py-3 bg-slate-900 text-white rounded-xl font-bold">OK</button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                                <p className="text-center text-[10px] text-slate-300 font-black mt-8 tracking-[0.3em] uppercase opacity-50">School Training Management System v2.0</p>
                             </div>
                         )}
                     </main>
-                    {customAlert && (
-                        <div className="fixed inset-0 flex items-center justify-center z-[100] p-6 bg-black/50 backdrop-blur-sm">
-                            <div className="bg-white p-10 rounded-[2.5rem] shadow-2xl max-w-sm w-full text-center space-y-6">
-                                <div className="w-16 h-16 bg-red-50 text-red-600 rounded-full flex items-center justify-center mx-auto"><Icon name="alert-triangle" size={32}/></div>
-                                <div><h3 className="text-xl font-black text-slate-900">{customAlert.title}</h3><p className="text-slate-500 font-medium mt-2 break-all">{customAlert.message}</p></div>
-                                <button onClick={()=>setCustomAlert(null)} className="w-full bg-slate-900 text-white p-5 rounded-2xl font-bold shadow-lg shadow-slate-100 active:scale-95 transition-transform">OK</button>
-                            </div>
-                        </div>
-                    )}
                 </div>
             );
         };
-        ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
     </script>
 </body>
 </html>
