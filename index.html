@@ -533,26 +533,11 @@
                     const isDualColumn = displayList.length > 20;
                     const maxRowsPerCol = isDualColumn ? Math.ceil(displayList.length / 2) : displayList.length;
                     
-                    // 인원수에 따른 동적 높이 및 글자 크기 계산 (1페이지 고정용)
-                    let rowHeight = '48px';
-                    let imgHeight = '42';
-                    let fontSize = '9pt';
-                    
-                    if (isDualColumn) {
-                        if (maxRowsPerCol > 40) {
-                            rowHeight = '22px';
-                            imgHeight = '18';
-                            fontSize = '7.5pt';
-                        } else if (maxRowsPerCol > 30) {
-                            rowHeight = '28px';
-                            imgHeight = '24';
-                            fontSize = '8pt';
-                        } else {
-                            rowHeight = '36px';
-                            imgHeight = '32';
-                            fontSize = '9pt';
-                        }
-                    }
+                    // 사용자 지정 엑셀 규준 반영 (행 높이 20 -> 27px, 이미지 0.71x2.12cm -> 27x80px)
+                    const rowHeight = isDualColumn ? (maxRowsPerCol > 35 ? '24px' : '27px') : '48px';
+                    const imgHeight = isDualColumn ? (maxRowsPerCol > 35 ? '20' : '27') : '42';
+                    const sigWidth = isDualColumn ? '80' : '120';
+                    const fontSize = isDualColumn ? (maxRowsPerCol > 35 ? '7.5pt' : '8.5pt') : '9pt';
 
                     const leftCol = isDualColumn ? displayList.slice(0, maxRowsPerCol) : displayList;
                     const rightCol = isDualColumn ? displayList.slice(maxRowsPerCol) : [];
@@ -562,11 +547,11 @@
                             <thead>
                                 <tr>
                                     <th style="width: ${isDual ? '24px' : '40px'};">No.</th>
-                                    <th style="width: ${isDual ? '85px' : '200px'};">소속</th>
-                                    <th style="width: ${isDual ? '65px' : '150px'};">담당(직위)</th>
-                                    <th style="width: ${isDual ? '55px' : '150px'};">성명</th>
+                                    <th style="width: ${isDual ? '76px' : '200px'};">소속</th>
+                                    <th style="width: ${isDual ? '74px' : '150px'};">담당(직위)</th>
+                                    <th style="width: ${isDual ? '58px' : '150px'};">성명</th>
                                     <th style="width: ${isDual ? '80px' : '220px'};">서명</th>
-                                    <th style="width: auto;">비고</th>
+                                    <th style="width: ${isDual ? '45px' : 'auto'};">비고</th>
                                 </tr>
                             </thead>
                             <tbody style="font-size: ${fontSize};">
@@ -575,7 +560,7 @@
                                     const isAbsent = reg.status === 'absent';
                                     const getImg = (content) => {
                                         if (content && content.startsWith('http')) {
-                                            return `<img src="${content}" style="height: ${imgHeight}px; object-fit: contain; margin: 0 auto;" />`;
+                                            return `<img src="${content}" style="height: ${imgHeight}px; width: ${sigWidth}px; object-fit: contain; margin: 0 auto;" />`;
                                         }
                                         return content || '';
                                     };
@@ -605,16 +590,16 @@
                             <style>
                                 @page { size: A4; margin: 5mm 10mm; }
                                 body { font-family: 'Noto Sans KR', sans-serif; padding: 0; margin: 0; }
-                                .container { width: 100%; border: 1px solid black; padding: 3mm 5mm; box-sizing: border-box; min-height: 285mm; display: flex; flex-direction: column; }
-                                h1 { font-size: 18pt; font-weight: bold; text-decoration: underline; text-align: center; margin: 0 0 5px 0; }
-                                .info { text-align: right; font-size: 8.5pt; margin-bottom: 5px; }
-                                .school { font-weight: bold; font-size: 10pt; margin-bottom: 1px; }
+                                .container { width: 100%; border: 1px solid black; padding: 1mm 3mm; box-sizing: border-box; min-height: 285mm; display: flex; flex-direction: column; }
+                                h1 { font-size: 16pt; font-weight: bold; text-decoration: underline; text-align: center; margin: 0 0 2px 0; }
+                                .info { text-align: right; font-size: 8pt; margin-bottom: 2px; }
+                                .school { font-weight: bold; font-size: 8pt; margin-bottom: 1px; }
                                 .columns { display: flex; gap: 0; width: 100%; flex: 1; }
                                 .column { flex: 1; min-width: 0; }
                                 table { border-collapse: collapse; width: 100%; }
-                                th, td { border: 1px solid black; text-align: center; overflow: hidden; padding: 0 2px; }
-                                th { background-color: #f8f8f8; font-weight: bold; height: 26px; font-size: 8.5pt; }
-                                .footer { margin-top: 5px; text-align: right; font-weight: bold; font-size: 11pt; }
+                                th, td { border: 1px solid black; text-align: center; overflow: hidden; padding: 0 1px; }
+                                th { background-color: #f8f8f8; font-weight: bold; height: 24px; font-size: 8pt; }
+                                .footer { margin-top: 2px; text-align: right; font-weight: bold; font-size: 10pt; }
                             </style>
                         </head>
                         <body>
@@ -687,7 +672,7 @@
                         if (!url || !url.startsWith('http')) return '';
                         const match = url.match(/[\w-]{25,}/);
                         const id = match ? match[0] : null;
-                        return id ? `<img src="https://docs.google.com/uc?export=view&id=${id}" height="50" width="80" style="display:block; margin:auto; object-fit:contain;" />` : 'OK';
+                        return id ? `<img src="https://docs.google.com/uc?export=view&id=${id}" height="27" width="80" style="display:block; margin:auto; object-fit:contain;" />` : 'OK';
                     };
 
                     let tableRows = "";
@@ -744,20 +729,20 @@
                             <table border="1" style="border-collapse: collapse; width: 100%;">
                                 <thead>
                                     <tr>
-                                        <th class="header" style="width: 35px;">No.</th>
-                                        <th class="header" style="width: ${isDualColumn ? '155px' : '250px'};">소속(학교)</th>
-                                        <th class="header" style="width: ${isDualColumn ? '95px' : '200px'};">담당(직위)</th>
-                                        <th class="header" style="width: ${isDualColumn ? '75px' : '180px'};">성명</th>
-                                        <th class="header" style="width: ${isDualColumn ? '125px' : '300px'};">서명</th>
-                                        <th class="header" style="width: ${isDualColumn ? '75px' : '300px'};">비고</th>
+                                        <th class="header" style="width: 24px;">No.</th>
+                                        <th class="header" style="width: ${isDualColumn ? '76px' : '200px'};">소속(학교)</th>
+                                        <th class="header" style="width: ${isDualColumn ? '74px' : '150px'};">담당(직위)</th>
+                                        <th class="header" style="width: ${isDualColumn ? '58px' : '120px'};">성명</th>
+                                        <th class="header" style="width: ${isDualColumn ? '80px' : '250px'};">서명</th>
+                                        <th class="header" style="width: ${isDualColumn ? '45px' : '250px'};">비고</th>
                                         ${isDualColumn ? `
-                                        <th style="width: 15px; border: none;"></th>
-                                        <th class="header" style="width: 35px;">No.</th>
-                                        <th class="header" style="width: 155px;">소속(학교)</th>
-                                        <th class="header" style="width: 95px;">담당(직위)</th>
-                                        <th class="header" style="width: 75px;">성명</th>
-                                        <th class="header" style="width: 125px;">서명</th>
-                                        <th class="header" style="width: 75px;">비고</th>
+                                        <th style="width: 5px; border: none;"></th>
+                                        <th class="header" style="width: 24px;">No.</th>
+                                        <th class="header" style="width: 76px;">소속(학교)</th>
+                                        <th class="header" style="width: 74px;">담당(직위)</th>
+                                        <th class="header" style="width: 58px;">성명</th>
+                                        <th class="header" style="width: 80px;">서명</th>
+                                        <th class="header" style="width: 45px;">비고</th>
                                         ` : ''}
                                     </tr>
                                 </thead>
