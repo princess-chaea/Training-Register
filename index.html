@@ -219,6 +219,7 @@
             if (!dateValue) return "";
             try {
                 const str = String(dateValue).trim();
+                
                 // 1. "2026-04-14..." 또는 "2026. 4. 14." 형태에서 숫자만 추출
                 const match = str.match(/(\d{4})[.-]\s*(\d{1,2})[.-]\s*(\d{1,2})/);
                 if (match) {
@@ -228,7 +229,7 @@
                     return `${y}-${m}-${d}`;
                 }
                 
-                // 2. Date 객체로 시도
+                // 2. Date 객체 또는 표준 문자열로 시도 (KST 보정 포함)
                 const dObj = new Date(dateValue);
                 if (!isNaN(dObj.getTime())) {
                     const yyyy = dObj.getFullYear();
@@ -237,9 +238,13 @@
                     return `${yyyy}-${mm}-${dd}`;
                 }
 
-                // 3. 마지막 수단: 공백 제거 후 첫 10자 (YYYY-MM-DD 형태인 경우)
-                return str.substring(0, 10);
+                // 3. 마지막 수단: YYYY-MM-DD 형태인지 확인
+                const simpleMatch = str.match(/(\d{4})-(\d{2})-(\d{2})/);
+                if (simpleMatch) return simpleMatch[0];
+
+                return "";
             } catch (e) {
+                console.error("Date Input Parse Error:", e);
                 return "";
             }
         };
@@ -394,12 +399,14 @@
 
             const handleEditClick = (training) => {
                 setEditId(training.id);
-                const title = training.title || training['연수명'] || '';
+                // --- 데이터 무결성 보정 (다중 키 및 타입 캐스팅) ---
+                const title = training.title || training['연수명'] || training['연수 프로그램명'] || '';
                 const location = training.location || training['장소'] || '';
                 const date = training.date || training['날짜'] || training['연수일자'] || '';
                 const startTime = training.startTime || training['시작시간'] || training['시작 시간'] || '';
                 const endTime = training.endTime || training['종료시간'] || training['종료 시간'] || '';
                 const participants = training.targetParticipants || training['대상자'] || training['참석대상'] || '';
+                
                 const isAll = String(participants || "").trim().toUpperCase() === 'ALL';
                 
                 setNewTraining({
@@ -411,6 +418,7 @@
                     targetType: isAll ? 'ALL' : 'SELECT',
                     targetParticipants: isAll ? [] : JSON.parse(participants || '[]')
                 });
+                
                 setAdminSubView('add');
             };
 
@@ -856,7 +864,7 @@
                                     <div className="bg-white p-8 rounded-[2rem] border border-slate-200 shadow-xl shadow-slate-200/50">
                                         <h2 className="text-2xl font-black mb-6 text-slate-800 flex items-center gap-3">
                                             <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center"><Plus size={20} /></div>
-                                            연수 등록부 생성
+                                            {editId ? '연수 정보 수정' : '연수 등록부 생성'}
                                         </h2>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                                             <div className="md:col-span-2">
