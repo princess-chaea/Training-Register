@@ -308,12 +308,25 @@
 
             useEffect(() => { fetchInitialData(); }, []);
 
-            // 전역 아이콘 동기화 (모든 상태 변화 시 실행)
+            // [강력한 아이콘 동기화] DOM 변화를 감지하여 아이콘을 항상 최신화
             useLayoutEffect(() => {
-                if (window.lucide) {
+                if (!window.lucide) return;
+                
+                // 1. 즉시 실행
+                window.lucide.createIcons();
+
+                // 2. DOM 변화 감시 (리액트가 화면을 바꿀 때마다 실행)
+                const observer = new MutationObserver(() => {
                     window.lucide.createIcons();
-                }
-            }, [step, view, isManualMode, isLoading, trainings, qrModalUrl, customAlert, showOverwriteConfirm]);
+                });
+
+                observer.observe(document.getElementById('root'), {
+                    childList: true,
+                    subtree: true
+                });
+
+                return () => observer.disconnect();
+            }, []); // 마운트 시 한 번만 설정하면 감시자가 계속 작동함
 
             const fetchInitialData = async () => {
                 if (!GAS_APP_URL) return;
@@ -522,10 +535,10 @@
                                 <thead>
                                     <tr>
                                         <th style="width: 25px;">No.</th>
-                                        <th style="width: ${isDual ? '75px' : '120px'};">소속</th>
-                                        <th style="width: ${isDual ? '55px' : '80px'};">직위</th>
-                                        <th style="width: ${isDual ? '65px' : '100px'};">성명</th>
-                                        <th style="width: ${isDual ? '100px' : '150px'};">서명</th>
+                                        <th style="width: ${isDual ? '75px' : '100px'};">소속</th>
+                                        <th style="width: ${isDual ? '55px' : '75px'};">직위</th>
+                                        <th style="width: ${isDual ? '60px' : '85px'};">성명</th>
+                                        <th style="width: ${isDual ? '85px' : '110px'};">서명</th>
                                         <th style="width: auto;">비고</th>
                                     </tr>
                                 </thead>
@@ -535,16 +548,16 @@
                                         const isAbsent = reg.status === 'absent';
                                         const school = reg.grade && reg.grade.includes('초') ? reg.grade : (reg.name ? '하주초등학교' : '');
                                         return `
-                                        <tr style="height: 22px;">
+                                        <tr style="height: 30px;">
                                             <td>${startIdx + idx + 1}</td>
                                             <td>${school}</td>
                                             <td>${reg.position || ''}</td>
                                             <td><strong>${reg.name || ''}</strong></td>
                                             <td style="padding: 0;">
-                                                ${isSigned ? (reg.content.startsWith('http') ? `<img src="${reg.content}" style="height: 20px; width: auto; max-width: 100%; object-fit: contain; margin: 0 auto;" />` : '서명완료') : ''}
+                                                ${isSigned ? (reg.content.startsWith('http') ? `<img src="${reg.content}" style="height: 24px; width: auto; max-width: 100%; object-fit: contain; margin: 0 auto;" />` : '서명완료') : ''}
                                                 ${isAbsent ? '-' : ''}
                                             </td>
-                                            <td style="text-align: left; padding-left: 3px;">${isAbsent ? (reg.content || '') : ''}</td>
+                                            <td style="text-align: left; padding: 0 5px; font-size: 8pt; line-height: 1.1;">${isAbsent ? (reg.content || '') : ''}</td>
                                         </tr>
                                         `;
                                     }).join('')}
@@ -658,7 +671,7 @@
                         const R = isDualColumn ? (rightCol[i] || { name: '', position: '', grade: '', status: '', content: '' }) : null;
                         
                         tableRows += `
-                            <tr style="height: 40px;">
+                            <tr style="height: 48px;">
                                 <td style="border: 1pt solid black; text-align: center; vertical-align: middle; font-size: 8pt;">${i + 1}</td>
                                 <td style="border: 1pt solid black; text-align: center; vertical-align: middle;">${L.grade && L.grade.includes('초') ? L.grade : (L.name ? '하주초등학교' : '')}</td>
                                 <td style="border: 1pt solid black; text-align: center; vertical-align: middle;">${L.position || ''}</td>
@@ -706,19 +719,19 @@
                                 <thead>
                                     <tr>
                                         <th class="header" style="width: 35px;">No.</th>
-                                        <th class="header" style="width: ${isDualColumn ? '120px' : '150px'};">소속(학교)</th>
-                                        <th class="header" style="width: ${isDualColumn ? '80px' : '100px'};">직위</th>
-                                        <th class="header" style="width: ${isDualColumn ? '80px' : '120px'};">성명</th>
-                                        <th class="header" style="width: ${isDualColumn ? '110px' : '150px'};">서명</th>
-                                        <th class="header" style="width: ${isDualColumn ? '200px' : 'auto'};">비고</th>
+                                        <th class="header" style="width: ${isDualColumn ? '100px' : '150px'};">소속(학교)</th>
+                                        <th class="header" style="width: ${isDualColumn ? '70px' : '100px'};">직위</th>
+                                        <th class="header" style="width: ${isDualColumn ? '75px' : '120px'};">성명</th>
+                                        <th class="header" style="width: ${isDualColumn ? '90px' : '150px'};">서명</th>
+                                        <th class="header" style="width: ${isDualColumn ? '250px' : 'auto'};">비고</th>
                                         ${isDualColumn ? `
                                         <th style="width: 15px;"></th>
                                         <th class="header" style="width: 35px;">No.</th>
-                                        <th class="header" style="width: 120px;">소속(학교)</th>
-                                        <th class="header" style="width: 80px;">직위</th>
-                                        <th class="header" style="width: 80px;">성명</th>
-                                        <th class="header" style="width: 110px;">서명</th>
-                                        <th class="header" style="width: 200px;">비고</th>
+                                        <th class="header" style="width: 100px;">소속(학교)</th>
+                                        <th class="header" style="width: 70px;">직위</th>
+                                        <th class="header" style="width: 75px;">성명</th>
+                                        <th class="header" style="width: 90px;">서명</th>
+                                        <th class="header" style="width: 250px;">비고</th>
                                         ` : ''}
                                     </tr>
                                 </thead>
@@ -749,9 +762,10 @@
                 const pos = getPos(e);
                 const ctx = canvasRef.current.getContext('2d');
                 ctx.beginPath();
-                ctx.lineWidth = 3;
+                ctx.lineWidth = 6;
                 ctx.lineCap = 'round';
                 ctx.lineJoin = 'round';
+                ctx.strokeStyle = '#000000';
                 ctx.moveTo(pos.x, pos.y);
             };
 
@@ -764,8 +778,15 @@
 
             const filteredStaffList = useMemo(() => {
                 if (searchName.trim().length === 0) return [];
-                return allStaff.filter(s => s.name.includes(searchName));
-            }, [searchName, allStaff]);
+                let pool = allStaff;
+                if (selectedTraining && selectedTraining.targetParticipants && String(selectedTraining.targetParticipants).toUpperCase() !== 'ALL') {
+                    try {
+                        const targets = JSON.parse(selectedTraining.targetParticipants);
+                        pool = allStaff.filter(s => targets.includes(s.name));
+                    } catch (e) { console.error("Filter error:", e); }
+                }
+                return pool.filter(s => s.name.includes(searchName));
+            }, [searchName, allStaff, selectedTraining]);
 
             if (isPrinting && selectedTraining) {
                 return (
