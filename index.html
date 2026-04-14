@@ -129,14 +129,7 @@
             useEffect(() => {
                 if (iconRef.current && window.lucide) {
                     window.lucide.createIcons({
-                        targets: [iconRef.current],
-                        icons: { [name]: window.lucide.icons[name] },
-                        attrs: {
-                            class: className,
-                            width: size,
-                            height: size,
-                            'stroke-width': strokeWidth
-                        }
+                        targets: [iconRef.current]
                     });
                 }
             }, [name, size, className, strokeWidth]);
@@ -163,6 +156,7 @@
         const QrCode = (props) => <Icon name="qr-code" {...props} />;
         const LogOut = (props) => <Icon name="log-out" {...props} />;
         const Loader2 = (props) => <Icon name="loader-2" {...props} />;
+        const Info = (props) => <Icon name="info" {...props} />;
 
         // --- Utils ---
         const formatTime = (timeValue) => {
@@ -227,6 +221,8 @@
             const [regStatus, setRegStatus] = useState('attended');
             const [absenceReason, setAbsenceReason] = useState('');
             const [qrModalUrl, setQrModalUrl] = useState(null);
+            const [pendingDeleteId, setPendingDeleteId] = useState(null);
+            const [customAlert, setCustomAlert] = useState(null); // { title: '', message: '' }
 
             const [newTraining, setNewTraining] = useState({
                 title: '',
@@ -278,11 +274,11 @@
             };
 
             const handleAddTraining = async () => {
-                if (!newTraining.title || !newTraining.date || !newTraining.startTime) return alert('제목, 날짜, 시작 시간은 필수입니다.');
+                if (!newTraining.title || !newTraining.date || !newTraining.startTime) return setCustomAlert({ title: '입력 오류', message: '제목, 날짜, 시작 시간은 필수입니다.' });
 
                 const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
                 if (!timeRegex.test(newTraining.startTime) || (newTraining.endTime && !timeRegex.test(newTraining.endTime))) {
-                    return alert('시간 형식을 HH:mm (24시간제)로 입력해주세요. (예: 14:30)');
+                    return setCustomAlert({ title: '형식 오류', message: '시간 형식을 HH:mm (24시간제)로 입력해주세요. (예: 14:30)' });
                 }
 
                 setIsLoading(true);
@@ -302,17 +298,23 @@
                     });
                     const result = await res.json();
                     if (result.success) {
-                        alert('연수가 성공적으로 생성되었습니다.');
+                        setCustomAlert({ title: '성공', message: '연수가 성공적으로 생성되었습니다.' });
                         setNewTraining({ title: '', location: '', date: new Date().toISOString().split('T')[0], startTime: '', endTime: '', targetType: 'ALL', targetParticipants: [] });
                         setAdminSubView('list');
                         fetchInitialData();
-                    } else { alert('저장 실패: ' + result.error); }
-                } catch (err) { console.error(err); alert('오류가 발생했습니다.'); }
+                    } else { setCustomAlert({ title: '저장 실패', message: result.error }); }
+                } catch (err) { console.error(err); setCustomAlert({ title: '오류', message: '오류가 발생했습니다.' }); }
                 setIsLoading(false);
             };
 
-            const handleDeleteTraining = async (id) => {
-                if (!window.confirm('이 연수 등록부를 삭제하시겠습니까? 등록된 내역은 시트에 유지되지만 목록에서는 사라집니다.')) return;
+            const handleDeleteTraining = (id) => {
+                setPendingDeleteId(id);
+            };
+
+            const confirmDelete = async () => {
+                if (!pendingDeleteId) return;
+                const id = pendingDeleteId;
+                setPendingDeleteId(null);
                 setIsLoading(true);
                 try {
                     await fetch(GAS_APP_URL, {
@@ -503,6 +505,39 @@
                                     <img src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrModalUrl)}`} alt="QR Code" className="w-48 h-48" />
                                 </div>
                                 <button onClick={() => setQrModalUrl(null)} className="w-full py-3 bg-slate-900 text-white rounded-xl font-bold mt-4">닫기</button>
+                            </div>
+                        </div>
+                    )}
+
+                    {pendingDeleteId && (
+                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in">
+                            <div className="bg-white rounded-3xl p-8 max-w-sm w-full text-center space-y-6 shadow-2xl">
+                                <div className="w-16 h-16 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mx-auto">
+                                    <Trash2 size={32} />
+                                </div>
+                                <div className="space-y-2">
+                                    <h3 className="text-xl font-bold text-slate-800">연수 삭제 확인</h3>
+                                    <p className="text-slate-500 text-sm">정말 이 연수 등록부를 삭제하시겠습니까?<br/>이 작업은 되돌릴 수 없습니다.</p>
+                                </div>
+                                <div className="flex gap-3">
+                                    <button onClick={() => setPendingDeleteId(null)} className="flex-1 py-3 bg-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-200 transition-colors">취소</button>
+                                    <button onClick={confirmDelete} className="flex-1 py-3 bg-rose-500 text-white rounded-xl font-bold hover:bg-rose-600 transition-colors shadow-lg shadow-rose-200">삭제하기</button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {customAlert && (
+                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in">
+                            <div className="bg-white rounded-3xl p-8 max-w-sm w-full text-center space-y-4 shadow-2xl transition-all">
+                                <div className="w-12 h-12 bg-indigo-50 text-indigo-500 rounded-full flex items-center justify-center mx-auto">
+                                    <Info size={24} />
+                                </div>
+                                <div className="space-y-1">
+                                    <h3 className="text-xl font-bold text-slate-800">{customAlert.title}</h3>
+                                    <p className="text-slate-500 text-sm whitespace-pre-line leading-relaxed">{customAlert.message}</p>
+                                </div>
+                                <button onClick={() => setCustomAlert(null)} className="w-full py-3 bg-slate-900 text-white rounded-xl font-bold mt-2 hover:bg-slate-800 transition-colors">확인</button>
                             </div>
                         </div>
                     )}
