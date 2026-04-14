@@ -216,6 +216,39 @@
             }
         };
 
+        const formatDateForInput = (dateValue) => {
+            if (!dateValue) return "";
+            try {
+                const d = new Date(dateValue);
+                if (isNaN(d.getTime())) return "";
+                const year = d.getFullYear();
+                const month = String(d.getMonth() + 1).padStart(2, '0');
+                const day = String(d.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            } catch (e) {
+                return "";
+            }
+        };
+
+        const formatDateKoreanLong = (dateValue) => {
+            if (!dateValue) return "";
+            try {
+                const date = new Date(dateValue);
+                if (isNaN(date.getTime())) return String(dateValue);
+
+                const weekDays = ['일', '월', '화', '수', '목', '금', '토'];
+                const dayOfWeek = weekDays[date.getDay()];
+
+                return date.toLocaleDateString('ko-KR', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                }) + ` (${dayOfWeek})`;
+            } catch (e) {
+                return String(dateValue);
+            }
+        };
+
         const GAS_APP_URL = "https://script.google.com/macros/s/AKfycbzbLAYsi6x1TV-KxIFVspjqg3s0WIqQvdxgUhW1WYVnyrTrBD8VegswbcZBFPaTAnSP/exec";
         const ABSENCE_REASONS = ["출장", "연가", "병가", "조퇴", "병조퇴", "휴가", "기타"];
 
@@ -350,7 +383,7 @@
                 setNewTraining({
                     title: training.title,
                     location: training.location,
-                    date: training.date,
+                    date: formatDateForInput(training.date),
                     startTime: formatTime(training.startTime),
                     endTime: formatTime(training.endTime),
                     targetType: training.targetParticipants === 'ALL' ? 'ALL' : 'SELECT',
@@ -417,20 +450,22 @@
                         return setCustomAlert({ title: '팝업 차단됨', message: '브라우저의 팝업 차단을 해제한 후 다시 시도해 주세요.' });
                     }
 
-                    let targetNames = [];
-                    try {
-                        if (training.targetParticipants && training.targetParticipants !== "ALL") {
-                            targetNames = JSON.parse(training.targetParticipants);
-                        }
-                    } catch (e) { }
-
-                    const displayList = (targetNames.length > 0
-                        ? targetNames.map(name => {
-                            const reg = (regs || []).find(r => r.name === name);
-                            const staff = allStaff.find(s => s.name === name);
-                            return reg || { name, position: staff?.position || '', grade: staff?.grade || '', status: 'absent', content: '' };
-                        })
-                        : (regs || [])) || [];
+                    let displayList = [];
+                    if (training.targetParticipants === "ALL") {
+                        displayList = allStaff.map(s => {
+                            const reg = (regs || []).find(r => r.name === s.name);
+                            return reg || { name: s.name, position: s.position, grade: s.grade, status: 'none', content: '' };
+                        });
+                    } else {
+                        try {
+                            const targetNames = JSON.parse(training.targetParticipants || "[]");
+                            displayList = targetNames.map(name => {
+                                const reg = (regs || []).find(r => r.name === name);
+                                const staff = allStaff.find(s => s.name === name);
+                                return reg || { name, position: staff?.position || '', grade: staff?.grade || '', status: 'none', content: '' };
+                            });
+                        } catch (e) { displayList = []; }
+                    }
 
                     const displayListWithEmpties = [...displayList];
                     const minRows = 20; // 최소 행 수
@@ -450,26 +485,24 @@
                         <table>
                             <thead>
                                 <tr>
-                                    <th style="width: 30px;">#</th>
-                                    <th style="width: 50px;">직위</th>
-                                    <th style="width: 70px;">성명</th>
-                                    <th style="width: 80px;">소속</th>
-                                    <th>서명</th>
+                                    <th style="width: 70px;">학반(직위)</th>
+                                    <th style="width: 80px;">성명</th>
+                                    <th style="width: 100px;">서명</th>
+                                    <th>비고</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 ${list.map((reg, i) => `
                                     <tr style="height: 38px;">
-                                        <td>${startIdx + i + 1}</td>
-                                        <td>${reg.position || ''}</td>
+                                        <td>${reg.grade || reg.position || ''}</td>
                                         <td><strong>${reg.name || ''}</strong></td>
-                                        <td>${reg.grade || ''}</td>
                                         <td>
                                             ${reg.status === 'attended' ? (
                                                 reg.content && reg.content.startsWith('http') ? 
                                                 `<img src="${reg.content}" onerror="this.style.display='none';this.parentElement.innerHTML='서명완료';">` : '서명완료'
-                                            ) : `<span style="color: red; font-size: 10px; font-weight: bold;">${reg.content || ''}</span>`}
+                                            ) : (reg.status === 'absent' ? '-' : '')}
                                         </td>
+                                        <td>${reg.status === 'absent' ? (reg.content || '') : ''}</td>
                                     </tr>
                                 `).join('')}
                             </tbody>
@@ -479,14 +512,16 @@
                     const html = `
                         <html>
                         <head>
-                            <title>${training.title} 등록부</title>
+                            <title>${training.title} 연수 등록부</title>
                             <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
                             <style>
                                 @page { size: A4; margin: 10mm; }
                                 body { font-family: 'Noto Sans KR', sans-serif; padding: 10px; margin: 0; }
                                 .container { width: 100%; border: 1.5pt solid black; padding: 20px; box-sizing: border-box; }
-                                h1 { text-align: center; text-decoration: underline; margin-top: 0; margin-bottom: 20px; font-size: 20pt; }
-                                .info { display: flex; justify-content: space-between; border-bottom: 1.5pt solid black; padding-bottom: 10px; margin-bottom: 15px; font-size: 11pt; }
+                                h1 { text-align: center; text-decoration: underline; margin-top: 0; margin-bottom: 25px; font-size: 20pt; }
+                                .header-info { text-align: right; margin-bottom: 15px; }
+                                .school-name { font-size: 14pt; font-weight: bold; margin-bottom: 4px; }
+                                .training-info { font-size: 10pt; color: #333; }
                                 .columns { display: flex; gap: 15px; align-items: flex-start; }
                                 .column { flex: 1; }
                                 table { border-collapse: collapse; width: 100%; font-size: 10px; table-layout: fixed; }
@@ -500,10 +535,12 @@
                         </head>
                         <body>
                             <div class="container">
-                                <h1>${training.title}</h1>
-                                <div class="info">
-                                    <span><strong>장소:</strong> ${training.location}</span>
-                                    <span><strong>일시:</strong> ${training.date} ${formatTime(training.startTime)} ${training.endTime ? `~ ${formatTime(training.endTime)}` : ''}</span>
+                                <h1>${training.title} 연수 등록부</h1>
+                                <div class="header-info">
+                                    <div class="school-name">하주초등학교</div>
+                                    <div class="training-info">
+                                        장소: ${training.location} | 일시: ${formatDateKoreanLong(training.date)} ${formatTime(training.startTime)}${formatTime(training.endTime) ? ` ~ ${formatTime(training.endTime)}` : ' ~'}
+                                    </div>
                                 </div>
                                 <div class="columns">
                                     <div class="column">${renderTable(leftCol, 0)}</div>
@@ -526,38 +563,39 @@
                 fetchRegistrations(training.id).then((regs) => {
                     setIsLoading(false);
                     
-                    let targetNames = [];
-                    try {
-                        if (training.targetParticipants && training.targetParticipants !== "ALL") {
-                            targetNames = JSON.parse(training.targetParticipants);
-                        }
-                    } catch (e) { }
-
-                    const displayList = (targetNames.length > 0
-                        ? targetNames.map(name => {
-                            const reg = (regs || []).find(r => r.name === name);
-                            const staff = allStaff.find(s => s.name === name);
-                            return reg || { name, position: staff?.position || '', grade: staff?.grade || '', status: 'absent', content: '' };
-                        })
-                        : (regs || [])) || [];
+                    let displayList = [];
+                    if (training.targetParticipants === "ALL") {
+                        displayList = allStaff.map(s => {
+                            const reg = (regs || []).find(r => r.name === s.name);
+                            return reg || { name: s.name, position: s.position, grade: s.grade, status: 'none', content: '' };
+                        });
+                    } else {
+                        try {
+                            const targetNames = JSON.parse(training.targetParticipants || "[]");
+                            displayList = targetNames.map(name => {
+                                const reg = (regs || []).find(r => r.name === name);
+                                const staff = allStaff.find(s => s.name === name);
+                                return reg || { name, position: staff?.position || '', grade: staff?.grade || '', status: 'none', content: '' };
+                            });
+                        } catch (e) { displayList = []; }
+                    }
 
                     const tableRows = displayList.map((reg, idx) => `
                         <tr style="height: 35px;">
-                            <td style="border: 1pt solid black; text-align: center;">${idx + 1}</td>
-                            <td style="border: 1pt solid black; text-align: center;">${reg.position}</td>
+                            <td style="border: 1pt solid black; text-align: center;">${reg.grade || reg.position || ''}</td>
                             <td style="border: 1pt solid black; text-align: center; font-weight: bold;">${reg.name}</td>
-                            <td style="border: 1pt solid black; text-align: center;">${reg.grade}</td>
                             <td style="border: 1pt solid black; text-align: center;">
-                                ${reg.status === 'attended' ? '참석(서명완료)' : (reg.content || '불참')}
+                                ${reg.status === 'attended' ? '참석(서명완료)' : (reg.status === 'absent' ? '-' : '')}
+                            </td>
+                            <td style="border: 1pt solid black; text-align: center;">
+                                ${reg.status === 'absent' ? (reg.content || '') : ''}
                             </td>
                         </tr>
                     `).join('');
 
-                    // 빈 행 추가 (인쇄와 비슷하게 15행까지)
-                    const emptyCount = Math.max(0, 15 - displayList.length);
-                    const emptyRows = [...Array(emptyCount)].map((_, i) => `
+                    // 빈 행 추가
+                    const emptyRows = [...Array(Math.max(0, 15 - displayList.length))].map((_, i) => `
                         <tr style="height: 35px;">
-                            <td style="border: 1pt solid black; text-align: center;">${displayList.length + i + 1}</td>
                             <td style="border: 1pt solid black;"></td>
                             <td style="border: 1pt solid black;"></td>
                             <td style="border: 1pt solid black;"></td>
@@ -578,21 +616,23 @@
                             </style>
                         </head>
                         <body>
-                            <table><tr><td colspan="5" class="title">${training.title} 연수 등록부</td></tr></table>
+                            <table>
+                                <tr><td colspan="4" class="title">${training.title} 연수 등록부</td></tr>
+                                <tr><td colspan="4" style="text-align: right; font-weight: bold;">하주초등학교</td></tr>
+                            </table>
                             <table class="info-table">
                                 <tr>
                                     <td colspan="2">장소: ${training.location}</td>
-                                    <td colspan="3" style="text-align: right;">일시: ${training.date} ${formatTime(training.startTime)} ${training.endTime ? `~ ${formatTime(training.endTime)}` : ''}</td>
+                                    <td colspan="2" style="text-align: right;">일시: ${formatDateKoreanLong(training.date)} ${formatTime(training.startTime)}${formatTime(training.endTime) ? ` ~ ${formatTime(training.endTime)}` : ' ~'}</td>
                                 </tr>
                             </table>
                             <table class="main-table">
                                 <thead>
                                     <tr>
-                                        <th class="header" style="width: 50px;">번호</th>
-                                        <th class="header" style="width: 100px;">직위</th>
+                                        <th class="header" style="width: 100px;">학반(직위)</th>
                                         <th class="header" style="width: 120px;">성명</th>
-                                        <th class="header" style="width: 150px;">소속/학급</th>
-                                        <th class="header" style="width: 150px;">서명/비고</th>
+                                        <th class="header" style="width: 150px;">서명</th>
+                                        <th class="header" style="width: 150px;">비고</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -892,7 +932,17 @@
 
                                                 {newTraining.targetType === 'SELECT' && (
                                                     <div className="space-y-4 animate-in">
-                                                        <div className="bg-slate-50 p-4 rounded-2xl max-h-60 overflow-y-auto grid grid-cols-2 md:grid-cols-3 gap-2">
+                                                        <div className="flex justify-end gap-2 px-1">
+                                                            <button onClick={() => setNewTraining({ ...newTraining, targetParticipants: allStaff.map(s => s.name) })}
+                                                                className="text-[10px] font-black text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-lg border border-indigo-100 hover:bg-indigo-100 transition-all">
+                                                                전체 선택
+                                                            </button>
+                                                            <button onClick={() => setNewTraining({ ...newTraining, targetParticipants: [] })}
+                                                                className="text-[10px] font-black text-slate-400 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100 hover:bg-slate-100 transition-all">
+                                                                전체 해제
+                                                            </button>
+                                                        </div>
+                                                        <div className="bg-slate-50 p-4 rounded-2xl max-h-60 overflow-y-auto grid grid-cols-2 md:grid-cols-3 gap-2 border border-slate-100">
                                                             {allStaff.map(s => (
                                                                 <button key={s.id}
                                                                     onClick={() => {
@@ -932,7 +982,7 @@
                                                     <h3 className="font-black text-xl text-slate-800">{t.title}</h3>
                                                     <div className="flex gap-4 text-sm text-slate-400 font-semibold mt-1">
                                                         <span className="flex items-center gap-1.5"><MapPin size={14} className="text-slate-300" /> {t.location}</span>
-                                                        <span className="flex items-center gap-1.5"><Clock size={14} className="text-slate-300" /> {formatTime(t.startTime)} {t.endTime && `~ ${formatTime(t.endTime)}`}</span>
+                                                        <span className="flex items-center gap-1.5"><Clock size={14} className="text-slate-300" /> {formatTime(t.startTime)}{formatTime(t.endTime) ? ` ~ ${formatTime(t.endTime)}` : ' ~'}</span>
                                                     </div>
                                                 </div>
                                                 <div className="flex items-center gap-2 flex-wrap md:flex-nowrap">
@@ -1021,7 +1071,7 @@
                                                             <p className="font-black text-slate-700 text-lg group-hover:text-indigo-700">{t.title}</p>
                                                             <div className="flex gap-4 text-xs text-slate-300 font-bold mt-1.5 uppercase">
                                                                 <span className="flex items-center gap-1"><MapPin size={12} /> {t.location}</span>
-                                                                <span className="flex items-center gap-1"><Clock size={12} /> {formatTime(t.startTime)}</span>
+                                                                <span className="flex items-center gap-1"><Clock size={12} /> {formatTime(t.startTime)}{formatTime(t.endTime) ? ` ~ ${formatTime(t.endTime)}` : ' ~'}</span>
                                                             </div>
                                                         </div>
                                                         <div className="w-10 h-10 bg-slate-50 group-hover:bg-indigo-600 group-hover:text-white rounded-2xl flex items-center justify-center transition-all">
