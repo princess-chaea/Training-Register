@@ -521,22 +521,24 @@
                     const leftCol = displayListWithEmpties.slice(0, half);
                     const rightCol = displayListWithEmpties.slice(half);
 
-                    const renderTable = (list) => `
+                    const renderTable = (list, startIdx) => `
                         <table>
                             <thead>
                                 <tr>
+                                    <th style="width: 25px;">No.</th>
                                     <th style="width: 70px;">학반(직위)</th>
                                     <th style="width: 80px;">성명</th>
                                     <th style="width: 100px;">서명</th>
-                                    <th style="width: 50px;">비고</th>
+                                    <th style="width: 45px;">비고</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                ${list.map((reg) => {
+                                ${list.map((reg, idx) => {
                                     const isSigned = reg.status === 'attended' && reg.content;
                                     const isAbsent = reg.status === 'absent';
                                     return `
-                                    <tr style="height: 23px;">
+                                    <tr style="height: 19px;">
+                                        <td>${startIdx + idx + 1}</td>
                                         <td>${reg.grade || reg.position || ''}</td>
                                         <td><strong>${reg.name || ''}</strong></td>
                                         <td>
@@ -557,22 +559,22 @@
                             <title>${training.title} 연수 등록부</title>
                             <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
                             <style>
-                                @page { size: A4; margin: 8mm; }
+                                @page { size: A4; margin: 5mm; }
                                 body { font-family: 'Noto Sans KR', sans-serif; padding: 0; margin: 0; }
-                                .container { width: 100%; border: 1pt solid black; padding: 5mm 8mm; box-sizing: border-box; min-height: 280mm; display: flex; flex-direction: column; align-items: center; }
-                                .title-section { text-align: center; margin-bottom: 12px; width: 100%; }
-                                h1 { font-size: 20pt; font-weight: bold; text-decoration: underline; margin: 0; }
-                                .header-right { text-align: right; margin-bottom: 8px; width: 100%; }
-                                .school-name { font-size: 13pt; font-weight: bold; margin-bottom: 2px; }
-                                .training-info { font-size: 9.5pt; color: #333; }
-                                .columns { display: flex; gap: 15px; width: 100%; flex: 1; min-height: 0; justify-content: center; }
-                                .column { flex: 1; max-width: 48%; }
-                                table { border-collapse: collapse; width: 100%; font-size: 8.5px; table-layout: fixed; }
-                                th, td { border: 1pt solid black; padding: 2.5px 1px; text-align: center; overflow: hidden; white-space: nowrap; }
+                                .container { width: 100%; border: 1pt solid black; padding: 3mm 5mm; box-sizing: border-box; min-height: 285mm; display: flex; flex-direction: column; align-items: center; }
+                                .title-section { text-align: center; margin-bottom: 5px; width: 100%; }
+                                h1 { font-size: 18pt; font-weight: bold; text-decoration: underline; margin: 0; }
+                                .header-right { text-align: right; margin-bottom: 5px; width: 100%; }
+                                .school-name { font-size: 11pt; font-weight: bold; margin-bottom: 1px; }
+                                .training-info { font-size: 8.5pt; color: #333; }
+                                .columns { display: flex; gap: 10px; width: 100%; flex: 1; min-height: 0; justify-content: center; }
+                                .column { flex: 1; max-width: 49%; }
+                                table { border-collapse: collapse; width: 100%; font-size: 8px; table-layout: fixed; }
+                                th, td { border: 1pt solid black; padding: 1.5px 1px; text-align: center; overflow: hidden; white-space: nowrap; }
                                 th { background-color: #f3f3f3; font-weight: bold; }
                                 td { vertical-align: middle; }
-                                img { height: 18px; width: auto; max-width: 100%; display: block; margin: 0 auto; }
-                                .footer { margin-top: 10px; width: 100%; text-align: right; font-weight: bold; font-size: 10pt; }
+                                img { height: 16px; width: auto; max-width: 100%; display: block; margin: 0 auto; }
+                                .footer { margin-top: 2px; width: 100%; text-align: right; font-weight: bold; font-size: 8pt; }
                              </style>
                         </head>
                         <body>
@@ -644,7 +646,8 @@
                         const R = rightCol[i] || { name: '', position: '', grade: '', status: '', content: '' };
                         
                         tableRows += `
-                            <tr style="height: 50px;">
+                            <tr style="height: 35px;">
+                                <td style="border: 1pt solid black; text-align: center; vertical-align: middle; font-size: 9pt;">${i + 1}</td>
                                 <td style="border: 1pt solid black; text-align: center; vertical-align: middle;">${L.grade || L.position || ''}</td>
                                 <td style="border: 1pt solid black; text-align: center; vertical-align: middle; font-weight: bold;">${L.name}</td>
                                 <td style="border: 1pt solid black; text-align: center; vertical-align: middle;">
@@ -653,7 +656,8 @@
                                 <td style="border: 1pt solid black; text-align: center; vertical-align: middle;">
                                     ${L.status === 'absent' ? (L.content || '') : ''}
                                 </td>
-                                <td style="width: 20px; border: 0;"></td>
+                                <td style="width: 15px; border: 0;"></td>
+                                <td style="border: 1pt solid black; text-align: center; vertical-align: middle; font-size: 9pt;">${half + i + 1}</td>
                                 <td style="border: 1pt solid black; text-align: center; vertical-align: middle;">${R.grade || R.position || ''}</td>
                                 <td style="border: 1pt solid black; text-align: center; vertical-align: middle; font-weight: bold;">${R.name}</td>
                                 <td style="border: 1pt solid black; text-align: center; vertical-align: middle;">
@@ -678,18 +682,20 @@
                         </head>
                         <body>
                             <table>
-                                <tr><td colspan="9" class="title">${training.title} 연수 등록부</td></tr>
-                                <tr><td colspan="9" style="text-align: right; font-weight: bold;">하주초등학교</td></tr>
-                                <tr><td colspan="9" style="text-align: right;">장소: ${training.location} | 일시: ${formatDateKoreanLong(training.date)} ${formatTime(training.startTime)} ~ ${formatTime(training.endTime)}</td></tr>
+                                <tr><td colspan="11" class="title">${training.title} 연수 등록부</td></tr>
+                                <tr><td colspan="11" style="text-align: right; font-weight: bold;">하주초등학교</td></tr>
+                                <tr><td colspan="11" style="text-align: right;">장소: ${training.location} | 일시: ${formatDateKoreanLong(training.date)} ${formatTime(training.startTime)} ~ ${formatTime(training.endTime)}</td></tr>
                             </table>
                             <table class="main-table">
                                 <thead>
                                     <tr>
+                                        <th class="header" style="width: 40px;">No.</th>
                                         <th class="header">학반(직위)</th>
                                         <th class="header">성명</th>
                                         <th class="header">서명</th>
                                         <th class="header">비고</th>
-                                        <th style="width: 20px;"></th>
+                                        <th style="width: 15px;"></th>
+                                        <th class="header" style="width: 40px;">No.</th>
                                         <th class="header">학반(직위)</th>
                                         <th class="header">성명</th>
                                         <th class="header">서명</th>
