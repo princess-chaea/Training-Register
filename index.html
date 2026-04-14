@@ -512,7 +512,7 @@
                                 return reg || { name, position: staff?.position || '', grade: staff?.grade || '', status: 'none', content: '' };
                             });
                         } catch (e) { displayList = []; }
-                                  const renderTable = (list, startIdx) => `
+                    const renderTable = (list, startIdx) => `
                         <table style="width: 100%; table-layout: fixed;">
                             <thead>
                                 <tr>
@@ -572,14 +572,6 @@
                                 .footer { margin-top: 2px; width: 100%; text-align: right; font-weight: bold; font-size: 8pt; }
                              </style>
                         </head>
-0%; font-size: 8px; table-layout: fixed; }
-                                th, td { border: 1pt solid black; padding: 1.5px 1px; text-align: center; overflow: hidden; white-space: nowrap; }
-                                th { background-color: #f3f3f3; font-weight: bold; }
-                                td { vertical-align: middle; }
-                                img { height: 16px; width: auto; max-width: 100%; display: block; margin: 0 auto; }
-                                .footer { margin-top: 2px; width: 100%; text-align: right; font-weight: bold; font-size: 8pt; }
-                             </style>
-                        </head>
                         <body>
                             <div class="container">
                                 <div class="title-section">
@@ -592,8 +584,8 @@
                                     </div>
                                 </div>
                                 <div class="columns">
-                                    <div class="column">${renderTable(leftCol)}</div>
-                                    <div class="column">${renderTable(rightCol)}</div>
+                                    <div class="column">${renderTable(leftCol, 0)}</div>
+                                    <div class="column">${renderTable(rightCol, half)}</div>
                                 </div>
                                 <p class="footer">위와 같이 연수에 참석하였음을 확인합니다.</p>
                             </div>
