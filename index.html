@@ -551,11 +551,11 @@
                             <thead>
                                 <tr>
                                     <th style="width: 24px;">No.</th>
-                                    <th style="width: 76px;">소속</th>
-                                    <th style="width: 70px;">담당(직위)</th>
-                                    <th style="width: 42px;">성명</th>
-                                    <th style="width: 65px;">서명</th>
-                                    <th style="width: 40px;">비고</th>
+                                    <th style="width: 70px;">소속</th>
+                                    <th style="width: 64px;">담당(직위)</th>
+                                    <th style="width: 54px;">성명</th>
+                                    <th style="width: 60px;">서명</th>
+                                    <th style="width: 45px;">비고</th>
                                 </tr>
                             </thead>
                             <tbody style="font-size: ${fontSize};">
@@ -596,13 +596,13 @@
                                 body { font-family: 'Noto Sans KR', sans-serif; padding: 0; margin: 0; }
                                 .container { width: 100%; border: 1px solid black; padding: 1mm 3mm; box-sizing: border-box; min-height: 285mm; display: flex; flex-direction: column; }
                                 h1 { font-size: 16pt; font-weight: bold; text-decoration: underline; text-align: center; margin: 0 0 2px 0; }
-                                .info { text-align: right; font-size: 8pt; margin-bottom: 2px; }
-                                .school { font-weight: bold; font-size: 8pt; margin-bottom: 1px; }
+                                .info { text-align: right; font-size: 9pt; margin-bottom: 2px; }
+                                .school { font-weight: bold; font-size: 10pt; margin-bottom: 1px; }
                                 .columns { display: flex; gap: 0; width: 100%; flex: 1; }
                                 .column { flex: 1; min-width: 0; }
                                 table { border-collapse: collapse; width: 100%; }
                                 th, td { border: 1px solid black; text-align: center; overflow: hidden; padding: 0 1px; }
-                                th { background-color: #f8f8f8; font-weight: bold; height: 24px; font-size: 8pt; }
+                                th { background-color: #f2f2f2; font-weight: bold; height: 24px; font-size: 8pt; }
                                 .footer { margin-top: 2px; text-align: right; font-weight: bold; font-size: 10pt; }
                             </style>
                         </head>
@@ -672,7 +672,7 @@
                         if (!url || !url.startsWith('http')) return '';
                         const match = url.match(/[\w-]{25,}/);
                         const id = match ? match[0] : null;
-                        return id ? `<img src="https://docs.google.com/uc?export=view&id=${id}" height="20" width="80" style="display:block; margin:auto; object-fit:contain;" />` : 'OK';
+                        return id ? `<img src="https://docs.google.com/uc?export=view&id=${id}" height="25" width="80" style="display:block; margin:auto; object-fit:contain;" />` : 'OK';
                     };
 
                     let tableRows = "";
@@ -690,7 +690,7 @@
                         };
 
                         tableRows += `
-                            <tr style="height: 15pt;">
+                            <tr style="height: 20pt;">
                                 <td style="border: 1pt solid black; text-align: center; vertical-align: middle; font-size: 8pt;">${i + 1}</td>
                                 <td style="border: 1pt solid black; text-align: center; vertical-align: middle; font-size: 8pt;">${L.name ? (L.grade || '하주초등학교') : ''}</td>
                                 <td style="border: 1pt solid black; text-align: center; vertical-align: middle; font-size: 8pt;">${L.position || ''}</td>
@@ -715,8 +715,8 @@
                         <head>
                             <meta charset="UTF-8">
                             <style>
-                                .header { background-color: #f3f3f3; font-weight: bold; text-align: center; border: 1pt solid black; }
-                                td { border: 0.5pt solid black; }
+                                .header { background-color: #f3f3f3; font-weight: bold; text-align: center; border: 1pt solid black; height: 25pt; }
+                                td { border: 0.5pt solid black; height: 20pt; }
                             </style>
                         </head>
                         <body>
@@ -728,7 +728,7 @@
                             <br/>
                             <table border="1" style="border-collapse: collapse; width: 100%;">
                                 <thead>
-                                    <tr style="height: 20pt;">
+                                    <tr style="height: 25pt;">
                                         <th class="header" style="width: 50px;">No.</th>
                                         <th class="header" style="width: ${isDualColumn ? '120px' : '250px'};">소속(학교)</th>
                                         <th class="header" style="width: ${isDualColumn ? '116px' : '200px'};">담당(직위)</th>
