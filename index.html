@@ -274,11 +274,7 @@
                 const weekDays = ['일', '월', '화', '수', '목', '금', '토'];
                 const dayOfWeek = weekDays[date.getDay()];
 
-                return date.toLocaleDateString('ko-KR', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                }) + ` (${dayOfWeek})`;
+                return `${date.getFullYear()}. ${date.getMonth() + 1}. ${date.getDate()}. (${dayOfWeek})`;
             } catch (e) {
                 return String(dateValue);
             }
@@ -535,35 +531,44 @@
                     const displayList = [...baseList, ...extras];
 
                     const isDualColumn = displayList.length > 20;
-                    const maxRowsPerCol = 28;
+                    const maxRowsPerCol = isDualColumn ? Math.ceil(displayList.length / 2) : displayList.length;
                     
-                    let leftCol = [];
-                    let rightCol = [];
+                    // 인원수에 따른 동적 높이 및 글자 크기 계산 (1페이지 고정용)
+                    let rowHeight = '48px';
+                    let imgHeight = '42';
+                    let fontSize = '9pt';
                     
                     if (isDualColumn) {
-                        leftCol = displayList.slice(0, maxRowsPerCol);
-                        rightCol = displayList.slice(maxRowsPerCol);
-                    } else {
-                        leftCol = displayList;
-                        rightCol = [];
+                        if (maxRowsPerCol > 40) {
+                            rowHeight = '22px';
+                            imgHeight = '18';
+                            fontSize = '7.5pt';
+                        } else if (maxRowsPerCol > 30) {
+                            rowHeight = '28px';
+                            imgHeight = '24';
+                            fontSize = '8pt';
+                        } else {
+                            rowHeight = '36px';
+                            imgHeight = '32';
+                            fontSize = '9pt';
+                        }
                     }
 
-                    const rowHeight = isDualColumn ? '36px' : '48px';
-                    const imgHeight = isDualColumn ? '32' : '42';
+                    const leftCol = isDualColumn ? displayList.slice(0, maxRowsPerCol) : displayList;
+                    const rightCol = isDualColumn ? displayList.slice(maxRowsPerCol) : [];
 
-                    const renderTable = (list, startIdx, isDual) => `
                         <table style="width: 100%; table-layout: fixed;">
                             <thead>
                                 <tr>
-                                    <th style="width: ${isDual ? '25px' : '40px'};">No.</th>
-                                    <th style="width: ${isDual ? '85px' : '170px'};">소속</th>
+                                    <th style="width: ${isDual ? '24px' : '40px'};">No.</th>
+                                    <th style="width: ${isDual ? '85px' : '200px'};">소속</th>
                                     <th style="width: ${isDual ? '65px' : '150px'};">담당(직위)</th>
                                     <th style="width: ${isDual ? '55px' : '150px'};">성명</th>
-                                    <th style="width: ${isDual ? '85px' : '220px'};">서명</th>
+                                    <th style="width: ${isDual ? '80px' : '220px'};">서명</th>
                                     <th style="width: auto;">비고</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody style="font-size: ${fontSize};">
                                 ${list.map((reg, idx) => {
                                     const school = reg.grade || '하주초등학교';
                                     const isAbsent = reg.status === 'absent';
@@ -580,11 +585,11 @@
                                     return `
                                     <tr style="height: ${rowHeight};">
                                         <td>${startIdx + idx + 1}</td>
-                                        <td style="font-size: 8pt; line-height: 1.1;">${school}</td>
-                                        <td style="font-size: 8pt;">${reg.position || ''}</td>
+                                        <td style="line-height: 1.1;">${school}</td>
+                                        <td>${reg.position || ''}</td>
                                         <td style="font-weight: bold;">${reg.name || ''}</td>
                                         <td style="padding: 0;">${sigDisplay}</td>
-                                        <td style="font-size: 8pt;">${remarkDisplay}</td>
+                                        <td>${remarkDisplay}</td>
                                     </tr>`;
                                 }).join('')}
                             </tbody>
@@ -597,18 +602,18 @@
                             <title>${training.title} 등록부</title>
                             <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
                             <style>
-                                @page { size: A4; margin: 10mm; }
+                                @page { size: A4; margin: 5mm 10mm; }
                                 body { font-family: 'Noto Sans KR', sans-serif; padding: 0; margin: 0; }
-                                .container { width: 100%; border: 1.5pt solid black; padding: 5mm; box-sizing: border-box; min-height: 275mm; display: flex; flex-direction: column; }
-                                h1 { font-size: 20pt; font-weight: bold; text-decoration: underline; text-align: center; margin: 0 0 10px 0; }
-                                .info { text-align: right; font-size: 9pt; margin-bottom: 10px; }
-                                .school { font-weight: bold; font-size: 11pt; margin-bottom: 2px; }
+                                .container { width: 100%; border: 1px solid black; padding: 3mm 5mm; box-sizing: border-box; min-height: 285mm; display: flex; flex-direction: column; }
+                                h1 { font-size: 18pt; font-weight: bold; text-decoration: underline; text-align: center; margin: 0 0 5px 0; }
+                                .info { text-align: right; font-size: 8.5pt; margin-bottom: 5px; }
+                                .school { font-weight: bold; font-size: 10pt; margin-bottom: 1px; }
                                 .columns { display: flex; gap: 0; width: 100%; flex: 1; }
                                 .column { flex: 1; min-width: 0; }
-                                table { border-collapse: collapse; width: 100%; font-size: 9pt; }
-                                th, td { border: 1pt solid black; text-align: center; overflow: hidden; }
-                                th { background-color: #f8f8f8; font-weight: bold; height: 30px; }
-                                .footer { margin-top: 20px; text-align: right; font-weight: bold; font-size: 12pt; }
+                                table { border-collapse: collapse; width: 100%; }
+                                th, td { border: 1px solid black; text-align: center; overflow: hidden; padding: 0 2px; }
+                                th { background-color: #f8f8f8; font-weight: bold; height: 26px; font-size: 8.5pt; }
+                                .footer { margin-top: 5px; text-align: right; font-weight: bold; font-size: 11pt; }
                             </style>
                         </head>
                         <body>
@@ -616,7 +621,7 @@
                                 <h1>${training.title} 등록부</h1>
                                 <div class="info">
                                     <div class="school">하주초등학교</div>
-                                    <div>장소: ${training.location} | 일시: ${training.date} ${formatTime(training.startTime)}${training.endTime ? ` ~ ${formatTime(training.endTime)}` : ''}</div>
+                                    <div>장소: ${training.location} | 일시: ${formatDateKoreanLong(training.date)} ${formatTime(training.startTime)}${training.endTime ? ` ~ ${formatTime(training.endTime)}` : ''}</div>
                                 </div>
                                 <div class="columns">
                                     <div class="column">${renderTable(leftCol, 0, isDualColumn)}</div>
@@ -732,26 +737,26 @@
                             <h1 style="text-align: center; text-decoration: underline;">${training.title} 등록부</h1>
                             <div style="text-align: right; font-size: 10pt; font-weight: bold;">하주초등학교</div>
                             <div style="text-align: right; font-size: 10pt;">
-                                장소: ${training.location} | 일시: ${training.date} ${formatTime(training.startTime)} ~ ${formatTime(training.endTime)}
+                                장소: ${training.location} | 일시: ${formatDateKoreanLong(training.date)} ${formatTime(training.startTime)} ~ ${formatTime(training.endTime)}
                             </div>
                             <br/>
                             <table border="1" style="border-collapse: collapse; width: 100%;">
                                 <thead>
                                     <tr>
-                                        <th class="header" style="width: 25px;">No.</th>
-                                        <th class="header" style="width: ${isDualColumn ? '85px' : '200px'};">소속(학교)</th>
-                                        <th class="header" style="width: ${isDualColumn ? '65px' : '150px'};">담당(직위)</th>
-                                        <th class="header" style="width: ${isDualColumn ? '55px' : '120px'};">성명</th>
-                                        <th class="header" style="width: ${isDualColumn ? '85px' : '250px'};">서명</th>
-                                        <th class="header" style="width: ${isDualColumn ? '35px' : '250px'};">비고</th>
+                                        <th class="header" style="width: 35px;">No.</th>
+                                        <th class="header" style="width: ${isDualColumn ? '155px' : '250px'};">소속(학교)</th>
+                                        <th class="header" style="width: ${isDualColumn ? '95px' : '200px'};">담당(직위)</th>
+                                        <th class="header" style="width: ${isDualColumn ? '75px' : '180px'};">성명</th>
+                                        <th class="header" style="width: ${isDualColumn ? '125px' : '300px'};">서명</th>
+                                        <th class="header" style="width: ${isDualColumn ? '75px' : '300px'};">비고</th>
                                         ${isDualColumn ? `
-                                        <th style="width: 10px; border: none;"></th>
-                                        <th class="header" style="width: 25px;">No.</th>
-                                        <th class="header" style="width: 85px;">소속(학교)</th>
-                                        <th class="header" style="width: 65px;">담당(직위)</th>
-                                        <th class="header" style="width: 55px;">성명</th>
-                                        <th class="header" style="width: 85px;">서명</th>
-                                        <th class="header" style="width: 35px;">비고</th>
+                                        <th style="width: 15px; border: none;"></th>
+                                        <th class="header" style="width: 35px;">No.</th>
+                                        <th class="header" style="width: 155px;">소속(학교)</th>
+                                        <th class="header" style="width: 95px;">담당(직위)</th>
+                                        <th class="header" style="width: 75px;">성명</th>
+                                        <th class="header" style="width: 125px;">서명</th>
+                                        <th class="header" style="width: 75px;">비고</th>
                                         ` : ''}
                                     </tr>
                                 </thead>
