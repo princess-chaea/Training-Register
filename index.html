@@ -555,11 +555,11 @@
                         <table style="width: 100%; table-layout: fixed;">
                             <thead>
                                 <tr>
-                                    <th style="width: 30px;">No.</th>
-                                    <th style="width: ${isDual ? '70px' : '150px'};">소속</th>
-                                    <th style="width: ${isDual ? '60px' : '100px'};">직위</th>
-                                    <th style="width: ${isDual ? '65px' : '120px'};">성명</th>
-                                    <th style="width: ${isDual ? '100px' : '180px'};">서명</th>
+                                    <th style="width: 35px;">No.</th>
+                                    <th style="width: ${isDual ? '90px' : '180px'};">소속</th>
+                                    <th style="width: ${isDual ? '70px' : '150px'};">담당(직위)</th>
+                                    <th style="width: ${isDual ? '70px' : '150px'};">성명</th>
+                                    <th style="width: ${isDual ? '140px' : '220px'};">서명</th>
                                     <th style="width: auto;">비고</th>
                                 </tr>
                             </thead>
@@ -725,20 +725,20 @@
                             <table border="1" style="border-collapse: collapse; width: 100%;">
                                 <thead>
                                     <tr>
-                                        <th class="header" style="width: 30px;">No.</th>
-                                        <th class="header" style="width: ${isDualColumn ? '90px' : '180px'};">소속(학교)</th>
-                                        <th class="header" style="width: ${isDualColumn ? '70px' : '120px'};">직위</th>
-                                        <th class="header" style="width: ${isDualColumn ? '70px' : '120px'};">성명</th>
-                                        <th class="header" style="width: ${isDualColumn ? '140px' : '220px'};">서명</th>
-                                        <th class="header" style="width: ${isDualColumn ? '80px' : '250px'};">비고</th>
+                                        <th class="header" style="width: 40px;">No.</th>
+                                        <th class="header" style="width: ${isDualColumn ? '120px' : '250px'};">소속(학교)</th>
+                                        <th class="header" style="width: ${isDualColumn ? '100px' : '200px'};">담당(직위)</th>
+                                        <th class="header" style="width: ${isDualColumn ? '90px' : '180px'};">성명</th>
+                                        <th class="header" style="width: ${isDualColumn ? '180px' : '300px'};">서명</th>
+                                        <th class="header" style="width: ${isDualColumn ? '120px' : '300px'};">비고</th>
                                         ${isDualColumn ? `
                                         <th style="width: 15px; border: none;"></th>
-                                        <th class="header" style="width: 30px;">No.</th>
-                                        <th class="header" style="width: 90px;">소속(학교)</th>
-                                        <th class="header" style="width: 70px;">직위</th>
-                                        <th class="header" style="width: 70px;">성명</th>
-                                        <th class="header" style="width: 140px;">서명</th>
-                                        <th class="header" style="width: 80px;">비고</th>
+                                        <th class="header" style="width: 40px;">No.</th>
+                                        <th class="header" style="width: 120px;">소속(학교)</th>
+                                        <th class="header" style="width: 100px;">담당(직위)</th>
+                                        <th class="header" style="width: 90px;">성명</th>
+                                        <th class="header" style="width: 180px;">서명</th>
+                                        <th class="header" style="width: 120px;">비고</th>
                                         ` : ''}
                                     </tr>
                                 </thead>
@@ -860,18 +860,18 @@
                         <table className="w-full border-collapse border-2 border-black text-[10px]">
                             <thead>
                                 <tr className="bg-slate-50">
-                                    <th className="border border-black px-1 py-1 w-8">No.</th>
-                                    <th className="border border-black px-1 py-1 w-20">소속</th>
-                                    <th className="border border-black px-1 py-1 w-16">직위</th>
-                                    <th className="border border-black px-1 py-1 w-16">성명</th>
-                                    <th className="border border-black px-1 py-1 w-24">서명</th>
+                                    <th className="border border-black px-1 py-1 w-12">No.</th>
+                                    <th className="border border-black px-1 py-1 w-32">소속</th>
+                                    <th className="border border-black px-1 py-1 w-28">담당(직위)</th>
+                                    <th className="border border-black px-1 py-1 w-28">성명</th>
+                                    <th className="border border-black px-1 py-1 w-56">서명</th>
                                     <th className="border border-black px-1 py-1">비고</th>
                                     {isDualColumn && (
                                         <>
                                             <th className="border-l-2 border-l-black w-2"></th>
                                             <th className="border border-black px-1 py-1 w-8">No.</th>
                                             <th className="border border-black px-1 py-1 w-20">소속</th>
-                                            <th className="border border-black px-1 py-1 w-16">직위</th>
+                                            <th className="border border-black px-1 py-1 w-16">담당(직위)</th>
                                             <th className="border border-black px-1 py-1 w-16">성명</th>
                                             <th className="border border-black px-1 py-1 w-24">서명</th>
                                             <th className="border border-black px-1 py-1">비고</th>
@@ -1329,7 +1329,7 @@
                                                             className="w-full px-6 py-4 rounded-2xl border-2 border-slate-50 focus:border-indigo-400 bg-slate-50/50 outline-none text-lg font-bold" />
                                                     </div>
                                                     <div className="space-y-1">
-                                                        <label className="text-[10px] font-black text-indigo-400 ml-1 uppercase">직위</label>
+                                                        <label className="text-[10px] font-black text-indigo-400 ml-1 uppercase">담당 (직위)</label>
                                                         <input type="text" placeholder="예: 교사, 주무관, 강사 등" value={manualInfo.position} onChange={e => setManualInfo({ ...manualInfo, position: e.target.value })}
                                                             className="w-full px-6 py-4 rounded-2xl border-2 border-slate-50 focus:border-indigo-400 bg-slate-50/50 outline-none text-lg font-bold" />
                                                     </div>
