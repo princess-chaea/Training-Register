@@ -1303,37 +1303,38 @@
                                                         <p className="text-slate-400 font-bold">오늘 진행되는 연수를 찾는 중입니다...</p>
                                                     </div>
                                                 ) : (
-                                                    {(() => {
-                                                        const activeTrainings = trainings.filter(t => {
+                                                    trainings.filter(t => {
+                                                        const tDate = new Date(t.date);
+                                                        const today = new Date();
+                                                        today.setHours(0, 0, 0, 0);
+                                                        return tDate >= today;
+                                                    }).length > 0 ? (
+                                                        trainings.filter(t => {
                                                             const tDate = new Date(t.date);
                                                             const today = new Date();
                                                             today.setHours(0, 0, 0, 0);
                                                             return tDate >= today;
-                                                        });
-
-                                                        return activeTrainings.length > 0 ? (
-                                                            activeTrainings.map(t => (
-                                                                <button key={t.id} onClick={() => {
-                                                                    setSelectedTraining(t);
-                                                                    setStep(2);
-                                                                    fetchRegistrations(t.id, t.title);
-                                                                }} className="w-full group text-left p-6 rounded-3xl border-2 border-slate-50 hover:border-indigo-200 hover:bg-slate-50/50 transition-all flex items-center justify-between">
-                                                                    <div className="flex-1">
-                                                                        <p className="font-black text-slate-700 text-lg group-hover:text-indigo-700">{t.title}</p>
-                                                                        <div className="flex gap-4 text-xs text-slate-300 font-bold mt-1.5 uppercase">
-                                                                            <span className="flex items-center gap-1"><MapPin size={12} /> {t.location}</span>
-                                                                            <span className="flex items-center gap-1"><Clock size={12} /> {formatTime(t.startTime)}{formatTime(t.endTime) ? ` ~ ${formatTime(t.endTime)}` : ' ~'}</span>
-                                                                        </div>
+                                                        }).map(t => (
+                                                            <button key={t.id} onClick={() => {
+                                                                setSelectedTraining(t);
+                                                                setStep(2);
+                                                                fetchRegistrations(t.id, t.title);
+                                                            }} className="w-full group text-left p-6 rounded-3xl border-2 border-slate-50 hover:border-indigo-200 hover:bg-slate-50/50 transition-all flex items-center justify-between">
+                                                                <div className="flex-1">
+                                                                    <p className="font-black text-slate-700 text-lg group-hover:text-indigo-700">{t.title}</p>
+                                                                    <div className="flex gap-4 text-xs text-slate-300 font-bold mt-1.5 uppercase">
+                                                                        <span className="flex items-center gap-1"><MapPin size={12} /> {t.location}</span>
+                                                                        <span className="flex items-center gap-1"><Clock size={12} /> {formatTime(t.startTime)}{formatTime(t.endTime) ? ` ~ ${formatTime(t.endTime)}` : ' ~'}</span>
                                                                     </div>
-                                                                    <div className="w-10 h-10 bg-slate-50 group-hover:bg-indigo-600 group-hover:text-white rounded-2xl flex items-center justify-center transition-all">
-                                                                        <ChevronRight size={20} />
-                                                                    </div>
-                                                                </button>
-                                                            ))
-                                                        ) : (
-                                                            <div className="text-center py-10 text-slate-300 font-bold italic">현재 열려있는 연수가 없습니다.</div>
-                                                        );
-                                                    })()}
+                                                                </div>
+                                                                <div className="w-10 h-10 bg-slate-50 group-hover:bg-indigo-600 group-hover:text-white rounded-2xl flex items-center justify-center transition-all">
+                                                                    <ChevronRight size={20} />
+                                                                </div>
+                                                            </button>
+                                                        ))
+                                                    ) : (
+                                                        <div className="text-center py-10 text-slate-300 font-bold italic">현재 열려있는 연수가 없습니다.</div>
+                                                    )
                                                 )}
                                             </div>
                                         </div>
