@@ -178,6 +178,7 @@
         const Loader2 = (props) => <Icon name="loader-2" {...props} />;
         const Info = (props) => <Icon name="info" {...props} />;
         const PlusCircle = (props) => <Icon name="plus-circle" {...props} />;
+        const AlertTriangle = (props) => <Icon name="alert-triangle" {...props} />;
 
         // --- Utils ---
         const formatTime = (timeValue) => {
@@ -1145,7 +1146,7 @@
                                             {step > 1 ? (
                                                 <button onClick={() => setStep(step - 1)} className="group flex items-center gap-2 text-indigo-400 hover:text-indigo-600 transition-all active:scale-95">
                                                     <div className="w-9 h-9 sm:w-8 sm:h-8 rounded-full bg-indigo-50 flex items-center justify-center group-hover:bg-indigo-100 transition-colors shadow-sm">
-                                                        <ArrowLeft size={18} className="sm:size-16" />
+                                                        <ArrowLeft size={18} />
                                                     </div>
                                                     <span className="text-[10px] font-black uppercase tracking-widest hidden sm:inline">BACK</span>
                                                 </button>
