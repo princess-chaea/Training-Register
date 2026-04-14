@@ -529,18 +529,25 @@
                                     <th style="width: 70px;">학반(직위)</th>
                                     <th style="width: 80px;">성명</th>
                                     <th style="width: 100px;">서명</th>
-                                    <th>비고</th>
+                                    <th style="width: 50px;">비고</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                ${list.map((reg) => `
-                                    <tr style="height: 30px;">
+                                ${list.map((reg) => {
+                                    const isSigned = reg.status === 'attended' && reg.content;
+                                    const isAbsent = reg.status === 'absent';
+                                    return `
+                                    <tr style="height: 23px;">
                                         <td>${reg.grade || reg.position || ''}</td>
                                         <td><strong>${reg.name || ''}</strong></td>
-                                        <td></td>
-                                        <td></td>
+                                        <td>
+                                            ${isSigned ? (reg.content.startsWith('http') ? `<img src="${reg.content}" />` : '서명완료') : ''}
+                                            ${isAbsent ? '-' : ''}
+                                        </td>
+                                        <td>${isAbsent ? (reg.content || '') : ''}</td>
                                     </tr>
-                                `).join('')}
+                                    `;
+                                }).join('')}
                             </tbody>
                         </table>
                     `;
@@ -551,21 +558,21 @@
                             <title>${training.title} 연수 등록부</title>
                             <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
                             <style>
-                                @page { size: A4; margin: 10mm; }
+                                @page { size: A4; margin: 8mm; }
                                 body { font-family: 'Noto Sans KR', sans-serif; padding: 0; margin: 0; }
-                                .container { width: 100%; border: 1pt solid black; padding: 10mm; box-sizing: border-box; min-height: 270mm; }
-                                .title-section { text-align: center; margin-bottom: 25px; }
-                                h1 { font-size: 24pt; font-weight: bold; text-decoration: underline; margin: 0; }
-                                .header-right { text-align: right; margin-bottom: 15px; }
-                                .school-name { font-size: 14pt; font-weight: bold; margin-bottom: 5px; }
-                                .training-info { font-size: 10.5pt; color: #333; }
-                                .columns { display: flex; gap: 15px; align-items: flex-start; }
+                                .container { width: 100%; border: 1pt solid black; padding: 5mm; box-sizing: border-box; min-height: 280mm; display: flex; flex-direction: column; }
+                                .title-section { text-align: center; margin-bottom: 12px; }
+                                h1 { font-size: 20pt; font-weight: bold; text-decoration: underline; margin: 0; }
+                                .header-right { text-align: right; margin-bottom: 8px; }
+                                .school-name { font-size: 13pt; font-weight: bold; margin-bottom: 2px; }
+                                .training-info { font-size: 9.5pt; color: #333; }
+                                .columns { display: flex; gap: 10px; flex: 1; min-height: 0; }
                                 .column { flex: 1; }
-                                table { border-collapse: collapse; width: 100%; font-size: 9px; table-layout: fixed; }
-                                th, td { border: 1pt solid black; padding: 3px 2px; text-align: center; overflow: hidden; white-space: nowrap; }
+                                table { border-collapse: collapse; width: 100%; font-size: 8.5px; table-layout: fixed; }
+                                th, td { border: 1pt solid black; padding: 2px 1px; text-align: center; overflow: hidden; white-space: nowrap; }
                                 th { background-color: #f3f3f3; font-weight: bold; }
-                                img { height: 24px; width: auto; max-width: 100%; display: block; margin: 0 auto; filter: contrast(1.2); }
-                                .footer { margin-top: 25px; text-align: right; font-weight: bold; font-size: 11pt; }
+                                img { height: 18px; width: auto; max-width: 100%; display: block; margin: 0 auto; }
+                                .footer { margin-top: 10px; text-align: right; font-weight: bold; font-size: 10pt; }
                              </style>
                         </head>
                         <body>
@@ -616,18 +623,48 @@
                         } catch (e) { displayList = []; }
                     }
 
-                    const tableRows = displayList.map(reg => `
-                        <tr style="height: 35px;">
-                            <td style="border: 1pt solid black; text-align: center;">${reg.grade || reg.position || ''}</td>
-                            <td style="border: 1pt solid black; text-align: center; font-weight: bold;">${reg.name}</td>
-                            <td style="border: 1pt solid black; text-align: center;">
-                                ${reg.status === 'attended' ? '참석(서명완료)' : (reg.status === 'absent' ? '-' : '')}
-                            </td>
-                            <td style="border: 1pt solid black; text-align: center;">
-                                ${reg.status === 'absent' ? (reg.content || '') : ''}
-                            </td>
-                        </tr>
-                    `).join('');
+                    const half = Math.ceil(displayList.length / 2);
+                    const leftCol = displayList.slice(0, half);
+                    const rightCol = displayList.slice(half);
+
+                    // 2열 구성을 위한 행 생성
+                    const maxLen = Math.max(leftCol.length, rightCol.length);
+                    let tableRows = "";
+                    
+                    const getImgTag = (url) => {
+                        if (!url || !url.startsWith('http')) return '';
+                        // 구글 드라이브 아이디 추출 후 직링 변환
+                        const match = url.match(/[\w-]{25,}/);
+                        const id = match ? match[0] : null;
+                        return id ? `<img src="https://docs.google.com/uc?export=view&id=${id}" height="25" />` : 'OK';
+                    };
+
+                    for (let i = 0; i < maxLen; i++) {
+                        const L = leftCol[i] || { name: '', position: '', grade: '', status: '', content: '' };
+                        const R = rightCol[i] || { name: '', position: '', grade: '', status: '', content: '' };
+                        
+                        tableRows += `
+                            <tr style="height: 30px;">
+                                <td style="border: 1pt solid black; text-align: center;">${L.grade || L.position || ''}</td>
+                                <td style="border: 1pt solid black; text-align: center; font-weight: bold;">${L.name}</td>
+                                <td style="border: 1pt solid black; text-align: center;">
+                                    ${L.status === 'attended' ? getImgTag(L.content) : (L.status === 'absent' ? '-' : '')}
+                                </td>
+                                <td style="border: 1pt solid black; text-align: center;">
+                                    ${L.status === 'absent' ? (L.content || '') : ''}
+                                </td>
+                                <td style="width: 20px; border: 0;"></td>
+                                <td style="border: 1pt solid black; text-align: center;">${R.grade || R.position || ''}</td>
+                                <td style="border: 1pt solid black; text-align: center; font-weight: bold;">${R.name}</td>
+                                <td style="border: 1pt solid black; text-align: center;">
+                                    ${R.status === 'attended' ? getImgTag(R.content) : (R.status === 'absent' ? '-' : '')}
+                                </td>
+                                <td style="border: 1pt solid black; text-align: center;">
+                                    ${R.status === 'absent' ? (R.content || '') : ''}
+                                </td>
+                            </tr>
+                        `;
+                    }
 
                     const excelTemplate = `
                         <html xmlns:x="urn:schemas-microsoft-com:office:excel">
@@ -636,21 +673,27 @@
                             <style>
                                 .title { font-size: 20pt; font-weight: bold; text-align: center; text-decoration: underline; }
                                 .main-table { border-collapse: collapse; width: 100%; }
+                                .header { border: 1pt solid black; background-color: #f2f2f2; font-weight: bold; text-align: center; }
                             </style>
                         </head>
                         <body>
                             <table>
-                                <tr><td colspan="4" class="title">${training.title} 연수 등록부</td></tr>
-                                <tr><td colspan="4" style="text-align: right; font-weight: bold;">하주초등학교</td></tr>
-                                <tr><td colspan="4" style="text-align: right;">장소: ${training.location} | 일시: ${formatDateKoreanLong(training.date)} ${formatTime(training.startTime)} ~ ${formatTime(training.endTime)}</td></tr>
+                                <tr><td colspan="9" class="title">${training.title} 연수 등록부</td></tr>
+                                <tr><td colspan="9" style="text-align: right; font-weight: bold;">하주초등학교</td></tr>
+                                <tr><td colspan="9" style="text-align: right;">장소: ${training.location} | 일시: ${formatDateKoreanLong(training.date)} ${formatTime(training.startTime)} ~ ${formatTime(training.endTime)}</td></tr>
                             </table>
                             <table class="main-table">
                                 <thead>
                                     <tr>
-                                        <th style="border:1pt solid black; background-color:#f2f2f2;">학반(직위)</th>
-                                        <th style="border:1pt solid black; background-color:#f2f2f2;">성명</th>
-                                        <th style="border:1pt solid black; background-color:#f2f2f2;">서명</th>
-                                        <th style="border:1pt solid black; background-color:#f2f2f2;">비고</th>
+                                        <th class="header">학반(직위)</th>
+                                        <th class="header">성명</th>
+                                        <th class="header">서명</th>
+                                        <th class="header">비고</th>
+                                        <th style="width: 20px;"></th>
+                                        <th class="header">학반(직위)</th>
+                                        <th class="header">성명</th>
+                                        <th class="header">서명</th>
+                                        <th class="header">비고</th>
                                     </tr>
                                 </thead>
                                 <tbody>${tableRows}</tbody>
