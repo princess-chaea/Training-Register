@@ -314,6 +314,9 @@
 
             const [isQrMode, setIsQrMode] = useState(new URLSearchParams(window.location.search).has('trainingId'));
 
+            const [isManualMode, setIsManualMode] = useState(false);
+            const [manualInfo, setManualInfo] = useState({ school: '하주초등학교', position: '', name: '' });
+
             const canvasRef = useRef(null);
             const [isDrawing, setIsDrawing] = useState(false);
 
@@ -509,37 +512,28 @@
                                 return reg || { name, position: staff?.position || '', grade: staff?.grade || '', status: 'none', content: '' };
                             });
                         } catch (e) { displayList = []; }
-                    }
-
-                    const displayListWithEmpties = [...displayList];
-                    if (!isGlobal && displayList.length < 20) {
-                        const emptyCount = 20 - displayList.length;
-                        for(let i=0; i<emptyCount; i++) displayListWithEmpties.push({ name: '', position: '', grade: '', status: 'none', content: '' });
-                    }
-
-                    const half = Math.ceil(displayListWithEmpties.length / 2);
-                    const leftCol = displayListWithEmpties.slice(0, half);
-                    const rightCol = displayListWithEmpties.slice(half);
-
-                    const renderTable = (list, startIdx) => `
-                        <table>
+                                  const renderTable = (list, startIdx) => `
+                        <table style="width: 100%; table-layout: fixed;">
                             <thead>
                                 <tr>
-                                    <th style="width: 25px;">No.</th>
-                                    <th style="width: 70px;">학반(직위)</th>
-                                    <th style="width: 80px;">성명</th>
-                                    <th style="width: 100px;">서명</th>
-                                    <th style="width: 45px;">비고</th>
+                                    <th style="width: 22px;">No.</th>
+                                    <th style="width: 60px;">소속(학교)</th>
+                                    <th style="width: 55px;">직위</th>
+                                    <th style="width: 65px;">성명</th>
+                                    <th style="width: 70px;">서명</th>
+                                    <th style="width: auto;">비고</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 ${list.map((reg, idx) => {
                                     const isSigned = reg.status === 'attended' && reg.content;
                                     const isAbsent = reg.status === 'absent';
+                                    const school = reg.grade && reg.grade.includes('초') ? reg.grade : (reg.name ? '하주초' : '');
                                     return `
                                     <tr style="height: 19px;">
                                         <td>${startIdx + idx + 1}</td>
-                                        <td>${reg.grade || reg.position || ''}</td>
+                                        <td>${school}</td>
+                                        <td>${reg.position || ''}</td>
                                         <td><strong>${reg.name || ''}</strong></td>
                                         <td>
                                             ${isSigned ? (reg.content.startsWith('http') ? `<img src="${reg.content}" />` : '서명완료') : ''}
@@ -561,15 +555,24 @@
                             <style>
                                 @page { size: A4; margin: 5mm; }
                                 body { font-family: 'Noto Sans KR', sans-serif; padding: 0; margin: 0; }
-                                .container { width: 100%; border: 1pt solid black; padding: 3mm 5mm; box-sizing: border-box; min-height: 285mm; display: flex; flex-direction: column; align-items: center; }
+                                .container { width: 100%; border: 1pt solid black; padding: 3mm 4mm; box-sizing: border-box; min-height: 285mm; display: flex; flex-direction: column; align-items: center; }
                                 .title-section { text-align: center; margin-bottom: 5px; width: 100%; }
                                 h1 { font-size: 18pt; font-weight: bold; text-decoration: underline; margin: 0; }
                                 .header-right { text-align: right; margin-bottom: 5px; width: 100%; }
                                 .school-name { font-size: 11pt; font-weight: bold; margin-bottom: 1px; }
-                                .training-info { font-size: 8.5pt; color: #333; }
-                                .columns { display: flex; gap: 10px; width: 100%; flex: 1; min-height: 0; justify-content: center; }
-                                .column { flex: 1; max-width: 49%; }
-                                table { border-collapse: collapse; width: 100%; font-size: 8px; table-layout: fixed; }
+                                .training-info { font-size: 8.2pt; color: #333; }
+                                .columns { display: flex; gap: 0; width: 100%; flex: 1; min-height: 0; }
+                                .column { flex: 0 0 50%; width: 50%; border-right: 0.5pt solid #eee; box-sizing: border-box; }
+                                .column:last-child { border-right: none; }
+                                table { border-collapse: collapse; width: 100%; font-size: 7.5px; table-layout: fixed; }
+                                th, td { border: 1pt solid black; padding: 1.2px 1px; text-align: center; overflow: hidden; white-space: nowrap; }
+                                th { background-color: #f3f3f3; font-weight: bold; }
+                                td { vertical-align: middle; }
+                                img { height: 16px; width: auto; max-width: 100%; display: block; margin: 0 auto; }
+                                .footer { margin-top: 2px; width: 100%; text-align: right; font-weight: bold; font-size: 8pt; }
+                             </style>
+                        </head>
+0%; font-size: 8px; table-layout: fixed; }
                                 th, td { border: 1pt solid black; padding: 1.5px 1px; text-align: center; overflow: hidden; white-space: nowrap; }
                                 th { background-color: #f3f3f3; font-weight: bold; }
                                 td { vertical-align: middle; }
@@ -647,8 +650,9 @@
                         
                         tableRows += `
                             <tr style="height: 35px;">
-                                <td style="border: 1pt solid black; text-align: center; vertical-align: middle; font-size: 9pt;">${i + 1}</td>
-                                <td style="border: 1pt solid black; text-align: center; vertical-align: middle;">${L.grade || L.position || ''}</td>
+                                <td style="border: 1pt solid black; text-align: center; vertical-align: middle; font-size: 8pt;">${i + 1}</td>
+                                <td style="border: 1pt solid black; text-align: center; vertical-align: middle;">${L.grade && L.grade.includes('초') ? L.grade : (L.name ? '하주초' : '')}</td>
+                                <td style="border: 1pt solid black; text-align: center; vertical-align: middle;">${L.position || ''}</td>
                                 <td style="border: 1pt solid black; text-align: center; vertical-align: middle; font-weight: bold;">${L.name}</td>
                                 <td style="border: 1pt solid black; text-align: center; vertical-align: middle;">
                                     ${L.status === 'attended' ? getImgTag(L.content) : (L.status === 'absent' ? '-' : '')}
@@ -657,8 +661,9 @@
                                     ${L.status === 'absent' ? (L.content || '') : ''}
                                 </td>
                                 <td style="width: 15px; border: 0;"></td>
-                                <td style="border: 1pt solid black; text-align: center; vertical-align: middle; font-size: 9pt;">${half + i + 1}</td>
-                                <td style="border: 1pt solid black; text-align: center; vertical-align: middle;">${R.grade || R.position || ''}</td>
+                                <td style="border: 1pt solid black; text-align: center; vertical-align: middle; font-size: 8pt;">${half + i + 1}</td>
+                                <td style="border: 1pt solid black; text-align: center; vertical-align: middle;">${R.grade && R.grade.includes('초') ? R.grade : (R.name ? '하주초' : '')}</td>
+                                <td style="border: 1pt solid black; text-align: center; vertical-align: middle;">${R.position || ''}</td>
                                 <td style="border: 1pt solid black; text-align: center; vertical-align: middle; font-weight: bold;">${R.name}</td>
                                 <td style="border: 1pt solid black; text-align: center; vertical-align: middle;">
                                     ${R.status === 'attended' ? getImgTag(R.content) : (R.status === 'absent' ? '-' : '')}
@@ -677,29 +682,31 @@
                             <style>
                                 .title { font-size: 20pt; font-weight: bold; text-align: center; text-decoration: underline; }
                                 .main-table { border-collapse: collapse; width: 100%; }
-                                .header { border: 1pt solid black; background-color: #f2f2f2; font-weight: bold; text-align: center; }
+                                .header { border: 1pt solid black; background-color: #f2f2f2; font-weight: bold; text-align: center; font-size: 10pt; }
                             </style>
                         </head>
                         <body>
                             <table>
-                                <tr><td colspan="11" class="title">${training.title} 연수 등록부</td></tr>
-                                <tr><td colspan="11" style="text-align: right; font-weight: bold;">하주초등학교</td></tr>
-                                <tr><td colspan="11" style="text-align: right;">장소: ${training.location} | 일시: ${formatDateKoreanLong(training.date)} ${formatTime(training.startTime)} ~ ${formatTime(training.endTime)}</td></tr>
+                                <tr><td colspan="13" class="title">${training.title} 연수 등록부</td></tr>
+                                <tr><td colspan="13" style="text-align: right; font-weight: bold;">하주초등학교</td></tr>
+                                <tr><td colspan="13" style="text-align: right;">장소: ${training.location} | 일시: ${formatDateKoreanLong(training.date)} ${formatTime(training.startTime)} ~ ${formatTime(training.endTime)}</td></tr>
                             </table>
                             <table class="main-table">
                                 <thead>
                                     <tr>
-                                        <th class="header" style="width: 40px;">No.</th>
-                                        <th class="header">학반(직위)</th>
-                                        <th class="header">성명</th>
-                                        <th class="header">서명</th>
-                                        <th class="header">비고</th>
+                                        <th class="header" style="width: 35px;">No.</th>
+                                        <th class="header" style="width: 100px;">소속(학교)</th>
+                                        <th class="header" style="width: 80px;">직위</th>
+                                        <th class="header" style="width: 80px;">성명</th>
+                                        <th class="header" style="width: 100px;">서명</th>
+                                        <th class="header" style="width: 150px;">비고</th>
                                         <th style="width: 15px;"></th>
-                                        <th class="header" style="width: 40px;">No.</th>
-                                        <th class="header">학반(직위)</th>
-                                        <th class="header">성명</th>
-                                        <th class="header">서명</th>
-                                        <th class="header">비고</th>
+                                        <th class="header" style="width: 35px;">No.</th>
+                                        <th class="header" style="width: 100px;">소속(학교)</th>
+                                        <th class="header" style="width: 80px;">직위</th>
+                                        <th class="header" style="width: 80px;">성명</th>
+                                        <th class="header" style="width: 100px;">서명</th>
+                                        <th class="header" style="width: 150px;">비고</th>
                                     </tr>
                                 </thead>
                                 <tbody>${tableRows}</tbody>
@@ -876,7 +883,7 @@
                         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in">
                             <div className="bg-white rounded-3xl p-8 max-w-sm w-full text-center space-y-6 shadow-2xl">
                                 <div className="w-16 h-16 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center mx-auto">
-                                    <Icon name="alert-triangle" size={32} />
+                                    <AlertTriangle size={32} />
                                 </div>
                                 <div className="space-y-2">
                                     <h3 className="text-xl font-bold text-slate-800">이미 등록되어 있습니다</h3>
@@ -893,12 +900,12 @@
                     <nav className="glass sticky top-0 z-50 w-full px-6 py-4 mb-4">
                         <div className="max-w-5xl mx-auto flex justify-between items-center text-slate-800">
                             <div className="flex items-center gap-3">
-                                <div className="flex flex-col">
+                                <div className="flex flex-col flex-shrink-0">
                                     <div className="flex items-center gap-2">
-                                        <Users size={22} className="text-indigo-600" strokeWidth={3} />
-                                        <span className="font-outfit font-black text-xl tracking-tight leading-none text-indigo-900">연수 등록부</span>
+                                        <Users size={20} className="text-indigo-600 flex-shrink-0" strokeWidth={3} />
+                                        <span className="font-outfit font-black text-lg sm:text-xl tracking-tight leading-none text-indigo-900 whitespace-nowrap">연수 등록부</span>
                                     </div>
-                                    <span className="text-[10px] font-bold text-indigo-500 tracking-[0.2em] uppercase mt-1">Training Registrar</span>
+                                    <span className="text-[9px] sm:text-[10px] font-bold text-indigo-500 tracking-[0.1em] sm:tracking-[0.2em] uppercase mt-1 whitespace-nowrap">Training Registrar</span>
                                 </div>
                             </div>
                             {(!isQrMode || view === 'admin') && (
@@ -1136,14 +1143,14 @@
                         ) : (
                             <div className="max-w-xl mx-auto py-4">
                                 <div className="bg-white p-8 md:p-12 rounded-[2.5rem] shadow-2xl shadow-indigo-100 border border-slate-50 min-h-[500px] flex flex-col relative overflow-hidden">
-                                    <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-500"></div>
+                                    <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-500 shadow-sm"></div>
 
                                     {step < 5 && (
-                                        <div className="flex justify-between items-center mb-10 z-10">
+                                        <div className="flex justify-between items-start mb-6 md:mb-10 z-10 w-full min-h-[32px]">
                                             {step > 1 ? (
-                                                <button onClick={() => setStep(step - 1)} className="group flex items-center gap-2 text-indigo-400 hover:text-indigo-600 transition-colors">
-                                                    <div className="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center group-hover:bg-indigo-100 transition-colors">
-                                                        <ArrowLeft size={16} />
+                                                <button onClick={() => setStep(step - 1)} className="group flex items-center gap-2 text-indigo-400 hover:text-indigo-600 transition-all active:scale-95">
+                                                    <div className="w-9 h-9 sm:w-8 sm:h-8 rounded-full bg-indigo-50 flex items-center justify-center group-hover:bg-indigo-100 transition-colors shadow-sm">
+                                                        <ArrowLeft size={18} className="sm:size-16" />
                                                     </div>
                                                     <span className="text-[10px] font-black uppercase tracking-widest hidden sm:inline">BACK</span>
                                                 </button>
@@ -1206,38 +1213,78 @@
                                     )}
 
                                     {step === 2 && (
-                                        <div className="space-y-8 animate-in">
+                                        <div className="space-y-6 md:space-y-8 animate-in flex-1 flex flex-col">
                                             <div className="text-center space-y-2">
-                                                <h2 className="text-3xl font-black text-slate-800 tracking-tight">본인 확인</h2>
-                                                <p className="text-slate-400 font-medium">성함을 검색하여 선택해 주세요</p>
+                                                <h2 className="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight">{isManualMode ? '추가 등록' : '본인 확인'}</h2>
+                                                <p className="text-slate-400 font-medium text-sm sm:text-base">{isManualMode ? '명단에 없는 경우 정보를 직접 입력해 주세요' : '성함을 검색하여 선택해 주세요'}</p>
                                             </div>
-                                            <div className="relative group">
-                                                <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-indigo-500 transition-colors" size={20} />
-                                                <input type="text" placeholder="성함 검색" value={searchName} onChange={e => setSearchName(e.target.value)}
-                                                    className="w-full pl-16 pr-6 py-5 rounded-3xl border-2 border-slate-50 focus:border-indigo-400 bg-slate-50/50 focus:bg-white outline-none text-xl font-bold transition-all shadow-inner" />
-                                            </div>
-                                            <div className="space-y-3 max-h-64 overflow-y-auto pr-2 custom-scroll">
-                                                {filteredStaffList.map(s => (
-                                                    <button key={s.id} onClick={() => { 
-                                                        setChosenStaff(s); 
-                                                        const alreadyReg = selectedRegs.some(r => r.name === s.name);
-                                                        if (alreadyReg) {
-                                                            setShowOverwriteConfirm(true);
-                                                        } else {
-                                                            setStep(3);
-                                                        }
-                                                    }} className="w-full flex items-center justify-between p-5 rounded-2xl border border-slate-50 hover:border-indigo-100 hover:bg-indigo-50/30 transition-all animate-in group">
-                                                        <div><span className="font-black text-slate-700 text-lg">{s.name}</span> <span className="text-xs text-slate-300 font-black ml-3 uppercase tracking-tighter">{s.position}</span></div>
-                                                        <span className="text-xs font-black text-indigo-400 bg-indigo-50 px-3 py-1.5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity">SELECT</span>
+
+                                            {isManualMode ? (
+                                                <div className="space-y-4 animate-in">
+                                                    <div className="space-y-1">
+                                                        <label className="text-[10px] font-black text-indigo-400 ml-1 uppercase">소속 / 학교명</label>
+                                                        <input type="text" placeholder="예: 하주초등학교, 외부기관 등" value={manualInfo.school} onChange={e => setManualInfo({...manualInfo, school: e.target.value})}
+                                                            className="w-full px-6 py-4 rounded-2xl border-2 border-slate-50 focus:border-indigo-400 bg-slate-50/50 outline-none text-lg font-bold" />
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                        <label className="text-[10px] font-black text-indigo-400 ml-1 uppercase">직위</label>
+                                                        <input type="text" placeholder="예: 교사, 주무관, 강사 등" value={manualInfo.position} onChange={e => setManualInfo({...manualInfo, position: e.target.value})}
+                                                            className="w-full px-6 py-4 rounded-2xl border-2 border-slate-50 focus:border-indigo-400 bg-slate-50/50 outline-none text-lg font-bold" />
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                        <label className="text-[10px] font-black text-indigo-400 ml-1 uppercase">성명</label>
+                                                        <input type="text" placeholder="성함을 입력해 주세요" value={manualInfo.name} onChange={e => setManualInfo({...manualInfo, name: e.target.value})}
+                                                            className="w-full px-6 py-4 rounded-2xl border-2 border-slate-50 focus:border-indigo-400 bg-slate-50/50 outline-none text-lg font-bold" />
+                                                    </div>
+                                                    <button onClick={() => {
+                                                        if (!manualInfo.name || !manualInfo.school) return setCustomAlert({ title: '입력 필요', message: '성함과 소속은 필수입니다.' });
+                                                        setChosenStaff({ name: manualInfo.name, position: manualInfo.position, grade: manualInfo.school });
+                                                        setRegStatus('attended');
+                                                        setStep(4);
+                                                    }} className="w-full py-5 bg-indigo-600 text-white rounded-3xl font-black text-xl shadow-xl shadow-indigo-100 hover:bg-indigo-700 transition-all flex items-center justify-center gap-3">
+                                                        서명 단계로 이동 <ChevronRight size={24} />
                                                     </button>
-                                                ))}
-                                                {searchName.length > 0 && filteredStaffList.length === 0 && <div className="text-center py-6 text-slate-300 font-bold">검색 결과가 없습니다.</div>}
-                                            </div>
+                                                    <button onClick={() => setIsManualMode(false)} className="w-full py-4 text-slate-400 font-bold hover:text-slate-600 transition-colors">명단 검색으로 돌아가기</button>
+                                                </div>
+                                            ) : (
+                                                <>
+                                                    <div className="relative group">
+                                                        <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-indigo-500 transition-colors" size={20} />
+                                                        <input type="text" placeholder="성함 검색" value={searchName} onChange={e => setSearchName(e.target.value)}
+                                                            className="w-full pl-16 pr-6 py-5 rounded-3xl border-2 border-slate-50 focus:border-indigo-400 bg-slate-50/50 focus:bg-white outline-none text-xl font-bold transition-all shadow-inner" />
+                                                    </div>
+                                                    <div className="space-y-3 max-h-64 overflow-y-auto pr-2 custom-scroll flex-1">
+                                                        {filteredStaffList.map(s => (
+                                                            <button key={s.id} onClick={() => { 
+                                                                setChosenStaff(s); 
+                                                                const alreadyReg = selectedRegs.some(r => r.name === s.name);
+                                                                if (alreadyReg) {
+                                                                    setShowOverwriteConfirm(true);
+                                                                } else {
+                                                                    setStep(3);
+                                                                }
+                                                            }} className="w-full flex items-center justify-between p-5 rounded-2xl border border-slate-50 hover:border-indigo-100 hover:bg-indigo-50/30 transition-all animate-in group">
+                                                                <div><span className="font-black text-slate-700 text-lg">{s.name}</span> <span className="text-xs text-slate-300 font-black ml-3 uppercase tracking-tighter">{s.position}</span></div>
+                                                                <span className="text-xs font-black text-indigo-400 bg-indigo-50 px-3 py-1.5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity">SELECT</span>
+                                                            </button>
+                                                        ))}
+                                                        {searchName.length > 0 && filteredStaffList.length === 0 && (
+                                                            <div className="text-center py-6 flex flex-col items-center gap-4">
+                                                                <p className="text-slate-300 font-bold italic">검색 결과가 없습니다.</p>
+                                                            </div>
+                                                        )}
+                                                        <button onClick={() => setIsManualMode(true)} className="w-full py-5 rounded-2xl border-2 border-dashed border-slate-100 text-slate-400 font-bold hover:border-indigo-200 hover:text-indigo-500 hover:bg-indigo-50/30 transition-all flex flex-col items-center gap-2">
+                                                            <PlusCircle size={24} />
+                                                            <span>명단에 없나요? 직접 추가 등록</span>
+                                                        </button>
+                                                    </div>
+                                                </>
+                                            )}
                                         </div>
                                     )}
 
                                     {step === 3 && (
-                                        <div className="space-y-10 animate-in text-center flex-1 flex flex-col justify-center">
+                                        <div className="space-y-6 md:space-y-10 animate-in text-center flex-1 flex flex-col justify-center py-4">
                                             <div className="space-y-3">
                                                 <div className="w-20 h-20 bg-indigo-50 rounded-[2rem] flex items-center justify-center mx-auto mb-4 border-2 border-white shadow-xl">
                                                     <UserCheck size={36} className="text-indigo-600" />
@@ -1259,7 +1306,7 @@
                                     )}
 
                                     {step === 4 && (
-                                        <div className="space-y-8 animate-in text-center flex-1 flex flex-col">
+                                        <div className="space-y-6 md:space-y-8 animate-in text-center flex-1 flex flex-col py-4">
                                             <div className="space-y-2">
                                                 <h2 className="text-3xl font-black text-slate-800 tracking-tight">
                                                     {regStatus === 'attended' ? '서명' : '사유 선택'}
