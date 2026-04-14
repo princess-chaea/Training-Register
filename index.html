@@ -509,7 +509,31 @@
                     const printWindow = window.open('', '_blank');
                     if (!printWindow) return setCustomAlert({ title: '팝업 차단됨', message: '팝업 차단을 해제한 후 다시 시도해 주세요.' });
 
-                    const displayList = [...regs];
+                    // 명단 구성: 대상자 명단 + 실제 등록자(명단 외 인원 포함)
+                    let baseList = [];
+                    const isGlobal = String(training.targetParticipants || "").trim().toUpperCase() === "ALL";
+
+                    if (isGlobal) {
+                        baseList = allStaff.map(s => {
+                            const reg = (regs || []).find(r => r.name === s.name);
+                            return reg || { name: s.name, position: s.position, grade: "하주초등학교", status: 'none', content: '' };
+                        });
+                    } else {
+                        try {
+                            const targetNames = JSON.parse(training.targetParticipants || "[]");
+                            baseList = targetNames.map(name => {
+                                const reg = (regs || []).find(r => r.name === name);
+                                const staff = allStaff.find(s => s.name === name);
+                                return reg || { name, position: staff?.position || '', grade: "하주초등학교", status: 'none', content: '' };
+                            });
+                        } catch (e) { baseList = []; }
+                    }
+
+                    // 명단 외 추가 등록자 합산
+                    const baseNames = baseList.map(item => item.name);
+                    const extras = regs.filter(r => !baseNames.includes(r.name));
+                    const displayList = [...baseList, ...extras];
+
                     const isDualColumn = displayList.length > 20;
                     const maxRowsPerCol = 28;
                     
@@ -541,7 +565,7 @@
                             </thead>
                             <tbody>
                                 ${list.map((reg, idx) => {
-                                    const school = reg.grade && reg.grade.includes('초') ? reg.grade : (reg.name ? '하주초등학교' : '');
+                                    const school = reg.grade || '하주초등학교';
                                     const getImg = (content) => {
                                         if (content && content.startsWith('http')) {
                                             return `<img src="${content}" style="height: ${imgHeight}px; object-fit: contain; margin: 0 auto;" />`;
@@ -571,7 +595,7 @@
                                 @page { size: A4; margin: 10mm; }
                                 body { font-family: 'Noto Sans KR', sans-serif; padding: 0; margin: 0; }
                                 .container { width: 100%; border: 1.5pt solid black; padding: 5mm; box-sizing: border-box; min-height: 275mm; display: flex; flex-direction: column; }
-                                h1 { font-size: 22pt; font-weight: bold; text-decoration: underline; text-align: center; margin: 5px 0 15px 0; }
+                                h1 { font-size: 22pt; font-weight: bold; text-decoration: underline; text-align: center; margin: 0 0 10px 0; }
                                 .info { text-align: right; font-size: 9pt; margin-bottom: 10px; }
                                 .school { font-weight: bold; font-size: 11pt; margin-bottom: 2px; }
                                 .columns { display: flex; gap: 0; width: 100%; flex: 1; }
@@ -584,11 +608,11 @@
                         </head>
                         <body>
                             <div class="container">
+                                <h1>${training.date ? training.date.substring(0,4) : '2026'} ${training.title} 등록부</h1>
                                 <div class="info">
                                     <div class="school">하주초등학교</div>
                                     <div>장소: ${training.location} | 일시: ${training.date} ${formatTime(training.startTime)}${training.endTime ? ` ~ ${formatTime(training.endTime)}` : ''}</div>
                                 </div>
-                                <h1>${training.date ? training.date.substring(0,4) : '2026'} ${training.title} 등록부</h1>
                                 <div class="columns">
                                     <div class="column">${renderTable(leftCol, 0, isDualColumn)}</div>
                                     ${isDualColumn ? `<div style="width: 10px;"></div><div class="column">${renderTable(rightCol, maxRowsPerCol, true)}</div>` : ''}
@@ -608,7 +632,31 @@
                 setIsLoading(true);
                 fetchRegistrations(training.id, training.title).then((regs) => {
                     setIsLoading(false);
-                    const displayList = [...regs];
+                    // 명단 구성: 대상자 명단 + 실제 등록자(명단 외 인원 포함)
+                    let baseList = [];
+                    const isGlobal = String(training.targetParticipants || "").trim().toUpperCase() === "ALL";
+
+                    if (isGlobal) {
+                        baseList = allStaff.map(s => {
+                            const reg = (regs || []).find(r => r.name === s.name);
+                            return reg || { name: s.name, position: s.position, grade: "하주초등학교", status: 'none', content: '' };
+                        });
+                    } else {
+                        try {
+                            const targetNames = JSON.parse(training.targetParticipants || "[]");
+                            baseList = targetNames.map(name => {
+                                const reg = (regs || []).find(r => r.name === name);
+                                const staff = allStaff.find(s => s.name === name);
+                                return reg || { name, position: staff?.position || '', grade: "하주초등학교", status: 'none', content: '' };
+                            });
+                        } catch (e) { baseList = []; }
+                    }
+
+                    // 명단 외 추가 등록자 합산
+                    const baseNames = baseList.map(item => item.name);
+                    const extras = regs.filter(r => !baseNames.includes(r.name));
+                    const displayList = [...baseList, ...extras];
+
                     const isDualColumn = displayList.length > 20;
                     const maxRowsPerCol = 28;
                     
@@ -640,7 +688,7 @@
                         tableRows += `
                             <tr style="height: 75px;">
                                 <td style="border: 1pt solid black; text-align: center; vertical-align: middle; font-size: 8pt;">${L.name ? i + 1 : ''}</td>
-                                <td style="border: 1pt solid black; text-align: center; vertical-align: middle;">${L.grade && L.grade.includes('초') ? L.grade : (L.name ? '하주초등학교' : '')}</td>
+                                <td style="border: 1pt solid black; text-align: center; vertical-align: middle;">${L.grade || (L.name ? '하주초등학교' : '')}</td>
                                 <td style="border: 1pt solid black; text-align: center; vertical-align: middle;">${L.position || ''}</td>
                                 <td style="border: 1pt solid black; text-align: center; vertical-align: middle; font-weight: bold;">${L.name || ''}</td>
                                 <td style="border: 1pt solid black; text-align: center; vertical-align: middle; padding: 0;">${getImgTag(L.content)}</td>
@@ -648,7 +696,7 @@
                                 ${isDualColumn ? `
                                 <td style="width: 15px; border: none;"></td>
                                 <td style="border: 1pt solid black; text-align: center; vertical-align: middle; font-size: 8pt;">${R.name ? i + maxRowsPerCol + 1 : ''}</td>
-                                <td style="border: 1pt solid black; text-align: center; vertical-align: middle;">${R.grade && R.grade.includes('초') ? R.grade : (R.name ? '하주초등학교' : '')}</td>
+                                <td style="border: 1pt solid black; text-align: center; vertical-align: middle;">${R.grade || (R.name ? '하주초등학교' : '')}</td>
                                 <td style="border: 1pt solid black; text-align: center; vertical-align: middle;">${R.position || ''}</td>
                                 <td style="border: 1pt solid black; text-align: center; vertical-align: middle; font-weight: bold;">${R.name || ''}</td>
                                 <td style="border: 1pt solid black; text-align: center; vertical-align: middle; padding: 0;">${getImgTag(R.content)}</td>
@@ -668,8 +716,8 @@
                             </style>
                         </head>
                         <body>
-                            <div style="text-align: right; font-size: 10pt; font-weight: bold;">하주초등학교</div>
                             <h1 style="text-align: center; text-decoration: underline;">${training.date ? training.date.substring(0, 4) : '2026'} ${training.title} 등록부</h1>
+                            <div style="text-align: right; font-size: 10pt; font-weight: bold;">하주초등학교</div>
                             <div style="text-align: right; font-size: 10pt;">
                                 장소: ${training.location} | 일시: ${training.date} ${formatTime(training.startTime)} ~ ${formatTime(training.endTime)}
                             </div>
@@ -757,7 +805,30 @@
             }, [searchName, allStaff, selectedTraining]);
 
             if (isPrinting && selectedTraining) {
-                const displayList = [...selectedRegs];
+                // 명단 구성: 대상자 명단 + 실제 등록자(명단 외 인원 포함)
+                let baseList = [];
+                const isGlobal = String(selectedTraining.targetParticipants || "").trim().toUpperCase() === "ALL";
+
+                if (isGlobal) {
+                    baseList = allStaff.map(s => {
+                        const reg = (selectedRegs || []).find(r => r.name === s.name);
+                        return reg || { id: s.id, name: s.name, position: s.position, grade: "하주초등학교", status: 'none', content: '' };
+                    });
+                } else {
+                    try {
+                        const targetNames = JSON.parse(selectedTraining.targetParticipants || "[]");
+                        baseList = targetNames.map(name => {
+                            const reg = (selectedRegs || []).find(r => r.name === name);
+                            const staff = allStaff.find(s => s.name === name);
+                            return reg || { name, position: staff?.position || '', grade: "하주초등학교", status: 'none', content: '' };
+                        });
+                    } catch (e) { baseList = []; }
+                }
+
+                const baseNames = baseList.map(item => item.name);
+                const extras = selectedRegs.filter(r => !baseNames.includes(r.name));
+                const displayList = [...baseList, ...extras];
+
                 const isDualColumn = displayList.length > 20;
                 const maxRowsPerCol = 28;
                 
@@ -777,10 +848,10 @@
 
                 return (
                     <div className="bg-white p-8 min-h-screen text-black font-serif print-area" style={{ width: '210mm', margin: '0 auto' }}>
-                        <div className="text-right text-xs font-bold mb-1">하주초등학교</div>
                         <h1 className="text-3xl font-bold text-center mb-4 underline decoration-double underline-offset-8">
                             {selectedTraining.date ? selectedTraining.date.substring(0, 4) : '2026'} {selectedTraining.title} 등록부
                         </h1>
+                        <div className="text-right text-xs font-bold mb-1">하주초등학교</div>
                         <div className="text-right text-sm mb-4 space-x-4">
                             <span>장소: {selectedTraining.location}</span>
                             <span>일시: {selectedTraining.date} {formatTime(selectedTraining.startTime)} ~ {formatTime(selectedTraining.endTime)}</span>
@@ -822,8 +893,8 @@
 
                                     return (
                                         <tr key={i} style={{ height: rowHeight }}>
-                                            <td className="border border-black text-center text-xs">{L.id ? i + 1 : ''}</td>
-                                            <td className="border border-black text-center text-xs whitespace-nowrap overflow-hidden">{L.grade && L.grade.includes('초') ? L.grade : (L.name ? '하주초등학교' : '')}</td>
+                                            <td className="border border-black text-center text-xs">{L.name ? i + 1 : ''}</td>
+                                            <td className="border border-black text-center text-xs whitespace-nowrap overflow-hidden">{L.grade || (L.name ? '하주초등학교' : '')}</td>
                                             <td className="border border-black text-center text-xs">{L.position || ''}</td>
                                             <td className="border border-black text-center font-bold">{L.name || ''}</td>
                                             <td className="border border-black p-0">{getImg(L.content)}</td>
@@ -832,7 +903,7 @@
                                                 <>
                                                     <td className="border-l-2 border-l-black border-y-0"></td>
                                                     <td className="border border-black text-center text-xs">{R.name ? i + maxRowsPerCol + 1 : ''}</td>
-                                                    <td className="border border-black text-center text-xs whitespace-nowrap overflow-hidden">{R.grade && R.grade.includes('초') ? R.grade : (R.name ? '하주초등학교' : '')}</td>
+                                                    <td className="border border-black text-center text-xs whitespace-nowrap overflow-hidden">{R.grade || (R.name ? '하주초등학교' : '')}</td>
                                                     <td className="border border-black text-center text-xs">{R.position || ''}</td>
                                                     <td className="border border-black text-center font-bold">{R.name || ''}</td>
                                                     <td className="border border-black p-0 text-center">{getImg(R.content)}</td>
@@ -1253,7 +1324,7 @@
                                             {isManualMode ? (
                                                 <div className="space-y-4 animate-in">
                                                     <div className="space-y-1">
-                                                        <label className="text-[10px] font-black text-indigo-400 ml-1 uppercase">소속 / 학교명</label>
+                                                        <label className="text-[10px] font-black text-indigo-400 ml-1 uppercase">소속 (근무지)</label>
                                                         <input type="text" placeholder="예: 하주초등학교, 외부기관 등" value={manualInfo.school} onChange={e => setManualInfo({ ...manualInfo, school: e.target.value })}
                                                             className="w-full px-6 py-4 rounded-2xl border-2 border-slate-50 focus:border-indigo-400 bg-slate-50/50 outline-none text-lg font-bold" />
                                                     </div>
