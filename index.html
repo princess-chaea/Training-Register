@@ -505,42 +505,47 @@
                                 return reg || { name, position: staff?.position || '', grade: staff?.grade || '', status: 'none', content: '' };
                             });
                         } catch (e) { displayList = []; }
-                    }
+                        }
+                        
+                        const isDualColumn = displayList.length > 20;
+                        const half = isDualColumn ? Math.ceil(displayList.length / 2) : displayList.length;
+                        const leftCol = displayList.slice(0, half);
+                        const rightCol = displayList.slice(half);
 
-                    const renderTable = (list, startIdx) => `
-                        <table style="width: 100%; table-layout: fixed;">
-                            <thead>
-                                <tr>
-                                    <th style="width: 22px;">No.</th>
-                                    <th style="width: 60px;">소속(학교)</th>
-                                    <th style="width: 55px;">직위</th>
-                                    <th style="width: 65px;">성명</th>
-                                    <th style="width: 70px;">서명</th>
-                                    <th style="width: auto;">비고</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${list.map((reg, idx) => {
-                                    const isSigned = reg.status === 'attended' && reg.content;
-                                    const isAbsent = reg.status === 'absent';
-                                    const school = reg.grade && reg.grade.includes('초') ? reg.grade : (reg.name ? '하주초' : '');
-                                    return `
-                                    <tr style="height: 19px;">
-                                        <td>${startIdx + idx + 1}</td>
-                                        <td>${school}</td>
-                                        <td>${reg.position || ''}</td>
-                                        <td><strong>${reg.name || ''}</strong></td>
-                                        <td>
-                                            ${isSigned ? (reg.content.startsWith('http') ? `<img src="${reg.content}" />` : '서명완료') : ''}
-                                            ${isAbsent ? '-' : ''}
-                                        </td>
-                                        <td>${isAbsent ? (reg.content || '') : ''}</td>
+                        const renderTable = (list, startIdx, isDual) => `
+                            <table style="width: 100%; table-layout: fixed;">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 25px;">No.</th>
+                                        <th style="width: ${isDual ? '75px' : '120px'};">소속</th>
+                                        <th style="width: ${isDual ? '55px' : '80px'};">직위</th>
+                                        <th style="width: ${isDual ? '65px' : '100px'};">성명</th>
+                                        <th style="width: ${isDual ? '100px' : '150px'};">서명</th>
+                                        <th style="width: auto;">비고</th>
                                     </tr>
-                                    `;
-                                }).join('')}
-                            </tbody>
-                        </table>
-                    `;
+                                </thead>
+                                <tbody>
+                                    ${list.map((reg, idx) => {
+                                        const isSigned = reg.status === 'attended' && reg.content;
+                                        const isAbsent = reg.status === 'absent';
+                                        const school = reg.grade && reg.grade.includes('초') ? reg.grade : (reg.name ? '하주초등학교' : '');
+                                        return `
+                                        <tr style="height: 22px;">
+                                            <td>${startIdx + idx + 1}</td>
+                                            <td>${school}</td>
+                                            <td>${reg.position || ''}</td>
+                                            <td><strong>${reg.name || ''}</strong></td>
+                                            <td style="padding: 0;">
+                                                ${isSigned ? (reg.content.startsWith('http') ? `<img src="${reg.content}" style="height: 20px; width: auto; max-width: 100%; object-fit: contain; margin: 0 auto;" />` : '서명완료') : ''}
+                                                ${isAbsent ? '-' : ''}
+                                            </td>
+                                            <td style="text-align: left; padding-left: 3px;">${isAbsent ? (reg.content || '') : ''}</td>
+                                        </tr>
+                                        `;
+                                    }).join('')}
+                                </tbody>
+                            </table>
+                        `;
 
                     const html = `
                         <html>
@@ -579,8 +584,14 @@
                                     </div>
                                 </div>
                                 <div class="columns">
-                                    <div class="column">${renderTable(leftCol, 0)}</div>
-                                    <div class="column">${renderTable(rightCol, half)}</div>
+                                    <div class="column" style="width: ${isDualColumn ? '50%' : '100%'}; border-right: ${isDualColumn ? '0.5pt solid #eee' : 'none'};">
+                                        ${renderTable(leftCol, 0, isDualColumn)}
+                                    </div>
+                                    ${isDualColumn ? `
+                                    <div class="column" style="width: 50%;">
+                                        ${renderTable(rightCol, half, true)}
+                                    </div>
+                                    ` : ''}
                                 </div>
                                 <p class="footer">위와 같이 연수에 참석하였음을 확인합니다.</p>
                             </div>
@@ -615,6 +626,7 @@
                         } catch (e) { displayList = []; }
                     }
 
+                    const isDualColumn = displayList.length > 20;
                     const half = Math.ceil(displayList.length / 2);
                     const leftCol = displayList.slice(0, half);
                     const rightCol = displayList.slice(half);
@@ -628,17 +640,17 @@
                         // 구글 드라이브 아이디 추출 후 직링 변환
                         const match = url.match(/[\w-]{25,}/);
                         const id = match ? match[0] : null;
-                        return id ? `<img src="https://docs.google.com/uc?export=view&id=${id}" height="40" style="display:block; margin:auto;" />` : 'OK';
+                        return id ? `<img src="https://docs.google.com/uc?export=view&id=${id}" height="35" style="display:block; margin:auto; object-fit:contain;" />` : 'OK';
                     };
 
                     for (let i = 0; i < maxLen; i++) {
                         const L = leftCol[i] || { name: '', position: '', grade: '', status: '', content: '' };
-                        const R = rightCol[i] || { name: '', position: '', grade: '', status: '', content: '' };
+                        const R = isDualColumn ? (rightCol[i] || { name: '', position: '', grade: '', status: '', content: '' }) : null;
                         
                         tableRows += `
-                            <tr style="height: 35px;">
+                            <tr style="height: 40px;">
                                 <td style="border: 1pt solid black; text-align: center; vertical-align: middle; font-size: 8pt;">${i + 1}</td>
-                                <td style="border: 1pt solid black; text-align: center; vertical-align: middle;">${L.grade && L.grade.includes('초') ? L.grade : (L.name ? '하주초' : '')}</td>
+                                <td style="border: 1pt solid black; text-align: center; vertical-align: middle;">${L.grade && L.grade.includes('초') ? L.grade : (L.name ? '하주초등학교' : '')}</td>
                                 <td style="border: 1pt solid black; text-align: center; vertical-align: middle;">${L.position || ''}</td>
                                 <td style="border: 1pt solid black; text-align: center; vertical-align: middle; font-weight: bold;">${L.name}</td>
                                 <td style="border: 1pt solid black; text-align: center; vertical-align: middle;">
@@ -647,9 +659,10 @@
                                 <td style="border: 1pt solid black; text-align: center; vertical-align: middle;">
                                     ${L.status === 'absent' ? (L.content || '') : ''}
                                 </td>
+                                ${R ? `
                                 <td style="width: 15px; border: 0;"></td>
                                 <td style="border: 1pt solid black; text-align: center; vertical-align: middle; font-size: 8pt;">${half + i + 1}</td>
-                                <td style="border: 1pt solid black; text-align: center; vertical-align: middle;">${R.grade && R.grade.includes('초') ? R.grade : (R.name ? '하주초' : '')}</td>
+                                <td style="border: 1pt solid black; text-align: center; vertical-align: middle;">${R.grade && R.grade.includes('초') ? R.grade : (R.name ? '하주초등학교' : '')}</td>
                                 <td style="border: 1pt solid black; text-align: center; vertical-align: middle;">${R.position || ''}</td>
                                 <td style="border: 1pt solid black; text-align: center; vertical-align: middle; font-weight: bold;">${R.name}</td>
                                 <td style="border: 1pt solid black; text-align: center; vertical-align: middle;">
@@ -658,6 +671,7 @@
                                 <td style="border: 1pt solid black; text-align: center; vertical-align: middle;">
                                     ${R.status === 'absent' ? (R.content || '') : ''}
                                 </td>
+                                ` : ''}
                             </tr>
                         `;
                     }
@@ -682,18 +696,20 @@
                                 <thead>
                                     <tr>
                                         <th class="header" style="width: 35px;">No.</th>
-                                        <th class="header" style="width: 100px;">소속(학교)</th>
-                                        <th class="header" style="width: 80px;">직위</th>
-                                        <th class="header" style="width: 80px;">성명</th>
-                                        <th class="header" style="width: 100px;">서명</th>
-                                        <th class="header" style="width: 150px;">비고</th>
+                                        <th class="header" style="width: ${isDualColumn ? '120px' : '150px'};">소속(학교)</th>
+                                        <th class="header" style="width: ${isDualColumn ? '80px' : '100px'};">직위</th>
+                                        <th class="header" style="width: ${isDualColumn ? '80px' : '120px'};">성명</th>
+                                        <th class="header" style="width: ${isDualColumn ? '110px' : '150px'};">서명</th>
+                                        <th class="header" style="width: ${isDualColumn ? '200px' : 'auto'};">비고</th>
+                                        ${isDualColumn ? `
                                         <th style="width: 15px;"></th>
                                         <th class="header" style="width: 35px;">No.</th>
-                                        <th class="header" style="width: 100px;">소속(학교)</th>
+                                        <th class="header" style="width: 120px;">소속(학교)</th>
                                         <th class="header" style="width: 80px;">직위</th>
                                         <th class="header" style="width: 80px;">성명</th>
-                                        <th class="header" style="width: 100px;">서명</th>
-                                        <th class="header" style="width: 150px;">비고</th>
+                                        <th class="header" style="width: 110px;">서명</th>
+                                        <th class="header" style="width: 200px;">비고</th>
+                                        ` : ''}
                                     </tr>
                                 </thead>
                                 <tbody>${tableRows}</tbody>
