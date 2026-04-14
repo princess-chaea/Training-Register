@@ -275,14 +275,19 @@
             };
 
             const fetchRegistrations = async (trainingId) => {
-                if (!GAS_APP_URL) return;
+                if (!GAS_APP_URL) return [];
                 setIsLoading(true);
                 try {
                     const res = await fetch(`${GAS_APP_URL}?action=getRegistrations&trainingId=${trainingId}`);
                     const data = await res.json();
-                    setSelectedRegs(data);
-                } catch (err) { console.error(err); }
-                setIsLoading(false);
+                    setSelectedRegs(data || []);
+                    setIsLoading(false);
+                    return data || [];
+                } catch (err) { 
+                    console.error(err); 
+                    setIsLoading(false);
+                    return [];
+                }
             };
 
             const handleAddTraining = async () => {
@@ -384,13 +389,13 @@
                         }
                     } catch (e) { }
 
-                    const displayList = targetNames.length > 0
+                    const displayList = (targetNames.length > 0
                         ? targetNames.map(name => {
-                            const reg = regs.find(r => r.name === name);
+                            const reg = (regs || []).find(r => r.name === name);
                             const staff = allStaff.find(s => s.name === name);
                             return reg || { name, position: staff?.position || '', grade: staff?.grade || '', status: 'absent', content: '' };
                         })
-                        : regs;
+                        : (regs || [])) || [];
 
                     const html = `
                         <html>
@@ -463,15 +468,96 @@
                 });
             };
 
-            const exportToCSV = (training) => {
-                fetchRegistrations(training.id).then(() => {
-                    const headers = ['번호', '직위', '성명', '소속/학급', '상태', '내용(사유/링크)'];
-                    const rows = selectedRegs.map((r, i) => [i + 1, r.position, r.name, r.grade, r.status === 'attended' ? '참석' : '불참', r.content]);
-                    const csvContent = "\uFEFF" + [headers, ...rows].map(e => e.join(",")).join("\n");
-                    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const exportToExcel = (training) => {
+                setIsLoading(true);
+                fetchRegistrations(training.id).then((regs) => {
+                    setIsLoading(false);
+                    
+                    let targetNames = [];
+                    try {
+                        if (training.targetParticipants && training.targetParticipants !== "ALL") {
+                            targetNames = JSON.parse(training.targetParticipants);
+                        }
+                    } catch (e) { }
+
+                    const displayList = (targetNames.length > 0
+                        ? targetNames.map(name => {
+                            const reg = (regs || []).find(r => r.name === name);
+                            const staff = allStaff.find(s => s.name === name);
+                            return reg || { name, position: staff?.position || '', grade: staff?.grade || '', status: 'absent', content: '' };
+                        })
+                        : (regs || [])) || [];
+
+                    const tableRows = displayList.map((reg, idx) => `
+                        <tr style="height: 35px;">
+                            <td style="border: 1pt solid black; text-align: center;">${idx + 1}</td>
+                            <td style="border: 1pt solid black; text-align: center;">${reg.position}</td>
+                            <td style="border: 1pt solid black; text-align: center; font-weight: bold;">${reg.name}</td>
+                            <td style="border: 1pt solid black; text-align: center;">${reg.grade}</td>
+                            <td style="border: 1pt solid black; text-align: center;">
+                                ${reg.status === 'attended' ? '참석(서명완료)' : (reg.content || '불참')}
+                            </td>
+                        </tr>
+                    `).join('');
+
+                    // 빈 행 추가 (인쇄와 비슷하게 15행까지)
+                    const emptyCount = Math.max(0, 15 - displayList.length);
+                    const emptyRows = [...Array(emptyCount)].map((_, i) => `
+                        <tr style="height: 35px;">
+                            <td style="border: 1pt solid black; text-align: center;">${displayList.length + i + 1}</td>
+                            <td style="border: 1pt solid black;"></td>
+                            <td style="border: 1pt solid black;"></td>
+                            <td style="border: 1pt solid black;"></td>
+                            <td style="border: 1pt solid black;"></td>
+                        </tr>
+                    `).join('');
+
+                    const excelTemplate = `
+                        <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+                        <head>
+                            <meta charset="utf-8">
+                            <!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>훈련등록부</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]-->
+                            <style>
+                                .title { font-size: 20pt; font-weight: bold; text-align: center; text-decoration: underline; }
+                                .info-table { width: 100%; margin-bottom: 10pt; }
+                                .main-table { border-collapse: collapse; width: 100%; }
+                                .header { background-color: #f2f2f2; font-weight: bold; text-align: center; border: 1pt solid black; }
+                            </style>
+                        </head>
+                        <body>
+                            <table><tr><td colspan="5" class="title">${training.title} 연수 등록부</td></tr></table>
+                            <table class="info-table">
+                                <tr>
+                                    <td colspan="2">장소: ${training.location}</td>
+                                    <td colspan="3" style="text-align: right;">일시: ${training.date} ${formatTime(training.startTime)} ${training.endTime ? `~ ${formatTime(training.endTime)}` : ''}</td>
+                                </tr>
+                            </table>
+                            <table class="main-table">
+                                <thead>
+                                    <tr>
+                                        <th class="header" style="width: 50px;">번호</th>
+                                        <th class="header" style="width: 100px;">직위</th>
+                                        <th class="header" style="width: 120px;">성명</th>
+                                        <th class="header" style="width: 150px;">소속/학급</th>
+                                        <th class="header" style="width: 150px;">서명/비고</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${tableRows}
+                                    ${emptyRows}
+                                </tbody>
+                            </table>
+                            <br/>
+                            <p style="text-align: right; font-weight: bold;">위와 같이 연수에 참석하였음을 확인합니다.</p>
+                            <p style="text-align: right; font-size: 9pt;">출력일시: ${formatDateTime(new Date())}</p>
+                        </body>
+                        </html>
+                    `;
+
+                    const blob = new Blob([excelTemplate], { type: 'application/vnd.ms-excel' });
                     const link = document.createElement("a");
                     link.href = URL.createObjectURL(blob);
-                    link.setAttribute("download", `${training.title}_등록부_${new Date().toLocaleDateString()}.csv`);
+                    link.setAttribute("download", `${training.title}_등록부_${new Date().toLocaleDateString()}.xls`);
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);
@@ -787,7 +873,7 @@
                                                         <Printer size={18} />
                                                         <span className="text-xs font-bold">인쇄하기</span>
                                                     </button>
-                                                    <button onClick={() => exportToCSV(t)} className="flex items-center gap-2 px-4 py-2.5 bg-emerald-50 text-emerald-600 rounded-2xl hover:bg-emerald-100 transition-all border border-emerald-100 group" title="엑셀 저장">
+                                                    <button onClick={() => exportToExcel(t)} className="flex items-center gap-2 px-4 py-2.5 bg-emerald-50 text-emerald-600 rounded-2xl hover:bg-emerald-100 transition-all border border-emerald-100 group" title="엑셀 저장">
                                                         <Download size={18} />
                                                         <span className="text-xs font-bold">엑셀 저장</span>
                                                     </button>
