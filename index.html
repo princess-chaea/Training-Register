@@ -9,7 +9,9 @@
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap"
+        rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
     <style>
         body {
@@ -78,19 +80,52 @@
         .btn-hover:active {
             transform: translateY(0);
         }
+        @keyframes loading-bar-anim {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(250%); }
+        }
+
+        .loading-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: rgba(226, 232, 240, 0.3);
+            overflow: hidden;
+            z-index: 9999;
+        }
+
+        .loading-bar::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 40%;
+            height: 100%;
+            background: linear-gradient(90deg, #4f46e5, #818cf8, #4f46e5);
+            animation: loading-bar-anim 1.2s infinite ease-in-out;
+        }
     </style>
 </head>
 
 <body class="bg-[#f8fafc]">
-    <div id="root"></div>
+    <div id="root">
+        <!-- Pre-loader: App booting... -->
+        <div class="fixed inset-0 flex items-center justify-center bg-white/50 backdrop-blur-sm transition-opacity duration-500">
+            <div class="w-24 h-1 bg-slate-100 rounded-full overflow-hidden relative">
+                <div class="absolute inset-0 bg-indigo-600 w-1/2 animate-[loading-bar-anim_1.2s_infinite_ease-in-out]"></div>
+            </div>
+        </div>
+    </div>
 
     <script type="text/babel">
         const { useState, useRef, useEffect, useMemo } = React;
-        
+
         // --- Lucide React Helper ---
         const Icon = ({ name, size = 24, className = "", strokeWidth = 2 }) => {
             const iconRef = useRef(null);
-            
+
             useEffect(() => {
                 if (iconRef.current && window.lucide) {
                     window.lucide.createIcons({
@@ -105,7 +140,7 @@
                     });
                 }
             }, [name, size, className, strokeWidth]);
-            
+
             return <i ref={iconRef} data-lucide={name} className={className}></i>;
         };
 
@@ -135,10 +170,10 @@
             try {
                 // "14:30" 형식의 문자열인 경우 그대로 반환
                 if (typeof timeValue === 'string' && /^\d{2}:\d{2}$/.test(timeValue)) return timeValue;
-                
+
                 const date = new Date(timeValue);
                 if (isNaN(date.getTime())) return String(timeValue);
-                
+
                 // 한국 시간(KST) 기준으로 시/분 추출
                 return date.toLocaleTimeString('ko-KR', {
                     hour: '2-digit',
@@ -156,7 +191,7 @@
             try {
                 const date = new Date(dateValue);
                 if (isNaN(date.getTime())) return String(dateValue);
-                
+
                 return date.toLocaleString('ko-KR', {
                     year: 'numeric',
                     month: '2-digit',
@@ -171,15 +206,15 @@
             }
         };
 
-        const GAS_APP_URL = "https://script.google.com/macros/s/AKfycbzbLAYsi6x1TV-KxIFVspjqg3s0WIqQvdxgUhW1WYVnyrTrBD8VegswbcZBFPaTAnSP/exec"; 
+        const GAS_APP_URL = "https://script.google.com/macros/s/AKfycbzbLAYsi6x1TV-KxIFVspjqg3s0WIqQvdxgUhW1WYVnyrTrBD8VegswbcZBFPaTAnSP/exec";
         const ABSENCE_REASONS = ["출장", "연가", "병가", "조퇴", "병조퇴", "휴가", "기타"];
 
         const App = () => {
-            const [view, setView] = useState('user'); 
-            const [adminSubView, setAdminSubView] = useState('list'); 
+            const [view, setView] = useState('user');
+            const [adminSubView, setAdminSubView] = useState('list');
             const [isLoading, setIsLoading] = useState(false);
             const [isPrinting, setIsPrinting] = useState(false);
-            
+
             const [trainings, setTrainings] = useState([]);
             const [allStaff, setAllStaff] = useState([]);
             const [dashboardStats, setDashboardStats] = useState([]);
@@ -193,7 +228,15 @@
             const [absenceReason, setAbsenceReason] = useState('');
             const [qrModalUrl, setQrModalUrl] = useState(null);
 
-            const [newTraining, setNewTraining] = useState({ title: '', location: '', startTime: '', endTime: '' });
+            const [newTraining, setNewTraining] = useState({
+                title: '',
+                location: '',
+                date: new Date().toISOString().split('T')[0],
+                startTime: '',
+                endTime: '',
+                targetType: 'ALL',
+                targetParticipants: [] // List of staff names or objects
+            });
 
             const canvasRef = useRef(null);
             const [isDrawing, setIsDrawing] = useState(false);
@@ -235,15 +278,37 @@
             };
 
             const handleAddTraining = async () => {
-                if (!newTraining.title || !GAS_APP_URL) return;
+                if (!newTraining.title || !newTraining.date || !newTraining.startTime) return alert('제목, 날짜, 시작 시간은 필수입니다.');
+
+                const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
+                if (!timeRegex.test(newTraining.startTime) || (newTraining.endTime && !timeRegex.test(newTraining.endTime))) {
+                    return alert('시간 형식을 HH:mm (24시간제)로 입력해주세요. (예: 14:30)');
+                }
+
                 setIsLoading(true);
-                await fetch(GAS_APP_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ action: 'addTraining', ...newTraining })
-                });
-                setNewTraining({ title: '', location: '', startTime: '', endTime: '' });
-                setAdminSubView('list');
-                fetchInitialData();
+                try {
+                    const params = {
+                        action: 'addTraining',
+                        title: newTraining.title,
+                        location: newTraining.location,
+                        date: newTraining.date,
+                        startTime: newTraining.startTime,
+                        endTime: newTraining.endTime,
+                        targetParticipants: newTraining.targetType === 'ALL' ? 'ALL' : JSON.stringify(newTraining.targetParticipants)
+                    };
+                    const res = await fetch(GAS_APP_URL, {
+                        method: 'POST',
+                        body: JSON.stringify(params)
+                    });
+                    const result = await res.json();
+                    if (result.success) {
+                        alert('연수가 성공적으로 생성되었습니다.');
+                        setNewTraining({ title: '', location: '', date: new Date().toISOString().split('T')[0], startTime: '', endTime: '', targetType: 'ALL', targetParticipants: [] });
+                        setAdminSubView('list');
+                        fetchInitialData();
+                    } else { alert('저장 실패: ' + result.error); }
+                } catch (err) { console.error(err); alert('오류가 발생했습니다.'); }
+                setIsLoading(false);
             };
 
             const handleDeleteTraining = async (id) => {
@@ -357,7 +422,7 @@
                             <h1 className="text-3xl font-bold text-center underline mb-8">{selectedTraining.title} 등록부</h1>
                             <div className="grid grid-cols-2 gap-4 mb-6 border-b-2 border-black pb-4">
                                 <p><strong>장소:</strong> {selectedTraining.location}</p>
-                                <p><strong>일시:</strong> {formatTime(selectedTraining.startTime)} {selectedTraining.endTime ? `~ ${formatTime(selectedTraining.endTime)}` : ''}</p>
+                                <p><strong>일시:</strong> {selectedTraining.date} {formatTime(selectedTraining.startTime)} {selectedTraining.endTime ? `~ ${formatTime(selectedTraining.endTime)}` : ''}</p>
                             </div>
                             <table className="w-full border-collapse border border-black text-sm">
                                 <thead>
@@ -370,32 +435,53 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {selectedRegs.map((reg, idx) => (
-                                        <tr key={idx} className="h-10">
-                                            <td className="border border-black p-2 text-center">{idx + 1}</td>
-                                            <td className="border border-black p-2 text-center">{reg.position}</td>
-                                            <td className="border border-black p-2 text-center font-bold">{reg.name}</td>
-                                            <td className="border border-black p-2 text-center">{reg.grade}</td>
-                                            <td className="border border-black p-1 text-center">
-                                                {reg.status === 'attended' ? (
-                                                    reg.content.startsWith('http') ?
-                                                        <img src={reg.content} alt="서명" className="h-10 mx-auto block" style={{ maxWidth: '100px', objectFit: 'contain' }} /> :
-                                                        <span className="text-[10px] text-gray-400">서명완료</span>
-                                                ) : (
-                                                    <span className="text-red-600 font-bold">{reg.content}</span>
-                                                )}
-                                            </td>
-                                        </tr>
-                                    ))}
-                                    {[...Array(Math.max(0, 15 - selectedRegs.length))].map((_, i) => (
-                                        <tr key={`empty-${i}`} className="h-10">
-                                            <td className="border border-black p-2 text-center">{selectedRegs.length + i + 1}</td>
-                                            <td className="border border-black p-2"></td>
-                                            <td className="border border-black p-2"></td>
-                                            <td className="border border-black p-2"></td>
-                                            <td className="border border-black p-2"></td>
-                                        </tr>
-                                    ))}
+                                    {(() => {
+                                        let targetNames = [];
+                                        try {
+                                            if (selectedTraining.targetParticipants && selectedTraining.targetParticipants !== "ALL") {
+                                                targetNames = JSON.parse(selectedTraining.targetParticipants);
+                                            }
+                                        } catch (e) { }
+
+                                        const displayList = targetNames.length > 0
+                                            ? targetNames.map(name => {
+                                                const reg = selectedRegs.find(r => r.name === name);
+                                                const staff = allStaff.find(s => s.name === name);
+                                                return reg || { name, position: staff?.position || '', grade: staff?.grade || '', status: 'absent', content: '' };
+                                            })
+                                            : selectedRegs;
+
+                                        return (
+                                            <>
+                                                {displayList.map((reg, idx) => (
+                                                    <tr key={idx} className="h-10">
+                                                        <td className="border border-black p-2 text-center">{idx + 1}</td>
+                                                        <td className="border border-black p-2 text-center">{reg.position}</td>
+                                                        <td className="border border-black p-2 text-center font-bold">{reg.name}</td>
+                                                        <td className="border border-black p-2 text-center">{reg.grade}</td>
+                                                        <td className="border border-black p-1 text-center">
+                                                            {reg.status === 'attended' ? (
+                                                                reg.content && reg.content.startsWith('http') ?
+                                                                    <img src={reg.content} alt="서명" className="h-10 mx-auto block" style={{ maxWidth: '100px', objectFit: 'contain' }} /> :
+                                                                    <span className="text-[10px] text-gray-400">서명완료</span>
+                                                            ) : (
+                                                                <span className="text-red-600 font-bold">{reg.content}</span>
+                                                            )}
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                                {[...Array(Math.max(0, 15 - displayList.length))].map((_, i) => (
+                                                    <tr key={`empty-${i}`} className="h-10">
+                                                        <td className="border border-black p-2 text-center">{displayList.length + i + 1}</td>
+                                                        <td className="border border-black p-2"></td>
+                                                        <td className="border border-black p-2"></td>
+                                                        <td className="border border-black p-2"></td>
+                                                        <td className="border border-black p-2"></td>
+                                                    </tr>
+                                                ))}
+                                            </>
+                                        );
+                                    })()}
                                 </tbody>
                             </table>
                             <p className="mt-10 text-right font-bold text-lg">위와 같이 연수에 참석하였음을 확인합니다.</p>
@@ -407,6 +493,7 @@
 
             return (
                 <div className="min-h-screen pb-20 overflow-x-hidden">
+                    {isLoading && <div className="loading-bar"></div>}
                     {qrModalUrl && (
                         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in">
                             <div className="bg-white rounded-3xl p-8 max-w-sm w-full text-center space-y-4 shadow-2xl">
@@ -427,8 +514,8 @@
                                     <Users size={24} strokeWidth={2.5} />
                                 </div>
                                 <div className="flex flex-col">
-                                    <span className="font-outfit font-black text-xl tracking-tight leading-none text-indigo-900">TRAINING</span>
-                                    <span className="text-[10px] font-bold text-indigo-500 tracking-[0.2em] uppercase">Registrar</span>
+                                    <span className="font-outfit font-black text-xl tracking-tight leading-none text-indigo-900">연수 등록부</span>
+                                    <span className="text-[10px] font-bold text-indigo-500 tracking-[0.2em] uppercase">Training Registrar</span>
                                 </div>
                             </div>
                             <button
@@ -461,10 +548,10 @@
                                             <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center"><Plus size={20} /></div>
                                             연수 등록부 생성
                                         </h2>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                                             <div className="md:col-span-2">
                                                 <label className="text-xs font-black text-indigo-400 mb-2 block uppercase tracking-wider ml-1">연수 프로그램명</label>
-                                                <input type="text" placeholder="예: 2024 학기 소프트웨어 연수" value={newTraining.title} onChange={e => setNewTraining({ ...newTraining, title: e.target.value })}
+                                                <input type="text" placeholder="예: 2026 개인정보보호 및 정보보안 연수" value={newTraining.title} onChange={e => setNewTraining({ ...newTraining, title: e.target.value })}
                                                     className="w-full px-6 py-4 rounded-2xl border-2 border-slate-50 focus:border-indigo-400 bg-slate-50/50 focus:bg-white transition-all outline-none text-lg font-bold" />
                                             </div>
                                             <div>
@@ -472,20 +559,56 @@
                                                 <input type="text" placeholder="시청각실, 각 교실 등" value={newTraining.location} onChange={e => setNewTraining({ ...newTraining, location: e.target.value })}
                                                     className="w-full px-5 py-3.5 rounded-2xl border-2 border-slate-50 focus:border-indigo-400 bg-slate-50/50 focus:bg-white transition-all outline-none font-bold" />
                                             </div>
+                                            <div>
+                                                <label className="text-xs font-black text-indigo-400 mb-2 block uppercase tracking-wider ml-1">날짜</label>
+                                                <input type="date" value={newTraining.date} onChange={e => setNewTraining({ ...newTraining, date: e.target.value })}
+                                                    className="w-full px-5 py-3.5 rounded-2xl border-2 border-slate-50 focus:border-indigo-400 bg-slate-50/50 focus:bg-white transition-all outline-none font-bold" />
+                                            </div>
                                             <div className="grid grid-cols-2 gap-3">
                                                 <div>
-                                                    <label className="text-xs font-black text-indigo-400 mb-2 block uppercase tracking-wider ml-1">시작</label>
-                                                    <input type="time" value={newTraining.startTime} onChange={e => setNewTraining({ ...newTraining, startTime: e.target.value })}
+                                                    <label className="text-xs font-black text-indigo-400 mb-2 block uppercase tracking-wider ml-1">시작 (24H)</label>
+                                                    <input type="text" placeholder="14:30" value={newTraining.startTime} onChange={e => setNewTraining({ ...newTraining, startTime: e.target.value })}
                                                         className="w-full px-5 py-3.5 rounded-2xl border-2 border-slate-50 focus:border-indigo-400 bg-slate-50/50 focus:bg-white transition-all outline-none font-bold" />
                                                 </div>
                                                 <div>
-                                                    <label className="text-xs font-black text-indigo-400 mb-2 block uppercase tracking-wider ml-1">종료</label>
-                                                    <input type="time" value={newTraining.endTime} onChange={e => setNewTraining({ ...newTraining, endTime: e.target.value })}
+                                                    <label className="text-xs font-black text-indigo-400 mb-2 block uppercase tracking-wider ml-1">종료 (24H)</label>
+                                                    <input type="text" placeholder="16:00" value={newTraining.endTime} onChange={e => setNewTraining({ ...newTraining, endTime: e.target.value })}
                                                         className="w-full px-5 py-3.5 rounded-2xl border-2 border-slate-50 focus:border-indigo-400 bg-slate-50/50 focus:bg-white transition-all outline-none font-bold" />
                                                 </div>
                                             </div>
+
+                                            <div className="md:col-span-2 mt-4 pt-6 border-t border-slate-100">
+                                                <label className="text-xs font-black text-indigo-400 mb-4 block uppercase tracking-wider ml-1">참석 대상자 관리</label>
+                                                <div className="flex gap-2 mb-4">
+                                                    <button onClick={() => setNewTraining({ ...newTraining, targetType: 'ALL' })} className={`flex-1 py-3 rounded-xl text-sm font-bold transition-all border-2 ${newTraining.targetType === 'ALL' ? 'bg-indigo-600 border-indigo-600 text-white' : 'bg-white border-slate-100 text-slate-400'}`}>전체 교직원</button>
+                                                    <button onClick={() => setNewTraining({ ...newTraining, targetType: 'SELECT' })} className={`flex-1 py-3 rounded-xl text-sm font-bold transition-all border-2 ${newTraining.targetType === 'SELECT' ? 'bg-indigo-600 border-indigo-600 text-white' : 'bg-white border-slate-100 text-slate-400'}`}>대상자 직접 선택</button>
+                                                </div>
+
+                                                {newTraining.targetType === 'SELECT' && (
+                                                    <div className="space-y-4 animate-in">
+                                                        <div className="bg-slate-50 p-4 rounded-2xl max-h-60 overflow-y-auto grid grid-cols-2 md:grid-cols-3 gap-2">
+                                                            {allStaff.map(s => (
+                                                                <button key={s.id}
+                                                                    onClick={() => {
+                                                                        const isSelected = newTraining.targetParticipants.includes(s.name);
+                                                                        const newList = isSelected
+                                                                            ? newTraining.targetParticipants.filter(n => n !== s.name)
+                                                                            : [...newTraining.targetParticipants, s.name];
+                                                                        setNewTraining({ ...newTraining, targetParticipants: newList });
+                                                                    }}
+                                                                    className={`px-3 py-2 rounded-xl text-xs font-bold border transition-all truncate text-left flex items-center gap-2 ${newTraining.targetParticipants.includes(s.name) ? 'bg-indigo-50 border-indigo-200 text-indigo-600' : 'bg-white border-slate-100 text-slate-400'}`}
+                                                                >
+                                                                    <div className={`w-3 h-3 rounded-full border ${newTraining.targetParticipants.includes(s.name) ? 'bg-indigo-500 border-indigo-500' : 'border-slate-200'}`}></div>
+                                                                    {s.name} <span className="text-[9px] opacity-60 font-medium">({s.position})</span>
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                        <p className="text-[10px] text-slate-400 font-bold ml-1">선택된 인원: <span className="text-indigo-600">{newTraining.targetParticipants.length}</span>명</p>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
-                                        <button onClick={handleAddTraining} className="w-full mt-8 bg-indigo-600 text-white font-black py-5 rounded-[1.5rem] hover:bg-indigo-700 shadow-lg shadow-indigo-100 transition-all text-lg">생성하기</button>
+                                        <button onClick={handleAddTraining} className="w-full bg-indigo-600 text-white font-black py-5 rounded-[1.5rem] hover:bg-indigo-700 shadow-lg shadow-indigo-100 transition-all text-lg">연수 등록부 생성하기</button>
                                     </div>
                                 )}
 
@@ -496,7 +619,7 @@
                                                 <div className="flex-1">
                                                     <div className="flex items-center gap-2 mb-1">
                                                         <span className="px-2.5 py-1 bg-indigo-50 text-indigo-600 text-[10px] font-black rounded-lg uppercase tracking-wide">AVAILABLE</span>
-                                                        <span className="text-xs text-slate-400 font-bold">{new Date().toLocaleDateString()}</span>
+                                                        <span className="text-xs text-slate-400 font-bold">{t.date || new Date().toLocaleDateString()}</span>
                                                     </div>
                                                     <h3 className="font-black text-xl text-slate-800">{t.title}</h3>
                                                     <div className="flex gap-4 text-sm text-slate-400 font-semibold mt-1">
@@ -504,11 +627,23 @@
                                                         <span className="flex items-center gap-1.5"><Clock size={14} className="text-slate-300" /> {formatTime(t.startTime)} {t.endTime && `~ ${formatTime(t.endTime)}`}</span>
                                                     </div>
                                                 </div>
-                                                <div className="flex items-center gap-2">
-                                                    <button onClick={() => setQrModalUrl(`${window.location.href.split('?')[0]}?trainingId=${t.id}`)} className="p-3 bg-slate-50 text-slate-600 rounded-2xl hover:bg-slate-100 transition-all border border-slate-100" title="QR 생성"><QrCode size={20} /></button>
-                                                    <button onClick={() => handlePrint(t)} className="p-3 bg-indigo-50 text-indigo-600 rounded-2xl hover:bg-indigo-100 transition-all border border-indigo-100" title="인쇄"><Printer size={20} /></button>
-                                                    <button onClick={() => exportToCSV(t)} className="p-3 bg-emerald-50 text-emerald-600 rounded-2xl hover:bg-emerald-100 transition-all border border-emerald-100" title="엑셀 저장"><Download size={20} /></button>
-                                                    <button onClick={() => handleDeleteTraining(t.id)} className="p-3 bg-rose-50 text-rose-500 rounded-2xl hover:bg-rose-100 transition-all border border-rose-100" title="삭제"><Trash2 size={20} /></button>
+                                                <div className="flex items-center gap-2 flex-wrap md:flex-nowrap">
+                                                    <button onClick={() => setQrModalUrl(`${window.location.href.split('?')[0]}?trainingId=${t.id}`)} className="flex items-center gap-2 px-4 py-2.5 bg-slate-50 text-slate-600 rounded-2xl hover:bg-slate-100 transition-all border border-slate-100 group" title="QR 생성">
+                                                        <QrCode size={18} />
+                                                        <span className="text-xs font-bold">QR 코드</span>
+                                                    </button>
+                                                    <button onClick={() => handlePrint(t)} className="flex items-center gap-2 px-4 py-2.5 bg-indigo-50 text-indigo-600 rounded-2xl hover:bg-indigo-100 transition-all border border-indigo-100 group" title="인쇄">
+                                                        <Printer size={18} />
+                                                        <span className="text-xs font-bold">인쇄하기</span>
+                                                    </button>
+                                                    <button onClick={() => exportToCSV(t)} className="flex items-center gap-2 px-4 py-2.5 bg-emerald-50 text-emerald-600 rounded-2xl hover:bg-emerald-100 transition-all border border-emerald-100 group" title="엑셀 저장">
+                                                        <Download size={18} />
+                                                        <span className="text-xs font-bold">엑셀 저장</span>
+                                                    </button>
+                                                    <button onClick={() => handleDeleteTraining(t.id)} className="flex items-center gap-2 px-4 py-2.5 bg-rose-50 text-rose-500 rounded-2xl hover:bg-rose-100 transition-all border border-rose-100 group" title="삭제">
+                                                        <Trash2 size={18} />
+                                                        <span className="text-xs font-bold">삭제</span>
+                                                    </button>
                                                 </div>
                                             </div>
                                         ))}
@@ -705,14 +840,6 @@
                         )}
                     </main>
 
-                    {isLoading && view === 'user' && step !== 4 && (
-                        <div className="fixed inset-0 bg-slate-900/10 backdrop-blur-sm flex items-center justify-center z-[100] animate-in">
-                            <div className="bg-white p-6 rounded-3xl shadow-2xl flex flex-col items-center gap-4">
-                                <Loader2 className="animate-spin text-indigo-600" size={40} />
-                                <span className="font-black text-slate-800 tracking-wider">처리 중입니다...</span>
-                            </div>
-                        </div>
-                    )}
                 </div>
             );
         };
