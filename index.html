@@ -530,14 +530,18 @@
                     const extras = regs.filter(r => !baseNames.includes(r.name));
                     const displayList = [...baseList, ...extras];
 
-                    const isDualColumn = displayList.length > 20;
-                    const maxRowsPerCol = isDualColumn ? Math.ceil(displayList.length / 2) : displayList.length;
+                    const isDualColumn = true; 
+                    const maxRowsPerCol = 45; 
                     
-                    // 사용자 지정 엑셀 규준 반영 (행 높이 20 -> 27px, 이미지 0.71x2.12cm -> 27x80px)
-                    const rowHeight = isDualColumn ? (maxRowsPerCol > 35 ? '24px' : '27px') : '48px';
-                    const imgHeight = isDualColumn ? (maxRowsPerCol > 35 ? '20' : '27') : '42';
-                    const sigWidth = isDualColumn ? '70' : '120';
-                    const fontSize = isDualColumn ? (maxRowsPerCol > 35 ? '7.5pt' : '8.5pt') : '9pt';
+                    const fullList = [...displayList];
+                    while (fullList.length < 90) {
+                        fullList.push({ name: '', grade: '', position: '', content: '', status: '' });
+                    }
+
+                    const rowHeight = '21.5px';
+                    const imgHeight = '18';
+                    const sigWidth = '65';
+                    const fontSize = '7.5pt';
 
                     const leftCol = fullList.slice(0, 45);
                     const rightCol = fullList.slice(45, 90);
@@ -650,8 +654,19 @@
                     // 명단 외 추가 등록자 합산
                     const baseNames = baseList.map(item => item.name);
                     const extras = regs.filter(r => !baseNames.includes(r.name));
+                    const displayList = [...baseList, ...extras];
 
-                    const maxLen = Math.max(leftCol.length, rightCol.length);
+                    // 수기 등록을 위해 90칸 고정 (좌우 45단)
+                    const isDualColumn = true;
+                    const maxRowsPerCol = 45;
+                    const fullList = [...displayList];
+                    while (fullList.length < 90) {
+                        fullList.push({ name: '', grade: '', position: '', content: '', status: '' });
+                    }
+
+                    const leftCol = fullList.slice(0, 45);
+                    const rightCol = fullList.slice(45, 90);
+                    const maxLen = 45;
 
                     const getImgTag = (url) => {
                         if (!url || !url.startsWith('http')) return '';
@@ -662,8 +677,8 @@
 
                     let tableRows = "";
                     for (let i = 0; i < maxLen; i++) {
-                        const L = leftCol[i] || { name: '', position: '', grade: '', status: '', content: '' };
-                        const R = isDualColumn ? (rightCol[i] || { name: '', position: '', grade: '', status: '', content: '' }) : null;
+                        const L = leftCol[i];
+                        const R = rightCol[i];
 
                         const getExcelSig = (item) => {
                             if (item.status === 'absent') return '－';
