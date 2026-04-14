@@ -321,6 +321,7 @@
             const [manualInfo, setManualInfo] = useState({ school: '하주초등학교', position: '', name: '' });
 
             const canvasRef = useRef(null);
+            const lastPosRef = useRef({ x: 0, y: 0 }); // 부드러운 곡선 처리를 위한 이전 좌표 저장
             const [isDrawing, setIsDrawing] = useState(false);
 
             // 서명 패드 초기화 (흰색 배경)
@@ -480,7 +481,8 @@
             };
 
             const handleRegister = async () => {
-                const content = regStatus === 'attended' ? canvasRef.current.toDataURL('image/png') : absenceReason;
+                // JPEG 사용으로 속도 개선 및 흰색 배경 유지 (PNG보다 약 3~5배 빠름)
+                const content = regStatus === 'attended' ? canvasRef.current.toDataURL('image/jpeg', 0.9) : absenceReason;
                 setIsLoading(true);
                 try {
                     const res = await fetch(GAS_APP_URL, {
@@ -774,17 +776,17 @@
                                     <tr style="height: 25pt;">
                                         <th class="header" style="width: 50px;">No.</th>
                                         <th class="header" style="width: ${isDualColumn ? '120px' : '250px'};">소속(학교)</th>
-                                        <th class="header" style="width: ${isDualColumn ? '116px' : '200px'};">담당(직위)</th>
+                                        <th class="header" style="width: ${isDualColumn ? '122px' : '200px'};">담당(직위)</th>
                                         <th class="header" style="width: ${isDualColumn ? '91px' : '180px'};">성명</th>
-                                        <th class="header" style="width: ${isDualColumn ? '120px' : '300px'};">서명</th>
+                                        <th class="header" style="width: ${isDualColumn ? '102px' : '300px'};">서명</th>
                                         <th class="header" style="width: ${isDualColumn ? '71px' : '300px'};">비고</th>
                                         ${isDualColumn ? `
                                         <th style="width: 10px; border: none;"></th>
                                         <th class="header" style="width: 50px;">No.</th>
                                         <th class="header" style="width: 120px;">소속(학교)</th>
-                                        <th class="header" style="width: 116px;">담당(직위)</th>
+                                        <th class="header" style="width: 122px;">담당(직위)</th>
                                         <th class="header" style="width: 91px;">성명</th>
-                                        <th class="header" style="width: 120px;">서명</th>
+                                        <th class="header" style="width: 102px;">서명</th>
                                         <th class="header" style="width: 71px;">비고</th>
                                         ` : ''}
                                     </tr>
@@ -813,21 +815,34 @@
             };
 
             const startDrawing = (e) => {
-                setIsDrawing(true);
                 const pos = getPos(e);
+                lastPosRef.current = pos;
+                setIsDrawing(true);
+
                 const ctx = canvasRef.current.getContext('2d');
                 ctx.beginPath();
-                ctx.lineWidth = 6;
+                ctx.lineWidth = 5; // 해상도에 맞는 최적의 펜 두께
                 ctx.lineCap = 'round';
                 ctx.lineJoin = 'round';
+                ctx.strokeStyle = '#000000';
                 ctx.moveTo(pos.x, pos.y);
             };
 
             const draw = (e) => {
                 if (!isDrawing) return;
                 const pos = getPos(e);
-                canvasRef.current.getContext('2d').lineTo(pos.x, pos.y);
-                canvasRef.current.getContext('2d').stroke();
+                const ctx = canvasRef.current.getContext('2d');
+
+                // 부드러운 곡선(Quadratic Curve) 로직: 실제 펜 글씨처럼 매끄럽게 연결
+                const midPoint = {
+                    x: (lastPosRef.current.x + pos.x) / 2,
+                    y: (lastPosRef.current.y + pos.y) / 2
+                };
+
+                ctx.quadraticCurveTo(lastPosRef.current.x, lastPosRef.current.y, midPoint.x, midPoint.y);
+                ctx.stroke();
+
+                lastPosRef.current = pos;
             };
 
             const filteredStaffList = useMemo(() => {
@@ -1485,7 +1500,7 @@
                                             {regStatus === 'attended' ? (
                                                 <div className="space-y-6 flex-1 flex flex-col">
                                                     <div className="canvas-container flex-1 bg-white border-4 border-dashed border-slate-100 rounded-[2rem] relative shadow-inner overflow-hidden min-h-[220px]">
-                                                        <canvas ref={canvasRef} width={650} height={300}
+                                                        <canvas ref={canvasRef} width={1000} height={500}
                                                             onMouseDown={startDrawing} onMouseMove={draw} onMouseUp={() => setIsDrawing(false)} onMouseLeave={() => setIsDrawing(false)}
                                                             onTouchStart={startDrawing} onTouchMove={draw} onTouchEnd={() => setIsDrawing(false)}
                                                             className="absolute inset-0 w-full h-full cursor-crosshair bg-white" title="Signature Area" />
