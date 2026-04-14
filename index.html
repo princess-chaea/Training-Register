@@ -631,6 +631,7 @@
                     printWindow.document.write(html);
                     printWindow.document.close();
                 });
+            };
             const exportToExcel = (training) => {
                 setIsLoading(true);
                 fetchRegistrations(training.id, training.title).then((regs) => {
