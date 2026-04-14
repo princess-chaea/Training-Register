@@ -593,9 +593,9 @@
                             <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
                             <style>
                                 @page { size: A4; margin: 5mm 10mm; }
-                                body { font-family: 'Noto Sans KR', sans-serif; padding: 0; margin: 0; }
+                                body { font-family: 'Noto Sans KR', sans-serif; padding: 0; margin: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
                                 .container { width: 100%; border: 1px solid black; padding: 1mm 3mm; box-sizing: border-box; min-height: 285mm; display: flex; flex-direction: column; }
-                                h1 { font-size: 16pt; font-weight: bold; text-decoration: underline; text-align: center; margin: 0 0 2px 0; }
+                                h1 { font-size: 16pt; font-weight: bold; text-align: center; margin: 0 0 2px 0; }
                                 .info { text-align: right; font-size: 9pt; margin-bottom: 2px; }
                                 .school { font-weight: bold; font-size: 10pt; margin-bottom: 1px; }
                                 .columns { display: flex; gap: 0; width: 100%; flex: 1; }
@@ -714,13 +714,46 @@
                         <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
                         <head>
                             <meta charset="UTF-8">
+                            <!--[if gte mso 9]>
+                            <xml>
+                                <x:ExcelWorkbook>
+                                    <x:ExcelWorksheets>
+                                        <x:ExcelWorksheet>
+                                            <x:Name>등록부</x:Name>
+                                            <x:WorksheetOptions>
+                                                <x:Print>
+                                                    <x:ValidPrinterInfo/>
+                                                    <x:HorizontalCenter/>
+                                                    <x:FitWidth>1</x:FitWidth>
+                                                    <x:FitHeight>0</x:FitHeight>
+                                                </x:Print>
+                                                <x:PageBreakZoom>100</x:PageBreakZoom>
+                                                <x:Panes></x:Panes>
+                                            </x:WorksheetOptions>
+                                        </x:ExcelWorksheet>
+                                    </x:ExcelWorksheets>
+                                </x:ExcelWorkbook>
+                                <x:ExcelWorkbook>
+                                    <x:ExcelWorksheets>
+                                        <x:ExcelWorksheet>
+                                            <x:WorksheetOptions>
+                                                <x:Print>
+                                                    <x:Margin x:Bottom="0.75" x:Left="0.25" x:Right="0.25" x:Top="0.75"/>
+                                                </x:Print>
+                                            </x:WorksheetOptions>
+                                        </x:ExcelWorksheet>
+                                    </x:ExcelWorksheets>
+                                </x:ExcelWorkbook>
+                            </xml>
+                            <![endif]-->
                             <style>
-                                .header { background-color: #f3f3f3; font-weight: bold; text-align: center; border: 1pt solid black; height: 25pt; }
+                                .header { background-color: #f2f2f2; font-weight: bold; text-align: center; border: 1pt solid black; height: 25pt; }
                                 td { border: 0.5pt solid black; height: 20pt; }
+                                h1 { text-align: center; font-size: 18pt; font-weight: bold; }
                             </style>
                         </head>
                         <body>
-                            <h1 style="text-align: center; text-decoration: underline;">${training.title} 등록부</h1>
+                            <h1 style="text-align: center;">${training.title} 등록부</h1>
                             <div style="text-align: right; font-size: 10pt; font-weight: bold;">하주초등학교</div>
                             <div style="text-align: right; font-size: 10pt;">
                                 장소: ${training.location} | 일시: ${formatDateKoreanLong(training.date)} ${formatTime(training.startTime)} ~ ${formatTime(training.endTime)}
