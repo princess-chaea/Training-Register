@@ -557,6 +557,7 @@
                     const leftCol = isDualColumn ? displayList.slice(0, maxRowsPerCol) : displayList;
                     const rightCol = isDualColumn ? displayList.slice(maxRowsPerCol) : [];
 
+                    const renderTable = (list, startIdx, isDual) => `
                         <table style="width: 100%; table-layout: fixed;">
                             <thead>
                                 <tr>
