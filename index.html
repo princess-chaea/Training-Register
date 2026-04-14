@@ -380,14 +380,15 @@
 
             const handleEditClick = (training) => {
                 setEditId(training.id);
+                const isAll = String(training.targetParticipants).toUpperCase() === 'ALL';
                 setNewTraining({
                     title: training.title,
                     location: training.location,
                     date: formatDateForInput(training.date),
                     startTime: formatTime(training.startTime),
                     endTime: formatTime(training.endTime),
-                    targetType: training.targetParticipants === 'ALL' ? 'ALL' : 'SELECT',
-                    targetParticipants: training.targetParticipants === 'ALL' ? [] : JSON.parse(training.targetParticipants || '[]')
+                    targetType: isAll ? 'ALL' : 'SELECT',
+                    targetParticipants: isAll ? [] : JSON.parse(training.targetParticipants || '[]')
                 });
                 setAdminSubView('add');
             };
@@ -468,7 +469,8 @@
                     }
 
                     const displayListWithEmpties = [...displayList];
-                    const minRows = 20; // 최소 행 수
+                    // 전체 교직원이면 빈 행을 최소화하여 1페이지에 맞춤
+                    const minRows = training.targetParticipants === "ALL" ? 0 : 20; 
                     const totalNeeded = Math.max(minRows, displayList.length);
                     const emptyCount = totalNeeded - displayList.length;
                     
@@ -491,9 +493,9 @@
                                     <th>비고</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                             <tbody>
                                 ${list.map((reg, i) => `
-                                    <tr style="height: 38px;">
+                                    <tr style="height: 30px;">
                                         <td>${reg.grade || reg.position || ''}</td>
                                         <td><strong>${reg.name || ''}</strong></td>
                                         <td>
@@ -514,22 +516,22 @@
                         <head>
                             <title>${training.title} 연수 등록부</title>
                             <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
-                            <style>
+                             <style>
                                 @page { size: A4; margin: 10mm; }
-                                body { font-family: 'Noto Sans KR', sans-serif; padding: 10px; margin: 0; }
-                                .container { width: 100%; border: 1.5pt solid black; padding: 20px; box-sizing: border-box; }
-                                h1 { text-align: center; text-decoration: underline; margin-top: 0; margin-bottom: 25px; font-size: 20pt; }
-                                .header-info { text-align: right; margin-bottom: 15px; }
-                                .school-name { font-size: 14pt; font-weight: bold; margin-bottom: 4px; }
-                                .training-info { font-size: 10pt; color: #333; }
-                                .columns { display: flex; gap: 15px; align-items: flex-start; }
+                                body { font-family: 'Noto Sans KR', sans-serif; padding: 5px; margin: 0; }
+                                .container { width: 100%; border: 1.5pt solid black; padding: 15px; box-sizing: border-box; }
+                                h1 { text-align: center; text-decoration: underline; margin-top: 0; margin-bottom: 15px; font-size: 18pt; }
+                                .header-info { text-align: right; margin-bottom: 10px; }
+                                .school-name { font-size: 12pt; font-weight: bold; margin-bottom: 2px; }
+                                .training-info { font-size: 9pt; color: #333; }
+                                .columns { display: flex; gap: 10px; align-items: flex-start; }
                                 .column { flex: 1; }
-                                table { border-collapse: collapse; width: 100%; font-size: 10px; table-layout: fixed; }
-                                th, td { border: 1pt solid black; padding: 4px 2px; text-align: center; overflow: hidden; white-space: nowrap; }
+                                table { border-collapse: collapse; width: 100%; font-size: 9px; table-layout: fixed; }
+                                th, td { border: 1pt solid black; padding: 3px 2px; text-align: center; overflow: hidden; white-space: nowrap; }
                                 th { background-color: #f8fafc; font-weight: bold; }
-                                img { height: 28px; width: auto; max-width: 100%; display: block; margin: 0 auto; filter: contrast(1.2); }
-                                .footer { margin-top: 25px; text-align: right; font-weight: bold; font-size: 12pt; }
-                                .timestamp { margin-top: 5px; text-align: right; font-size: 9px; color: #888; }
+                                img { height: 24px; width: auto; max-width: 100%; display: block; margin: 0 auto; filter: contrast(1.2); }
+                                .footer { margin-top: 15px; text-align: right; font-weight: bold; font-size: 11pt; }
+                                .timestamp { margin-top: 4px; text-align: right; font-size: 8px; color: #888; }
                                 @media print { .no-print { display: none; } }
                             </style>
                         </head>
