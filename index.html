@@ -9,119 +9,26 @@
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
     <style>
-        body {
-            font-family: 'Inter', 'Noto Sans KR', sans-serif;
-            overflow-x: hidden;
-            background-color: #f8fafc !important; /* 배경색 고정 */
-            color: #1e293b !important; /* 글자색 고정 */
-        }
-        
-        @media (max-width: 640px) {
-            .mobile-p-4 { padding: 1rem !important; }
-            .mobile-p-6 { padding: 1.5rem !important; }
-            .mobile-text-2xl { font-size: 1.5rem !important; }
-            .mobile-min-h-500 { min-height: 400px !important; }
-        }
-
-        .font-outfit {
-            font-family: 'Outfit', sans-serif;
-        }
-
-        .glass {
-            background: rgba(255, 255, 255, 0.9) !important;
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-        }
-
-        .animate-in {
-            animation: animate-in 0.5s ease-out;
-        }
-
-        @keyframes animate-in {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .canvas-container {
-            touch-action: none;
-            position: relative;
-        }
-
-        ::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: #e2e8f0;
-            border-radius: 10px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: #cbd5e1;
-        }
-
-        .btn-hover {
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .btn-hover:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-        }
-
-        .btn-hover:active {
-            transform: translateY(0);
-        }
-        @keyframes loading-bar-anim {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(250%); }
-        }
-
-        .loading-bar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 3px;
-            background: rgba(226, 232, 240, 0.3);
-            overflow: hidden;
-            z-index: 9999;
-        }
-
-        .loading-bar::after {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 40%;
-            height: 100%;
-            background: linear-gradient(90deg, #4f46e5, #818cf8, #4f46e5);
-            animation: loading-bar-anim 1.2s infinite ease-in-out;
-        }
+        body { font-family: 'Inter', 'Noto Sans KR', sans-serif; overflow-x: hidden; background-color: #f8fafc !important; color: #1e293b !important; }
+        .font-outfit { font-family: 'Outfit', sans-serif; }
+        .glass { background: rgba(255, 255, 255, 0.9) !important; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.3); }
+        .animate-in { animation: animate-in 0.5s ease-out; }
+        @keyframes animate-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .canvas-container { touch-action: none; position: relative; }
+        .btn-hover { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+        .btn-hover:hover { transform: translateY(-1px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+        @keyframes loading-bar-anim { 0% { transform: translateX(-100%); } 100% { transform: translateX(250%); } }
+        .loading-bar { position: fixed; top: 0; left: 0; width: 100%; height: 3px; background: rgba(226, 232, 240, 0.3); overflow: hidden; z-index: 9999; }
+        .loading-bar::after { content: ""; position: absolute; top: 0; left: 0; width: 40%; height: 100%; background: linear-gradient(90deg, #4f46e5, #818cf8, #4f46e5); animation: loading-bar-anim 1.2s infinite ease-in-out; }
     </style>
 </head>
 
 <body class="bg-[#f8fafc]">
     <div id="root">
-        <!-- Pre-loader: App booting... -->
-        <div class="fixed inset-0 flex items-center justify-center bg-white/50 backdrop-blur-sm transition-opacity duration-500">
+        <div class="fixed inset-0 flex items-center justify-center bg-white/50 backdrop-blur-sm">
             <div class="w-24 h-1 bg-slate-100 rounded-full overflow-hidden relative">
                 <div class="absolute inset-0 bg-indigo-600 w-1/2 animate-[loading-bar-anim_1.2s_infinite_ease-in-out]"></div>
             </div>
@@ -131,264 +38,134 @@
     <script type="text/babel">
         const { useState, useRef, useEffect, useMemo, useLayoutEffect } = React;
 
-        // --- Lucide React Helper ---
-        const Icon = ({ name, size = 20, className = "" }) => {
-            return (
-                <span className={`inline-flex items-center justify-center shrink-0 ${className}`} 
-                      style={{ width: size, height: size, minWidth: size, minHeight: size }}>
-                    <i data-lucide={name} style={{ width: size, height: size }}></i>
-                </span>
-            );
-        };
+        const Icon = ({ name, size = 20, className = "" }) => (
+            <span className={`inline-flex items-center justify-center shrink-0 ${className}`} style={{ width: size, height: size, minWidth: size, minHeight: size }}>
+                <i data-lucide={name} style={{ width: size, height: size }}></i>
+            </span>
+        );
 
-        const Users = (props) => <Icon name="users" {...props} />;
-        const Plus = (props) => <Icon name="plus" {...props} />;
-        const Calendar = (props) => <Icon name="calendar" {...props} />;
-        const Download = (props) => <Icon name="download" {...props} />;
-        const Printer = (props) => <Icon name="printer" {...props} />;
-        const CheckCircle2 = (props) => <Icon name="check-circle-2" {...props} />;
-        const ChevronRight = (props) => <Icon name="chevron-right" {...props} />;
-        const UserCheck = (props) => <Icon name="user-check" {...props} />;
-        const PenTool = (props) => <Icon name="pen-tool" {...props} />;
-        const ArrowLeft = (props) => <Icon name="arrow-left" {...props} />;
-        const Settings = (props) => <Icon name="settings" {...props} />;
-        const Search = (props) => <Icon name="search" {...props} />;
-        const MapPin = (props) => <Icon name="map-pin" {...props} />;
-        const Clock = (props) => <Icon name="clock" {...props} />;
-        const XCircle = (props) => <Icon name="x-circle" {...props} />;
-        const Trash2 = (props) => <Icon name="trash-2" {...props} />;
-        const QrCode = (props) => <Icon name="qr-code" {...props} />;
-        const LogOut = (props) => <Icon name="log-out" {...props} />;
-        const Loader2 = (props) => <Icon name="loader-2" {...props} />;
-        const Info = (props) => <Icon name="info" {...props} />;
-        const PlusCircle = (props) => <Icon name="plus-circle" {...props} />;
-        const AlertTriangle = (props) => <Icon name="alert-triangle" {...props} />;
-
-        // --- Utils ---
-        const formatTime = (timeValue) => {
-            if (!timeValue) return "";
-            try {
-                const str = String(timeValue).trim();
-                // "14:30:00" 또는 "14:30" 형태의 문자열에서 시:분만 추출
-                const match = str.match(/(\d{1,2}):(\d{1,2})/);
-                if (match) {
-                    const h = match[1].padStart(2, '0');
-                    const m = match[2].padStart(2, '0');
-                    if (h === "00" && m === "00") return "";
-                    return `${h}:${m}`;
-                }
-
-                // Date 객체인 경우
-                const date = new Date(timeValue);
-                if (isNaN(date.getTime())) return str;
-                const hh = String(date.getHours()).padStart(2, '0');
-                const mm = String(date.getMinutes()).padStart(2, '0');
-                if (hh === "00" && mm === "00") return "";
-                return `${hh}:${mm}`;
-            } catch (e) {
-                return String(timeValue);
-            }
-        };
-
-        const formatDateTime = (dateValue) => {
-            if (!dateValue) return "";
-            try {
-                const date = new Date(dateValue);
-                if (isNaN(date.getTime())) return String(dateValue);
-
-                return date.toLocaleString('ko-KR', {
-                    year: 'numeric',
-                    month: '2-digit',
-                    day: '2-digit',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    hour12: false,
-                    timeZone: 'Asia/Seoul'
-                }).replace(/\. /g, '-').replace(/\./g, '');
-            } catch (e) {
-                return String(dateValue);
-            }
-        };
-
-        const formatDateForInput = (dateValue) => {
-            if (!dateValue) return "";
-            try {
-                const str = String(dateValue).trim();
-                
-                // 1. "2026. 4. 14." 또는 "2026-04-14..." 형태에서 숫자만 추출
-                const match = str.match(/(\d{4})[.-]\s*(\d{1,2})[.-]\s*(\d{1,2})/);
-                if (match) {
-                    const y = match[1];
-                    const m = match[2].padStart(2, '0');
-                    const d = match[3].padStart(2, '0');
-                    return `${y}-${m}-${d}`;
-                }
-                
-                // 2. Date 객체 또는 표준 문자열로 시도 (KST 보정 포함)
-                const dObj = new Date(dateValue);
-                if (!isNaN(dObj.getTime())) {
-                    const yyyy = dObj.getFullYear();
-                    const mm = String(dObj.getMonth() + 1).padStart(2, '0');
-                    const dd = String(dObj.getDate()).padStart(2, '0');
-                    return `${yyyy}-${mm}-${dd}`;
-                }
-
-                // 3. 마지막 수단: YYYY-MM-DD 형태인지 확인
-                const simpleMatch = str.match(/(\d{4})-(\d{2})-(\d{2})/);
-                if (simpleMatch) return simpleMatch[0];
-
-                return "";
-            } catch (e) {
-                console.error("Date Input Parse Error:", e);
-                return "";
-            }
-        };
-
-        const formatDateKoreanLong = (dateValue) => {
-            if (!dateValue) return "";
-            try {
-                const date = new Date(dateValue);
-                if (isNaN(date.getTime())) return String(dateValue);
-
-                const weekDays = ['일', '월', '화', '수', '목', '금', '토'];
-                const dayOfWeek = weekDays[date.getDay()];
-
-                return date.toLocaleDateString('ko-KR', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                }) + ` (${dayOfWeek})`;
-            } catch (e) {
-                return String(dateValue);
-            }
-        };
+        const Users = (p) => <Icon name="users" {...p} />;
+        const Settings = (p) => <Icon name="settings" {...p} />;
+        const LogOut = (p) => <Icon name="log-out" {...p} />;
+        const Plus = (p) => <Icon name="plus" {...p} />;
+        const MapPin = (p) => <Icon name="map-pin" {...p} />;
+        const Clock = (p) => <Icon name="clock" {...p} />;
+        const QrCode = (p) => <Icon name="qr-code" {...p} />;
+        const Printer = (p) => <Icon name="printer" {...p} />;
+        const Download = (p) => <Icon name="download" {...p} />;
+        const Trash2 = (p) => <Icon name="trash-2" {...p} />;
+        const ArrowLeft = (p) => <Icon name="arrow-left" {...p} />;
+        const Search = (p) => <Icon name="search" {...p} />;
+        const UserCheck = (p) => <Icon name="user-check" {...p} />;
+        const PenTool = (p) => <Icon name="pen-tool" {...p} />;
+        const XCircle = (p) => <Icon name="x-circle" {...p} />;
+        const CheckCircle2 = (p) => <Icon name="check-circle-2" {...p} />;
+        const ChevronRight = (p) => <Icon name="chevron-right" {...p} />;
+        const Loader2 = (p) => <Icon name="loader-2" {...p} />;
+        const Info = (p) => <Icon name="info" {...p} />;
+        const AlertTriangle = (p) => <Icon name="alert-triangle" {...p} />;
+        const PlusCircle = (p) => <Icon name="plus-circle" {...p} />;
 
         const GAS_APP_URL = "https://script.google.com/macros/s/AKfycbzbLAYsi6x1TV-KxIFVspjqg3s0WIqQvdxgUhW1WYVnyrTrBD8VegswbcZBFPaTAnSP/exec";
         const ABSENCE_REASONS = ["출장", "연가", "병가", "조퇴", "병조퇴", "휴가", "기타"];
 
+        const formatTime = (v) => {
+            if (!v) return "";
+            const s = String(v).trim();
+            const m = s.match(/(\d{1,2}):(\d{1,2})/);
+            if (m) return `${m[1].padStart(2, '0')}:${m[2].padStart(2, '0')}`;
+            const d = new Date(v);
+            return isNaN(d.getTime()) ? s : `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+        };
+
+        const formatDateForInput = (v) => {
+            if (!v) return "";
+            const s = String(v).trim();
+            const m = s.match(/(\d{4})[.-]\s*(\d{1,2})[.-]\s*(\d{1,2})/);
+            if (m) return `${m[1]}-${m[2].padStart(2, '0')}-${m[3].padStart(2, '0')}`;
+            const d = new Date(v);
+            return isNaN(d.getTime()) ? "" : `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+        };
+
+        const formatDateKoreanLong = (v) => {
+            if (!v) return "";
+            const d = new Date(v);
+            if (isNaN(d.getTime())) return String(v);
+            const w = ['일', '월', '화', '수', '목', '금', '토'][d.getDay()];
+            return d.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' }) + ` (${w})`;
+        };
+
         const App = () => {
             const [view, setView] = useState('user');
             const [adminSubView, setAdminSubView] = useState('list');
-            const [isLoading, setIsLoading] = useState(false);
-            const [isPrinting, setIsPrinting] = useState(false);
-
             const [trainings, setTrainings] = useState([]);
             const [allStaff, setAllStaff] = useState([]);
-            const [dashboardStats, setDashboardStats] = useState([]);
-            const [selectedRegs, setSelectedRegs] = useState([]);
-
-            const [step, setStep] = useState(1);
             const [selectedTraining, setSelectedTraining] = useState(null);
+            const [selectedRegs, setSelectedRegs] = useState([]);
             const [searchName, setSearchName] = useState('');
+            const [step, setStep] = useState(1);
             const [chosenStaff, setChosenStaff] = useState(null);
             const [regStatus, setRegStatus] = useState('attended');
             const [absenceReason, setAbsenceReason] = useState('');
+            const [isLoading, setIsLoading] = useState(true);
+            const [isDrawing, setIsDrawing] = useState(false);
+            const [customAlert, setCustomAlert] = useState(null);
             const [qrModalUrl, setQrModalUrl] = useState(null);
             const [pendingDeleteId, setPendingDeleteId] = useState(null);
-            const [customAlert, setCustomAlert] = useState(null); // { title: '', message: '' }
-            const [showOverwriteConfirm, setShowOverwriteConfirm] = useState(false);
-            const [editId, setEditId] = useState(null); // 수정 중인 연수 ID
-
-            const [newTraining, setNewTraining] = useState({
-                title: '',
-                location: '',
-                date: new Date().toISOString().split('T')[0],
-                startTime: '',
-                endTime: '',
-                targetParticipants: [] // List of staff names
-            });
-
-            const [isQrMode, setIsQrMode] = useState(new URLSearchParams(window.location.search).has('trainingId'));
-
+            const [editId, setEditId] = useState(null);
             const [isManualMode, setIsManualMode] = useState(false);
             const [manualInfo, setManualInfo] = useState({ school: '하주초등학교', position: '', name: '' });
-
+            const [dashboardStats, setDashboardStats] = useState([]);
+            const [showOverwriteConfirm, setShowOverwriteConfirm] = useState(false);
+            const [newTraining, setNewTraining] = useState({ title: '', location: '', date: '', startTime: '', endTime: '', targetParticipants: [], targetType: 'SELECT' });
+            
             const canvasRef = useRef(null);
-            const [isDrawing, setIsDrawing] = useState(false);
+
+            useLayoutEffect(() => {
+                const observer = new MutationObserver(() => lucide.createIcons());
+                observer.observe(document.getElementById('root'), { childList: true, subtree: true });
+                lucide.createIcons();
+                return () => observer.disconnect();
+            }, []);
 
             useEffect(() => { fetchInitialData(); }, []);
 
-            // [강력한 아이콘 동기화] DOM 변화를 감지하여 아이콘을 항상 최신화
-            useLayoutEffect(() => {
-                if (!window.lucide) return;
-                
-                // 1. 즉시 실행
-                window.lucide.createIcons();
-
-                // 2. DOM 변화 감시 (리액트가 화면을 바꿀 때마다 실행)
-                const observer = new MutationObserver(() => {
-                    window.lucide.createIcons();
-                });
-
-                observer.observe(document.getElementById('root'), {
-                    childList: true,
-                    subtree: true
-                });
-
-                return () => observer.disconnect();
-            }, []); // 마운트 시 한 번만 설정하면 감시자가 계속 작동함
-
             const fetchInitialData = async () => {
-                if (!GAS_APP_URL) return;
                 setIsLoading(true);
                 try {
                     const res = await fetch(`${GAS_APP_URL}?action=getInitialData`);
                     const data = await res.json();
-                    const loadedTrainings = data.trainings || [];
-                    setTrainings(loadedTrainings);
+                    setTrainings(data.trainings || []);
                     setAllStaff(data.staff || []);
-
-                    // URL 파라미터 확인 (QR 진입 시 자동 선택)
-                    const urlParams = new URLSearchParams(window.location.search);
-                    const trainingId = urlParams.get('trainingId');
-                    
-                    if (trainingId && loadedTrainings.length > 0) {
-                        const target = loadedTrainings.find(t => String(t.id) === String(trainingId));
-                        if (target) {
-                            setSelectedTraining(target);
-                            setStep(2);
-                            fetchRegistrations(trainingId, target.title);
-                        }
-                    }
-                } catch (err) { console.error(err); }
+                } catch (e) {
+                    setCustomAlert({ title: '오류', message: '데이터를 불러오지 못했습니다.' });
+                }
                 setIsLoading(false);
+            };
+
+            const fetchRegistrations = async (tid, title) => {
+                try {
+                    const res = await fetch(`${GAS_APP_URL}?action=getRegistrations&trainingId=${tid}&trainingTitle=${encodeURIComponent(title)}`);
+                    const data = await res.json();
+                    setSelectedRegs(data || []);
+                    return data;
+                } catch (e) { return []; }
             };
 
             const fetchDashboardStats = async () => {
-                if (!GAS_APP_URL) return;
                 setIsLoading(true);
                 try {
-                    const res = await fetch(`${GAS_APP_URL}?action=getDashboard`);
+                    const res = await fetch(`${GAS_APP_URL}?action=getDashboardStats`);
                     const data = await res.json();
                     setDashboardStats(data || []);
-                } catch (err) { console.error(err); }
+                } catch (e) {}
                 setIsLoading(false);
             };
 
-            const fetchRegistrations = async (trainingId, trainingTitle) => {
-                if (!GAS_APP_URL) return [];
-                setIsLoading(true);
-                try {
-                    const res = await fetch(`${GAS_APP_URL}?action=getRegistrations&trainingId=${trainingId}&trainingTitle=${encodeURIComponent(trainingTitle)}`);
-                    const data = await res.json();
-                    setSelectedRegs(data || []);
-                    setIsLoading(false);
-                    return data || [];
-                } catch (err) { 
-                    console.error(err); 
-                    setIsLoading(false);
-                    return [];
-                }
-            };
-
             const handleSaveTraining = async () => {
-                if (!newTraining.title || !newTraining.date || !newTraining.startTime) return setCustomAlert({ title: '입력 오류', message: '제목, 날짜, 시작 시간은 필수입니다.' });
-
-                const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
-                if (!timeRegex.test(newTraining.startTime) || (newTraining.endTime && !timeRegex.test(newTraining.endTime))) {
-                    return setCustomAlert({ title: '형식 오류', message: '시간 형식을 HH:mm (24시간제)로 입력해주세요. (예: 14:30)' });
+                if (!newTraining.title || !newTraining.date || !newTraining.startTime) {
+                    return setCustomAlert({ title: '입력 오류', message: '제목, 날짜, 시작 시간은 필수입니다.' });
                 }
-
                 setIsLoading(true);
                 try {
                     const params = {
@@ -399,98 +176,33 @@
                         date: newTraining.date,
                         startTime: newTraining.startTime,
                         endTime: newTraining.endTime,
-                        targetParticipants: newTraining.targetType === 'ALL' ? 'ALL' : JSON.stringify(newTraining.targetParticipants)
+                        targetParticipants: JSON.stringify(newTraining.targetParticipants)
                     };
-                    const res = await fetch(GAS_APP_URL, {
-                        method: 'POST',
-                        body: JSON.stringify(params)
-                    });
-                    const result = await res.json();
-                    if (result.success) {
-                        setCustomAlert({ title: '성공', message: editId ? '연수 정보가 수정되었습니다.' : '연수가 성공적으로 생성되었습니다.' });
-                        setNewTraining({ title: '', location: '', date: new Date().toISOString().split('T')[0], startTime: '', endTime: '', targetType: 'ALL', targetParticipants: [] });
-                        setEditId(null);
-                        setAdminSubView('list');
-                        fetchInitialData();
-                    } else { setCustomAlert({ title: '저장 실패', message: result.error }); }
-                } catch (err) { console.error(err); setCustomAlert({ title: '오류', message: '오류가 발생했습니다.' }); }
-                setIsLoading(false);
-            };
-
-            const handleEditClick = (training) => {
-                setEditId(training.id);
-                // --- 데이터 무결성 보정 (다중 키 및 타입 캐스팅) ---
-                const title = training.title || training['연수명'] || training['연수 프로그램명'] || '';
-                const location = training.location || training['장소'] || '';
-                const date = training.date || training['날짜'] || training['연수일자'] || '';
-                const participantsRaw = training.targetParticipants || training['대상자'] || training['참석대상'] || '[]';
-                let participantsList = [];
-                try {
-                   if (String(participantsRaw).trim().toUpperCase() === 'ALL') {
-                       participantsList = allStaff.map(s => s.name);
-                   } else {
-                       participantsList = JSON.parse(participantsRaw);
-                   }
-                } catch(e) { participantsList = []; }
-
-                setNewTraining({
-                    title: title,
-                    location: location,
-                    date: formatDateForInput(date),
-                    startTime: formatTime(training.startTime),
-                    endTime: formatTime(training.endTime),
-                    targetParticipants: participantsList
-                });
-                
-                setAdminSubView('add');
-            };
-
-            const handleDeleteTraining = (id) => {
-                setPendingDeleteId(id);
-            };
-
-            const confirmDelete = async () => {
-                if (!pendingDeleteId) return;
-                const id = pendingDeleteId;
-                setPendingDeleteId(null);
-                setIsLoading(true);
-                try {
-                    await fetch(GAS_APP_URL, {
-                        method: 'POST',
-                        body: JSON.stringify({ action: 'deleteTraining', id })
-                    });
+                    await fetch(GAS_APP_URL, { method: 'POST', body: JSON.stringify(params) });
+                    setCustomAlert({ title: '성공', message: editId ? '수정되었습니다.' : '생성되었습니다.' });
                     fetchInitialData();
-                    if (adminSubView === 'dashboard') fetchDashboardStats();
-                } catch (err) { console.error(err); }
+                    setAdminSubView('list');
+                } catch (e) {}
                 setIsLoading(false);
             };
 
             const handleRegister = async () => {
-                const content = regStatus === 'attended' ? canvasRef.current.toDataURL('image/png') : absenceReason;
                 setIsLoading(true);
                 try {
-                    const res = await fetch(GAS_APP_URL, {
-                        method: 'POST',
-                        body: JSON.stringify({
-                            action: 'register',
-                            trainingId: selectedTraining.id,
-                            trainingTitle: selectedTraining.title,
-                            name: chosenStaff.name,
-                            position: chosenStaff.position,
-                            grade: chosenStaff.grade,
-                            status: regStatus,
-                            content: content
-                        })
-                    });
-                    const data = await res.json();
-                    if (data.error) {
-                        setCustomAlert({ title: '오류', message: data.error });
-                    } else {
-                        setStep(5);
-                    }
-                } catch (err) { 
-                    setCustomAlert({ title: '오류', message: '등록 중 오류가 발생했습니다.' }); 
-                }
+                    const signature = regStatus === 'attended' ? canvasRef.current.toDataURL() : absenceReason;
+                    const params = {
+                        action: 'register',
+                        trainingId: selectedTraining.id,
+                        trainingTitle: selectedTraining.title,
+                        name: chosenStaff.name,
+                        position: chosenStaff.position,
+                        grade: chosenStaff.grade,
+                        status: regStatus,
+                        content: signature
+                    };
+                    await fetch(GAS_APP_URL, { method: 'POST', body: JSON.stringify(params) });
+                    setStep(5);
+                } catch (e) {}
                 setIsLoading(false);
             };
 
@@ -498,127 +210,54 @@
                 setIsLoading(true);
                 fetchRegistrations(training.id, training.title).then((regs) => {
                     setIsLoading(false);
-                    const printWindow = window.open('', '_blank');
-                    if (!printWindow) return setCustomAlert({ title: '팝업 차단됨', message: '팝업 차단을 해제한 후 다시 시도해 주세요.' });
+                    const win = window.open('', '_blank');
+                    const targetNames = JSON.parse(training.targetParticipants || "[]");
+                    let list = targetNames.length > 0 ? targetNames.map(n => {
+                        const r = regs.find(reg => reg.name === n);
+                        const s = allStaff.find(st => st.name === n);
+                        return r || { name: n, position: s?.position || '', grade: s?.grade || '', status: 'absent', content: '' };
+                    }) : regs;
+                    
+                    const isDual = list.length > 20;
+                    const half = isDual ? Math.ceil(list.length / 2) : list.length;
+                    const left = list.slice(0, half);
+                    const right = list.slice(half);
 
-                    let displayList = [];
-                    const isGlobal = String(training.targetParticipants || "").trim().toUpperCase() === "ALL";
+                    const tableHtml = (l, s, d) => `
+                        <table style="width:100%; border-collapse:collapse; font-size:9pt; margin-bottom:10px;">
+                            <thead><tr style="background:#f3f3f3;">
+                                <th style="border:1pt solid black; width:30px;">No.</th>
+                                <th style="border:1pt solid black; width:100px;">소속</th>
+                                <th style="border:1pt solid black; width:60px;">직위</th>
+                                <th style="border:1pt solid black; width:70px;">성명</th>
+                                <th style="border:1pt solid black; width:100px;">서명</th>
+                                <th style="border:1pt solid black;">비고</th>
+                            </tr></thead>
+                            <tbody>${l.map((r, i) => `
+                                <tr style="height:35px;">
+                                    <td style="border:1pt solid black; text-align:center;">${s + i + 1}</td>
+                                    <td style="border:1pt solid black; text-align:center;">${r.grade || '하주초등학교'}</td>
+                                    <td style="border:1pt solid black; text-align:center;">${r.position}</td>
+                                    <td style="border:1pt solid black; text-align:center;">${r.name}</td>
+                                    <td style="border:1pt solid black; text-align:center;">
+                                        ${r.status==='attended'?(r.content.startsWith('http')?`<img src="${r.content}" style="height:25px;"/>`:'V'):''}
+                                    </td>
+                                    <td style="border:1pt solid black;">${r.status==='absent'?r.content:''}</td>
+                                </tr>`).join('')}</tbody>
+                        </table>`;
 
-                    if (isGlobal) {
-                        displayList = allStaff.map(s => {
-                            const reg = (regs || []).find(r => r.name === s.name);
-                            return reg || { name: s.name, position: s.position, grade: s.grade, status: 'none', content: '' };
-                        });
-                    } else {
-                        try {
-                            const targetNames = JSON.parse(training.targetParticipants || "[]");
-                            displayList = targetNames.map(name => {
-                                const reg = (regs || []).find(r => r.name === name);
-                                const staff = allStaff.find(s => s.name === name);
-                                return reg || { name, position: staff?.position || '', grade: staff?.grade || '', status: 'none', content: '' };
-                            });
-                        } catch (e) { displayList = []; }
-                    }
-
-                    // 명단 외 추가 등록자(외부 인사 등) 확인 및 합산
-                    const baseNames = displayList.map(item => item.name);
-                    const extras = regs.filter(r => !baseNames.includes(r.name));
-                    displayList = [...displayList, ...extras];
-                        
-                        const isDualColumn = displayList.length > 20;
-                        const half = isDualColumn ? Math.ceil(displayList.length / 2) : displayList.length;
-                        const leftCol = displayList.slice(0, half);
-                        const rightCol = displayList.slice(half);
-
-                        const renderTable = (list, startIdx, isDual) => `
-                            <table style="width: 100%; table-layout: fixed;">
-                                <thead>
-                                    <tr>
-                                        <th style="width: 25px;">No.</th>
-                                        <th style="width: ${isDual ? '75px' : '100px'};">소속</th>
-                                        <th style="width: ${isDual ? '55px' : '75px'};">직위</th>
-                                        <th style="width: ${isDual ? '60px' : '85px'};">성명</th>
-                                        <th style="width: ${isDual ? '85px' : '110px'};">서명</th>
-                                        <th style="width: auto;">비고</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ${list.map((reg, idx) => {
-                                        const isSigned = reg.status === 'attended' && reg.content;
-                                        const isAbsent = reg.status === 'absent';
-                                        const school = reg.grade && reg.grade.includes('초') ? reg.grade : (reg.name ? '하주초등학교' : '');
-                                        return `
-                                        <tr style="height: 30px;">
-                                            <td>${startIdx + idx + 1}</td>
-                                            <td>${school}</td>
-                                            <td>${reg.position || ''}</td>
-                                            <td><strong>${reg.name || ''}</strong></td>
-                                            <td style="padding: 0;">
-                                                ${isSigned ? (reg.content.startsWith('http') ? `<img src="${reg.content}" style="height: 24px; width: auto; max-width: 100%; object-fit: contain; margin: 0 auto;" />` : '서명완료') : ''}
-                                                ${isAbsent ? '-' : ''}
-                                            </td>
-                                            <td style="text-align: left; padding: 0 5px; font-size: 8pt; line-height: 1.1;">${isAbsent ? (reg.content || '') : ''}</td>
-                                        </tr>
-                                        `;
-                                    }).join('')}
-                                </tbody>
-                            </table>
-                        `;
-
-                    const html = `
-                        <html>
-                        <head>
-                            <title>${training.title} 연수 등록부</title>
-                            <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
-                            <style>
-                                @page { size: A4; margin: 5mm; }
-                                body { font-family: 'Noto Sans KR', sans-serif; padding: 0; margin: 0; }
-                                .container { width: 100%; border: 1pt solid black; padding: 3mm 4mm; box-sizing: border-box; min-height: 285mm; display: flex; flex-direction: column; align-items: center; }
-                                .title-section { text-align: center; margin-bottom: 5px; width: 100%; }
-                                h1 { font-size: 18pt; font-weight: bold; text-decoration: underline; margin: 0; }
-                                .header-right { text-align: right; margin-bottom: 5px; width: 100%; }
-                                .school-name { font-size: 11pt; font-weight: bold; margin-bottom: 1px; }
-                                .training-info { font-size: 8.2pt; color: #333; }
-                                .columns { display: flex; gap: 0; width: 100%; flex: 1; min-height: 0; }
-                                .column { flex: 0 0 50%; width: 50%; border-right: 0.5pt solid #eee; box-sizing: border-box; }
-                                .column:last-child { border-right: none; }
-                                table { border-collapse: collapse; width: 100%; font-size: 7.5px; table-layout: fixed; }
-                                th, td { border: 1pt solid black; padding: 1.2px 1px; text-align: center; overflow: hidden; white-space: nowrap; }
-                                th { background-color: #f3f3f3; font-weight: bold; }
-                                td { vertical-align: middle; }
-                                img { height: 16px; width: auto; max-width: 100%; display: block; margin: 0 auto; }
-                                .footer { margin-top: 2px; width: 100%; text-align: right; font-weight: bold; font-size: 8pt; }
-                             </style>
-                        </head>
-                        <body>
-                            <div class="container">
-                                <div class="title-section">
-                                    <h1>${training.title} 연수 등록부</h1>
-                                </div>
-                                <div class="header-right">
-                                    <div class="school-name">하주초등학교</div>
-                                    <div class="training-info">
-                                        장소: ${training.location} | 일시: ${formatDateKoreanLong(training.date)} ${formatTime(training.startTime)}${formatTime(training.endTime) ? ` ~ ${formatTime(training.endTime)}` : ' ~'}
-                                    </div>
-                                </div>
-                                <div class="columns">
-                                    <div class="column" style="width: ${isDualColumn ? '50%' : '100%'}; border-right: ${isDualColumn ? '0.5pt solid #eee' : 'none'};">
-                                        ${renderTable(leftCol, 0, isDualColumn)}
-                                    </div>
-                                    ${isDualColumn ? `
-                                    <div class="column" style="width: 50%;">
-                                        ${renderTable(rightCol, half, true)}
-                                    </div>
-                                    ` : ''}
-                                </div>
-                                <p class="footer">위와 같이 연수에 참석하였음을 확인합니다.</p>
-                            </div>
-                            <script>window.onload = () => { setTimeout(() => { window.print(); window.close(); }, 800); };<\/script>
-                        </body>
-                        </html>
-                    `;
-                    printWindow.document.write(html);
-                    printWindow.document.close();
+                    win.document.write(`
+                        <html><head><title>Print</title>
+                        <style>@page{margin:10mm;} body{font-family:'Noto Sans KR';} 
+                        .container{display:flex; gap:10px;}</style></head>
+                        <body><h1 style="text-align:center;">${training.title}</h1>
+                        <div class="container">
+                            <div style="flex:1;">${tableHtml(left, 0, isDual)}</div>
+                            ${isDual ? `<div style="flex:1;">${tableHtml(right, half, true)}</div>` : ''}
+                        </div>
+                        <script>window.onload=()=>{window.print();window.close();};<\/script>
+                        </body></html>`);
+                    win.document.close();
                 });
             };
 
@@ -626,800 +265,141 @@
                 setIsLoading(true);
                 fetchRegistrations(training.id, training.title).then((regs) => {
                     setIsLoading(false);
-                    let displayList = [];
-                    const isGlobal = String(training.targetParticipants || "").trim().toUpperCase() === "ALL";
-                    if (isGlobal) {
-                        displayList = allStaff.map(s => {
-                            const reg = (regs || []).find(r => r.name === s.name);
-                            return reg || { name: s.name, position: s.position, grade: s.grade, status: 'none', content: '' };
-                        });
-                    } else {
-                        try {
-                            const targetNames = JSON.parse(training.targetParticipants || "[]");
-                            displayList = targetNames.map(name => {
-                                const reg = (regs || []).find(r => r.name === name);
-                                const staff = allStaff.find(s => s.name === name);
-                                return reg || { name, position: staff?.position || '', grade: staff?.grade || '', status: 'none', content: '' };
-                            });
-                        } catch (e) { displayList = []; }
-                    }
-
-                    // 명단 외 추가 등록자(외부 인사 등) 확인 및 합산
-                    const baseNames = displayList.map(item => item.name);
-                    const extras = regs.filter(r => !baseNames.includes(r.name));
-                    displayList = [...displayList, ...extras];
-
-                    const isDualColumn = displayList.length > 20;
-                    const half = Math.ceil(displayList.length / 2);
-                    const leftCol = displayList.slice(0, half);
-                    const rightCol = displayList.slice(half);
-
-                    // 2열 구성을 위한 행 생성
-                    const maxLen = Math.max(leftCol.length, rightCol.length);
-                    let tableRows = "";
-                    
-                    const getImgTag = (url) => {
-                        if (!url || !url.startsWith('http')) return '';
-                        // 구글 드라이브 아이디 추출 후 직링 변환
-                        const match = url.match(/[\w-]{25,}/);
-                        const id = match ? match[0] : null;
-                        return id ? `<img src="https://docs.google.com/uc?export=view&id=${id}" height="35" style="display:block; margin:auto; object-fit:contain;" />` : 'OK';
-                    };
-
-                    for (let i = 0; i < maxLen; i++) {
-                        const L = leftCol[i] || { name: '', position: '', grade: '', status: '', content: '' };
-                        const R = isDualColumn ? (rightCol[i] || { name: '', position: '', grade: '', status: '', content: '' }) : null;
-                        
-                        tableRows += `
-                            <tr style="height: 48px;">
-                                <td style="border: 1pt solid black; text-align: center; vertical-align: middle; font-size: 8pt;">${i + 1}</td>
-                                <td style="border: 1pt solid black; text-align: center; vertical-align: middle;">${L.grade && L.grade.includes('초') ? L.grade : (L.name ? '하주초등학교' : '')}</td>
-                                <td style="border: 1pt solid black; text-align: center; vertical-align: middle;">${L.position || ''}</td>
-                                <td style="border: 1pt solid black; text-align: center; vertical-align: middle; font-weight: bold;">${L.name}</td>
-                                <td style="border: 1pt solid black; text-align: center; vertical-align: middle;">
-                                    ${L.status === 'attended' ? getImgTag(L.content) : (L.status === 'absent' ? '-' : '')}
-                                </td>
-                                <td style="border: 1pt solid black; text-align: center; vertical-align: middle;">
-                                    ${L.status === 'absent' ? (L.content || '') : ''}
-                                </td>
-                                ${R ? `
-                                <td style="width: 15px; border: 0;"></td>
-                                <td style="border: 1pt solid black; text-align: center; vertical-align: middle; font-size: 8pt;">${half + i + 1}</td>
-                                <td style="border: 1pt solid black; text-align: center; vertical-align: middle;">${R.grade && R.grade.includes('초') ? R.grade : (R.name ? '하주초등학교' : '')}</td>
-                                <td style="border: 1pt solid black; text-align: center; vertical-align: middle;">${R.position || ''}</td>
-                                <td style="border: 1pt solid black; text-align: center; vertical-align: middle; font-weight: bold;">${R.name}</td>
-                                <td style="border: 1pt solid black; text-align: center; vertical-align: middle;">
-                                    ${R.status === 'attended' ? getImgTag(R.content) : (R.status === 'absent' ? '-' : '')}
-                                </td>
-                                <td style="border: 1pt solid black; text-align: center; vertical-align: middle;">
-                                    ${R.status === 'absent' ? (R.content || '') : ''}
-                                </td>
-                                ` : ''}
-                            </tr>
-                        `;
-                    }
-
-                    const excelTemplate = `
-                        <html xmlns:x="urn:schemas-microsoft-com:office:excel">
-                        <head>
-                            <meta charset="utf-8">
-                            <style>
-                                .title { font-size: 20pt; font-weight: bold; text-align: center; text-decoration: underline; }
-                                .main-table { border-collapse: collapse; width: 100%; }
-                                .header { border: 1pt solid black; background-color: #f2f2f2; font-weight: bold; text-align: center; font-size: 10pt; }
-                            </style>
-                        </head>
-                        <body>
-                            <table>
-                                <tr><td colspan="13" class="title">${training.title} 연수 등록부</td></tr>
-                                <tr><td colspan="13" style="text-align: right; font-weight: bold;">하주초등학교</td></tr>
-                                <tr><td colspan="13" style="text-align: right;">장소: ${training.location} | 일시: ${formatDateKoreanLong(training.date)} ${formatTime(training.startTime)} ~ ${formatTime(training.endTime)}</td></tr>
-                            </table>
-                            <table class="main-table">
-                                <thead>
-                                    <tr>
-                                        <th class="header" style="width: 35px;">No.</th>
-                                        <th class="header" style="width: ${isDualColumn ? '100px' : '150px'};">소속(학교)</th>
-                                        <th class="header" style="width: ${isDualColumn ? '70px' : '100px'};">직위</th>
-                                        <th class="header" style="width: ${isDualColumn ? '75px' : '120px'};">성명</th>
-                                        <th class="header" style="width: ${isDualColumn ? '90px' : '150px'};">서명</th>
-                                        <th class="header" style="width: ${isDualColumn ? '250px' : 'auto'};">비고</th>
-                                        ${isDualColumn ? `
-                                        <th style="width: 15px;"></th>
-                                        <th class="header" style="width: 35px;">No.</th>
-                                        <th class="header" style="width: 100px;">소속(학교)</th>
-                                        <th class="header" style="width: 70px;">직위</th>
-                                        <th class="header" style="width: 75px;">성명</th>
-                                        <th class="header" style="width: 90px;">서명</th>
-                                        <th class="header" style="width: 250px;">비고</th>
-                                        ` : ''}
-                                    </tr>
-                                </thead>
-                                <tbody>${tableRows}</tbody>
-                            </table>
-                            <p style="text-align: right; font-weight: bold;">위와 같이 연수에 참석하였음을 확인합니다.</p>
-                        </body>
-                        </html>
-                    `;
-
-                    const blob = new Blob([excelTemplate], { type: 'application/vnd.ms-excel' });
-                    const link = document.createElement("a");
-                    link.href = URL.createObjectURL(blob);
-                    link.download = `${training.title}_등록부.xls`;
-                    link.click();
+                    const targetNames = JSON.parse(training.targetParticipants || "[]");
+                    let list = targetNames.length > 0 ? targetNames.map(n => {
+                        const r = regs.find(reg => reg.name === n);
+                        const s = allStaff.find(st => st.name === n);
+                        return r || { name: n, position: s?.position || '', grade: s?.grade || '', status: 'absent', content: '' };
+                    }) : regs;
+                    const html = `<html><head><meta charset="utf-8"></head><body>
+                        <table border="1"><tr><th colspan="5">${training.title}</th></tr>
+                        <tr><th>No.</th><th>소속</th><th>직위</th><th>성명</th><th>현황</th></tr>
+                        ${list.map((r,i)=>`<tr><td>${i+1}</td><td>${r.grade||'하주초'}</td><td>${r.position}</td><td>${r.name}</td><td>${r.status}</td></tr>`).join('')}
+                        </table></body></html>`;
+                    const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a'); a.href = url; a.download = `${training.title}.xls`; a.click();
                 });
             };
 
-            const getPos = (e) => {
-                const rect = canvasRef.current.getBoundingClientRect();
-                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-                return { x: (clientX - rect.left) * (canvasRef.current.width / rect.width), y: (clientY - rect.top) * (canvasRef.current.height / rect.height) };
-            };
-
-            const startDrawing = (e) => {
-                setIsDrawing(true);
-                const pos = getPos(e);
-                const ctx = canvasRef.current.getContext('2d');
-                ctx.beginPath();
-                ctx.lineWidth = 6;
-                ctx.lineCap = 'round';
-                ctx.lineJoin = 'round';
-                ctx.strokeStyle = '#000000';
-                ctx.moveTo(pos.x, pos.y);
-            };
-
-            const draw = (e) => {
-                if (!isDrawing) return;
-                const pos = getPos(e);
-                canvasRef.current.getContext('2d').lineTo(pos.x, pos.y);
-                canvasRef.current.getContext('2d').stroke();
-            };
-
             const filteredStaffList = useMemo(() => {
-                if (searchName.trim().length === 0) return [];
+                if (!searchName.trim()) return [];
                 let pool = allStaff;
-                if (selectedTraining && selectedTraining.targetParticipants && String(selectedTraining.targetParticipants).toUpperCase() !== 'ALL') {
+                if (selectedTraining && String(selectedTraining.targetParticipants).toUpperCase() !== 'ALL') {
                     try {
                         const targets = JSON.parse(selectedTraining.targetParticipants);
                         pool = allStaff.filter(s => targets.includes(s.name));
-                    } catch (e) { console.error("Filter error:", e); }
+                    } catch (e) {}
                 }
                 return pool.filter(s => s.name.includes(searchName));
             }, [searchName, allStaff, selectedTraining]);
 
-            if (isPrinting && selectedTraining) {
-                return (
-                    <div className="p-10 bg-white min-h-screen text-black font-['Noto_Sans_KR']">
-                        <div className="max-w-4xl mx-auto border-2 border-black p-8">
-                            <h1 className="text-3xl font-bold text-center underline mb-8">{selectedTraining.title} 등록부</h1>
-                            <div className="grid grid-cols-2 gap-4 mb-6 border-b-2 border-black pb-4">
-                                <p><strong>장소:</strong> {selectedTraining.location}</p>
-                                <p><strong>일시:</strong> {selectedTraining.date} {formatTime(selectedTraining.startTime)} {selectedTraining.endTime ? `~ ${formatTime(selectedTraining.endTime)}` : ''}</p>
-                            </div>
-                            <table className="w-full border-collapse border border-black text-sm">
-                                <thead>
-                                    <tr className="bg-gray-100">
-                                        <th className="border border-black p-2 w-12 text-center">번호</th>
-                                        <th className="border border-black p-2 w-24 text-center">직위</th>
-                                        <th className="border border-black p-2 w-24 text-center">성명</th>
-                                        <th className="border border-black p-2 w-32 text-center">소속/학급</th>
-                                        <th className="border border-black p-2 text-center">서명</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {(() => {
-                                        let targetNames = [];
-                                        try {
-                                            if (selectedTraining.targetParticipants && selectedTraining.targetParticipants !== "ALL") {
-                                                targetNames = JSON.parse(selectedTraining.targetParticipants);
-                                            }
-                                        } catch (e) { }
-
-                                        const displayList = targetNames.length > 0
-                                            ? targetNames.map(name => {
-                                                const reg = selectedRegs.find(r => r.name === name);
-                                                const staff = allStaff.find(s => s.name === name);
-                                                return reg || { name, position: staff?.position || '', grade: staff?.grade || '', status: 'absent', content: '' };
-                                            })
-                                            : selectedRegs;
-
-                                        return (
-                                            <>
-                                                {displayList.map((reg, idx) => (
-                                                    <tr key={idx} className="h-10">
-                                                        <td className="border border-black p-2 text-center">{idx + 1}</td>
-                                                        <td className="border border-black p-2 text-center">{reg.position}</td>
-                                                        <td className="border border-black p-2 text-center font-bold">{reg.name}</td>
-                                                        <td className="border border-black p-2 text-center">{reg.grade}</td>
-                                                        <td className="border border-black p-1 text-center">
-                                                            {reg.status === 'attended' ? (
-                                                                reg.content && reg.content.startsWith('http') ?
-                                                                    <img src={reg.content} alt="서명" className="h-10 mx-auto block" style={{ maxWidth: '100px', objectFit: 'contain' }} /> :
-                                                                    <span className="text-[10px] text-gray-400">서명완료</span>
-                                                            ) : (
-                                                                <span className="text-red-600 font-bold">{reg.content}</span>
-                                                            )}
-                                                        </td>
-                                                    </tr>
-                                                ))}
-                                                {[...Array(Math.max(0, 15 - displayList.length))].map((_, i) => (
-                                                    <tr key={`empty-${i}`} className="h-10">
-                                                        <td className="border border-black p-2 text-center">{displayList.length + i + 1}</td>
-                                                        <td className="border border-black p-2"></td>
-                                                        <td className="border border-black p-2"></td>
-                                                        <td className="border border-black p-2"></td>
-                                                        <td className="border border-black p-2"></td>
-                                                    </tr>
-                                                ))}
-                                            </>
-                                        );
-                                    })()}
-                                </tbody>
-                            </table>
-                            <p className="mt-10 text-right font-bold text-lg">위와 같이 연수에 참석하였음을 확인합니다.</p>
-                            <p className="mt-4 text-right font-mono">{formatDateTime(new Date())}</p>
-                        </div>
-                    </div>
-                );
-            }
-
             return (
-                <div className="min-h-screen pb-20 overflow-x-hidden">
+                <div className="min-h-screen pb-20">
                     {isLoading && <div className="loading-bar"></div>}
-                    {qrModalUrl && (
-                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in">
-                            <div className="bg-white rounded-3xl p-8 max-w-sm w-full text-center space-y-4 shadow-2xl">
-                                <h3 className="text-xl font-bold text-slate-800">연수 등록 QR 코드</h3>
-                                <p className="text-slate-500 text-sm">참석자들이 스캔하여 등록할 수 있습니다.</p>
-                                <div className="bg-white p-4 rounded-2xl border-2 border-slate-100 shadow-inner flex justify-center items-center mx-auto">
-                                    <img src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrModalUrl)}`} alt="QR Code" className="w-48 h-48" />
-                                </div>
-                                <button onClick={() => setQrModalUrl(null)} className="w-full py-3 bg-slate-900 text-white rounded-xl font-bold mt-4">닫기</button>
+                    
+                    <nav className="glass sticky top-0 z-50 w-full px-6 py-4 mb-8">
+                        <div className="max-w-5xl mx-auto flex justify-between items-center">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 bg-indigo-50 rounded-2xl flex items-center justify-center"><Users size={20} className="text-indigo-600" /></div>
+                                <span className="font-outfit font-black text-xl text-indigo-900">연수 등록부</span>
                             </div>
-                        </div>
-                    )}
-
-                    {pendingDeleteId && (
-                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in">
-                            <div className="bg-white rounded-3xl p-8 max-w-sm w-full text-center space-y-6 shadow-2xl">
-                                <div className="w-16 h-16 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mx-auto">
-                                    <Trash2 size={32} />
-                                </div>
-                                <div className="space-y-2">
-                                    <h3 className="text-xl font-bold text-slate-800">연수 삭제 확인</h3>
-                                    <p className="text-slate-500 text-sm">정말 이 연수 등록부를 삭제하시겠습니까?<br/>이 작업은 되돌릴 수 없습니다.</p>
-                                </div>
-                                <div className="flex gap-3">
-                                    <button onClick={() => setPendingDeleteId(null)} className="flex-1 py-3 bg-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-200 transition-colors">취소</button>
-                                    <button onClick={confirmDelete} className="flex-1 py-3 bg-rose-500 text-white rounded-xl font-bold hover:bg-rose-600 transition-colors shadow-lg shadow-rose-200">삭제하기</button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {customAlert && (
-                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in">
-                            <div className="bg-white rounded-3xl p-8 max-w-sm w-full text-center space-y-4 shadow-2xl transition-all">
-                                <div className="w-12 h-12 bg-indigo-50 text-indigo-500 rounded-full flex items-center justify-center mx-auto">
-                                    <Info size={24} />
-                                </div>
-                                <div className="space-y-1">
-                                    <h3 className="text-xl font-bold text-slate-800">{customAlert.title}</h3>
-                                    <p className="text-slate-500 text-sm whitespace-pre-line leading-relaxed">{customAlert.message}</p>
-                                </div>
-                                <button onClick={() => setCustomAlert(null)} className="w-full py-3 bg-slate-900 text-white rounded-xl font-bold mt-2 hover:bg-slate-800 transition-colors">확인</button>
-                            </div>
-                        </div>
-                    )}
-
-                    {showOverwriteConfirm && (
-                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in">
-                            <div className="bg-white rounded-3xl p-8 max-w-sm w-full text-center space-y-6 shadow-2xl">
-                                <div className="w-16 h-16 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center mx-auto">
-                                    <AlertTriangle size={32} />
-                                </div>
-                                <div className="space-y-2">
-                                    <h3 className="text-xl font-bold text-slate-800">이미 등록되어 있습니다</h3>
-                                    <p className="text-slate-500 text-sm">이미 이 연수에 서명하셨습니다.<br/>기존 서명을 삭제하고 새로 서명하시겠습니까?</p>
-                                </div>
-                                <div className="flex gap-3">
-                                    <button onClick={() => { setShowOverwriteConfirm(false); setStep(2); }} className="flex-1 py-3 bg-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-200 transition-colors">취소</button>
-                                    <button onClick={() => { setShowOverwriteConfirm(false); setStep(3); }} className="flex-1 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200">새로 서명하기</button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    <nav className="glass sticky top-0 z-50 w-full px-4 sm:px-6 py-3 sm:py-4 mb-4">
-                        <div className="max-w-5xl mx-auto flex justify-between items-center text-slate-800">
-                                <div className="flex items-center gap-2.5">
-                                    <div className="w-10 h-10 bg-indigo-50 rounded-2xl flex items-center justify-center shrink-0 shadow-sm border border-white">
-                                        <Users size={20} className="text-indigo-600" strokeWidth={3} />
-                                    </div>
-                                    <div className="flex flex-col">
-                                        <span className="font-outfit font-black text-lg sm:text-xl tracking-tight leading-none text-indigo-900 whitespace-nowrap">연수 등록부</span>
-                                        <span className="text-[8px] sm:text-[9px] font-bold text-indigo-400 tracking-[0.1em] sm:tracking-[0.2em] uppercase mt-0.5 whitespace-nowrap">Training Registrar</span>
-                                    </div>
-                                </div>
-                            {(!isQrMode || view === 'admin') && (
-                                <button
-                                    onClick={() => {
-                                        const nextView = view === 'user' ? 'admin' : 'user';
-                                        setView(nextView);
-                                        setStep(1);
-                                        if (nextView === 'admin') {
-                                            setAdminSubView('list');
-                                            setEditId(null);
-                                        }
-                                    }}
-                                    className="flex items-center gap-2.5 bg-white border border-slate-200 hover:border-indigo-200 hover:bg-indigo-50/30 px-5 py-2.5 rounded-2xl text-sm font-bold transition-all shadow-sm group active:scale-95"
-                                >
-                                    <div className="shrink-0 flex items-center justify-center">
-                                        {view === 'user' ? <Settings size={18} className="text-indigo-500 group-hover:rotate-45 transition-transform" /> : <LogOut size={18} className="text-slate-400" />}
-                                    </div>
-                                    <span className={view === 'user' ? 'text-indigo-600' : 'text-slate-500'}>
-                                        {view === 'user' ? '관리 모드' : '사용자 화면'}
-                                    </span>
-                                </button>
-                            )}
+                            <button onClick={() => setView(view === 'user' ? 'admin' : 'user')} className="flex items-center gap-2 px-4 py-2 bg-white border rounded-xl font-bold">
+                                {view === 'user' ? <Settings size={18}/> : <LogOut size={18}/>}
+                                {view === 'user' ? '관리 모드' : '사용자 화면'}
+                            </button>
                         </div>
                     </nav>
 
                     <main className="max-w-4xl mx-auto px-6">
                         {view === 'admin' ? (
                             <div className="space-y-6 animate-in">
-                                <div className="flex bg-slate-200/50 p-1 rounded-2xl w-fit mb-8 mx-auto md:mx-0">
-                                    <button onClick={() => setAdminSubView('list')} className={`px-6 py-2 rounded-xl text-sm font-bold transition-all ${adminSubView === 'list' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>목록 관리</button>
-                                    <button onClick={() => { setAdminSubView('dashboard'); fetchDashboardStats(); }} className={`px-6 py-2 rounded-xl text-sm font-bold transition-all ${adminSubView === 'dashboard' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>대시보드</button>
-                                    <button onClick={() => setAdminSubView('add')} className={`px-6 py-2 rounded-xl text-sm font-bold transition-all ${adminSubView === 'add' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>신규 생성</button>
+                                <div className="flex bg-slate-200/50 p-1 rounded-2xl w-fit mx-auto md:mx-0">
+                                    <button onClick={() => setAdminSubView('list')} className={`px-6 py-2 rounded-xl text-sm font-bold ${adminSubView === 'list'?'bg-white shadow-sm':''}`}>목록</button>
+                                    <button onClick={() => setAdminSubView('add')} className={`px-6 py-2 rounded-xl text-sm font-bold ${adminSubView === 'add'?'bg-white shadow-sm':''}`}>추가</button>
                                 </div>
-
                                 {adminSubView === 'add' && (
-                                    <div className="bg-white p-8 rounded-[2rem] border border-slate-200 shadow-xl shadow-slate-200/50">
-                                        <h2 className="text-2xl font-black mb-6 text-slate-800 flex items-center gap-3">
-                                            <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center"><Plus size={20} /></div>
-                                            {editId ? '연수 정보 수정' : '연수 등록부 생성'}
-                                        </h2>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                                            <div className="md:col-span-2">
-                                                <label className="text-xs font-black text-indigo-400 mb-2 block uppercase tracking-wider ml-1">연수 프로그램명</label>
-                                                <input type="text" placeholder="예: 2026 개인정보보호 및 정보보안 연수" value={newTraining.title} onChange={e => setNewTraining({ ...newTraining, title: e.target.value })}
-                                                    className="w-full px-6 py-4 rounded-2xl border-2 border-slate-50 focus:border-indigo-400 bg-slate-50/50 focus:bg-white transition-all outline-none text-lg font-bold" />
-                                            </div>
-                                            <div>
-                                                <label className="text-xs font-black text-indigo-400 mb-2 block uppercase tracking-wider ml-1">장소</label>
-                                                <input type="text" placeholder="시청각실, 각 교실 등" value={newTraining.location} onChange={e => setNewTraining({ ...newTraining, location: e.target.value })}
-                                                    className="w-full px-5 py-3.5 rounded-2xl border-2 border-slate-50 focus:border-indigo-400 bg-slate-50/50 focus:bg-white transition-all outline-none font-bold" />
-                                            </div>
-                                            <div>
-                                                <label className="text-xs font-black text-indigo-400 mb-2 block uppercase tracking-wider ml-1">날짜</label>
-                                                <input type="date" value={newTraining.date} onChange={e => setNewTraining({ ...newTraining, date: e.target.value })}
-                                                    className="w-full px-5 py-3.5 rounded-2xl border-2 border-slate-50 focus:border-indigo-400 bg-slate-50/50 focus:bg-white transition-all outline-none font-bold" />
-                                            </div>
-                                            <div className="grid grid-cols-2 gap-3">
-                                                <div>
-                                                    <label className="text-xs font-black text-indigo-400 mb-2 block uppercase tracking-wider ml-1">시작 (24H)</label>
-                                                    <input type="text" placeholder="14:30" value={newTraining.startTime} onChange={e => setNewTraining({ ...newTraining, startTime: e.target.value })}
-                                                        className="w-full px-5 py-3.5 rounded-2xl border-2 border-slate-50 focus:border-indigo-400 bg-slate-50/50 focus:bg-white transition-all outline-none font-bold" />
-                                                </div>
-                                                <div>
-                                                    <label className="text-xs font-black text-indigo-400 mb-2 block uppercase tracking-wider ml-1">종료 (24H)</label>
-                                                    <input type="text" placeholder="16:00" value={newTraining.endTime} onChange={e => setNewTraining({ ...newTraining, endTime: e.target.value })}
-                                                        className="w-full px-5 py-3.5 rounded-2xl border-2 border-slate-50 focus:border-indigo-400 bg-slate-50/50 focus:bg-white transition-all outline-none font-bold" />
-                                                </div>
-                                            </div>
-
-                                            <div className="md:col-span-2 mt-4 pt-6 border-t border-slate-100">
-                                                <label className="text-xs font-black text-indigo-400 mb-4 block uppercase tracking-wider ml-1">참석 대상자 관리</label>
-                                                
-                                                <div className="space-y-4 animate-in">
-                                                    {/* 그룹별 빠른 선택 섹션 */}
-                                                    <div className="flex flex-wrap gap-2 mb-2 p-1">
-                                                        {/* 전체 교직원 선택 버튼 */}
-                                                        <button
-                                                            onClick={(e) => {
-                                                                e.preventDefault();
-                                                                const allNames = allStaff.map(s => s.name);
-                                                                const isAllChecked = allNames.every(n => newTraining.targetParticipants.includes(n));
-                                                                setNewTraining({ 
-                                                                    ...newTraining, 
-                                                                    targetParticipants: isAllChecked ? [] : allNames 
-                                                                });
-                                                            }}
-                                                            className={`px-3 py-1.5 rounded-xl text-[10px] font-black transition-all border-2 ${
-                                                                allStaff.length > 0 && allStaff.every(s => newTraining.targetParticipants.includes(s.name))
-                                                                ? 'bg-rose-500 border-rose-500 text-white shadow-md' 
-                                                                : 'bg-white border-slate-100 text-slate-500 hover:border-indigo-200'
-                                                            }`}
-                                                        >
-                                                            전체 교직원
-                                                        </button>
-
-                                                        {[...new Set(allStaff.map(s => s.group).filter(g => g))].map(group => {
-                                                            const members = allStaff.filter(s => s.group === group).map(s => s.name);
-                                                            const isGroupSelected = members.every(name => newTraining.targetParticipants.includes(name));
-                                                            
-                                                            return (
-                                                                <button
-                                                                    key={group}
-                                                                    onClick={(e) => {
-                                                                        e.preventDefault();
-                                                                        if (isGroupSelected) {
-                                                                            setNewTraining({
-                                                                                ...newTraining,
-                                                                                targetParticipants: newTraining.targetParticipants.filter(n => !members.includes(n))
-                                                                            });
-                                                                        } else {
-                                                                            const newList = [...new Set([...newTraining.targetParticipants, ...members])];
-                                                                            setNewTraining({ ...newTraining, targetParticipants: newList });
-                                                                        }
-                                                                    }}
-                                                                    className={`px-3 py-1.5 rounded-xl text-[10px] font-black transition-all border-2 ${isGroupSelected ? 'bg-indigo-600 border-indigo-600 text-white shadow-md' : 'bg-white border-slate-100 text-slate-500 hover:border-indigo-200'}`}
-                                                                >
-                                                                    {group}
-                                                                </button>
-                                                            );
-                                                        })}
-                                                    </div>
-
-                                                    <div className="flex justify-end gap-2 px-1">
-                                                        <button onClick={() => setNewTraining({ ...newTraining, targetParticipants: allStaff.map(s => s.name) })}
-                                                            className="text-[10px] font-black text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-lg border border-indigo-100 hover:bg-indigo-100 transition-all">
-                                                            전체 선택
-                                                        </button>
-                                                        <button onClick={() => setNewTraining({ ...newTraining, targetParticipants: [] })}
-                                                            className="text-[10px] font-black text-slate-400 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100 hover:bg-slate-100 transition-all">
-                                                            전체 해제
-                                                        </button>
-                                                    </div>
-                                                    <div className="bg-slate-50 p-4 rounded-2xl max-h-60 overflow-y-auto grid grid-cols-2 md:grid-cols-3 gap-2 border border-slate-100">
-                                                        {allStaff.map(s => (
-                                                            <button key={s.id}
-                                                                onClick={() => {
-                                                                    const isSelected = newTraining.targetParticipants.includes(s.name);
-                                                                    const newList = isSelected
-                                                                        ? newTraining.targetParticipants.filter(n => n !== s.name)
-                                                                        : [...newTraining.targetParticipants, s.name];
-                                                                    setNewTraining({ ...newTraining, targetParticipants: newList });
-                                                                }}
-                                                                className={`px-3 py-2 rounded-xl text-xs font-bold border transition-all truncate text-left flex items-center gap-2 ${newTraining.targetParticipants.includes(s.name) ? 'bg-indigo-50 border-indigo-200 text-indigo-600' : 'bg-white border-slate-100 text-slate-400'}`}
-                                                            >
-                                                                <div className={`w-3 h-3 rounded-full border ${newTraining.targetParticipants.includes(s.name) ? 'bg-indigo-500 border-indigo-500' : 'border-slate-200'}`}></div>
-                                                                {s.name} <span className="text-[9px] opacity-60 font-medium">({s.position})</span>
-                                                            </button>
-                                                        ))}
-                                                    </div>
-                                                    <p className="text-[10px] text-slate-400 font-bold ml-1">선택된 인원: <span className="text-indigo-600">{newTraining.targetParticipants.length}</span>명</p>
-                                                </div>
-                                            </div>
+                                    <div className="bg-white p-8 rounded-[2rem] shadow-xl space-y-4">
+                                        <input type="text" placeholder="연수 제목" className="w-full p-4 border rounded-xl" value={newTraining.title} onChange={e=>setNewTraining({...newTraining, title:e.target.value})}/>
+                                        <input type="date" className="w-full p-4 border rounded-xl" value={newTraining.date} onChange={e=>setNewTraining({...newTraining, date:e.target.value})}/>
+                                        <input type="text" placeholder="시작 시간 (14:30)" className="w-full p-4 border rounded-xl" value={newTraining.startTime} onChange={e=>setNewTraining({...newTraining, startTime:e.target.value})}/>
+                                        <button onClick={handleSaveTraining} className="w-full bg-indigo-600 text-white p-4 rounded-xl font-bold">저장하기</button>
+                                    </div>
+                                )}
+                                {adminSubView === 'list' && trainings.map(t => (
+                                    <div key={t.id} className="bg-white p-6 rounded-3xl shadow-sm flex justify-between items-center">
+                                        <div><h3 className="font-black text-lg">{t.title}</h3><p className="text-sm text-slate-400">{t.date}</p></div>
+                                        <div className="flex gap-2">
+                                            <button onClick={()=>handlePrint(t)} className="p-2 bg-slate-100 rounded-lg"><Printer size={18}/></button>
+                                            <button onClick={()=>exportToExcel(t)} className="p-2 bg-slate-100 rounded-lg"><Download size={18}/></button>
                                         </div>
-                                        <button onClick={handleSaveTraining} className="w-full bg-indigo-600 text-white font-black py-5 rounded-[1.5rem] hover:bg-indigo-700 shadow-lg shadow-indigo-100 transition-all text-lg">
-                                            {editId ? '연수 정보 수정하기' : '연수 등록부 생성하기'}
-                                        </button>
                                     </div>
-                                )}
-
-                                {adminSubView === 'list' && (
-                                    <div className="grid grid-cols-1 gap-4">
-                                        {trainings.map(t => (
-                                            <div key={t.id} className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6 hover:shadow-md transition-shadow">
-                                                <div className="flex-1">
-                                                    <div className="flex items-center gap-2 mb-1">
-                                                        {(() => {
-                                                            const tDate = new Date(t.date);
-                                                            const today = new Date();
-                                                            today.setHours(0,0,0,0);
-                                                            const isExpired = tDate < today;
-                                                            return isExpired ? (
-                                                                <span className="px-2.5 py-1 bg-slate-100 text-slate-400 text-[10px] font-black rounded-lg uppercase tracking-wide">ENDED</span>
-                                                            ) : (
-                                                                <span className="px-2.5 py-1 bg-indigo-50 text-indigo-600 text-[10px] font-black rounded-lg uppercase tracking-wide">AVAILABLE</span>
-                                                            );
-                                                        })()}
-                                                        <span className="text-xs text-slate-400 font-bold">{t.date || new Date().toLocaleDateString()}</span>
-                                                    </div>
-                                                    <h3 className="font-black text-xl text-slate-800">{t.title}</h3>
-                                                    <div className="flex gap-4 text-sm text-slate-400 font-semibold mt-1">
-                                                        <span className="flex items-center gap-1.5"><MapPin size={14} className="text-slate-300" /> {t.location}</span>
-                                                        <span className="flex items-center gap-1.5"><Clock size={14} className="text-slate-300" /> {formatTime(t.startTime)}{formatTime(t.endTime) ? ` ~ ${formatTime(t.endTime)}` : ' ~'}</span>
-                                                    </div>
-                                                </div>
-                                                <div className="flex items-center gap-2 flex-wrap md:flex-nowrap">
-                                                    <button onClick={() => handleEditClick(t)} className="flex items-center gap-2 px-4 py-2.5 bg-slate-50 text-indigo-600 rounded-2xl hover:bg-indigo-50 transition-all border border-slate-100 group" title="수정">
-                                                        <Settings size={18} />
-                                                        <span className="text-xs font-bold">수정</span>
-                                                    </button>
-                                                    <button onClick={() => setQrModalUrl(`${window.location.href.split('?')[0]}?trainingId=${t.id}`)} className="flex items-center gap-2 px-4 py-2.5 bg-slate-50 text-slate-600 rounded-2xl hover:bg-slate-100 transition-all border border-slate-100 group" title="QR 생성">
-                                                        <QrCode size={18} />
-                                                        <span className="text-xs font-bold">QR 코드</span>
-                                                    </button>
-                                                    <button onClick={() => handlePrint(t)} className="flex items-center gap-2 px-4 py-2.5 bg-indigo-50 text-indigo-600 rounded-2xl hover:bg-indigo-100 transition-all border border-indigo-100 group" title="인쇄">
-                                                        <Printer size={18} />
-                                                        <span className="text-xs font-bold">인쇄하기</span>
-                                                    </button>
-                                                    <button onClick={() => exportToExcel(t)} className="flex items-center gap-2 px-4 py-2.5 bg-emerald-50 text-emerald-600 rounded-2xl hover:bg-emerald-100 transition-all border border-emerald-100 group" title="엑셀 저장">
-                                                        <Download size={18} />
-                                                        <span className="text-xs font-bold">엑셀 저장</span>
-                                                    </button>
-                                                    <button onClick={() => handleDeleteTraining(t.id)} className="flex items-center gap-2 px-4 py-2.5 bg-rose-50 text-rose-500 rounded-2xl hover:bg-rose-100 transition-all border border-rose-100 group" title="삭제">
-                                                        <Trash2 size={18} />
-                                                        <span className="text-xs font-bold">삭제</span>
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        ))}
-                                        {trainings.length === 0 && <div className="text-center py-20 text-slate-400 font-bold">등록된 연수가 없습니다.</div>}
-                                    </div>
-                                )}
-
-                                {adminSubView === 'dashboard' && (
-                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                        {dashboardStats.map(stat => (
-                                            <div key={stat.id} className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-4">
-                                                <h4 className="font-bold text-slate-800 truncate">{stat.title}</h4>
-                                                <div className="flex justify-between items-end">
-                                                    <div>
-                                                        <span className="text-3xl font-black text-indigo-600">{stat.attended}</span>
-                                                        <span className="text-slate-300 text-sm font-bold ml-1">/ {stat.total}</span>
-                                                    </div>
-                                                    <span className="text-xs font-bold text-emerald-500 bg-emerald-50 px-2 py-1 rounded-lg">참석률 {Math.round((stat.attended / (stat.total || 1)) * 100)}%</span>
-                                                </div>
-                                                <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden flex">
-                                                    <div className="bg-indigo-500 h-full" style={{ width: `${(stat.attended / (stat.total || 1)) * 100}%` }}></div>
-                                                    <div className="bg-rose-400 h-full" style={{ width: `${(stat.absent / (stat.total || 1)) * 100}%` }}></div>
-                                                </div>
-                                                <div className="flex justify-between text-[10px] font-bold uppercase tracking-tight">
-                                                    <span className="text-indigo-500">참석: {stat.attended}</span>
-                                                    <span className="text-rose-400">불참: {stat.absent}</span>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
+                                ))}
                             </div>
                         ) : (
-                            <div className="max-w-xl mx-auto py-4">
-                                <div className="bg-white p-8 md:p-12 rounded-[2.5rem] shadow-2xl shadow-indigo-100 border border-slate-50 min-h-[500px] flex flex-col relative overflow-hidden">
-                                    <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-500 shadow-sm"></div>
-
-                                    {step < 5 && (
-                                        <div className="flex justify-between items-center mb-6 md:mb-10 z-10 w-full min-h-[40px]">
-                                            {step > 1 ? (
-                                                <button onClick={() => {
-                                                    if (isManualMode && step === 2) setIsManualMode(false);
-                                                    else setStep(step - 1);
-                                                }} className="group flex items-center gap-2 text-indigo-500 hover:text-indigo-700 transition-all shrink-0">
-                                                    <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center group-hover:bg-indigo-100 transition-colors shadow-sm shrink-0 overflow-hidden">
-                                                        <ArrowLeft size={20} className="shrink-0" />
-                                                    </div>
-                                                    <span className="text-[10px] font-black uppercase tracking-widest hidden sm:inline">BACK</span>
-                                                </button>
-                                            ) : <div className="w-10 h-10"></div>}
-                                            
-                                            <div className="flex flex-col items-end gap-1">
-                                                <div className="flex gap-1.5">
-                                                    {[1, 2, 3, 4].map(i => (
-                                                        <div key={i} className={`h-1 rounded-full transition-all duration-300 ${step >= i ? 'w-6 bg-indigo-600' : 'w-2 bg-slate-100'}`}></div>
-                                                    ))}
-                                                </div>
-                                                <span className="text-[9px] font-black text-indigo-300 uppercase tracking-widest">STEP {step} / 4</span>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {step === 1 && (
-                                        <div className="space-y-8 animate-in">
-                                            <div className="text-center space-y-2">
-                                                <h2 className="text-3xl font-black text-slate-800 tracking-tight">연수 선택</h2>
-                                                <p className="text-slate-400 font-medium">참석하신 연수 일정을 선택해 주세요</p>
-                                            </div>
-                                            <div className="space-y-4">
-                                                {trainings.filter(t => {
-                                                    const tDate = new Date(t.date);
-                                                    const today = new Date();
-                                                    today.setHours(0,0,0,0);
-                                                    return tDate >= today;
-                                                }).map(t => (
-                                                    <button key={t.id} onClick={() => { 
-                                                        setSelectedTraining(t); 
-                                                        setStep(2); 
-                                                        fetchRegistrations(t.id, t.title); // 유저 뷰에서도 중복 확인을 위해 명단 로드
-                                                    }} className="w-full group text-left p-6 rounded-3xl border-2 border-slate-50 hover:border-indigo-200 hover:bg-slate-50/50 transition-all flex items-center justify-between">
-                                                        <div className="flex-1">
-                                                            <p className="font-black text-slate-700 text-lg group-hover:text-indigo-700">{t.title}</p>
-                                                            <div className="flex gap-4 text-xs text-slate-300 font-bold mt-1.5 uppercase">
-                                                                <span className="flex items-center gap-1"><MapPin size={12} /> {t.location}</span>
-                                                                <span className="flex items-center gap-1"><Clock size={12} /> {formatTime(t.startTime)}{formatTime(t.endTime) ? ` ~ ${formatTime(t.endTime)}` : ' ~'}</span>
-                                                            </div>
-                                                        </div>
-                                                        <div className="w-10 h-10 bg-slate-50 group-hover:bg-indigo-600 group-hover:text-white rounded-2xl flex items-center justify-center transition-all">
-                                                            <ChevronRight size={20} />
-                                                        </div>
-                                                    </button>
-                                                ))}
-                                                {trainings.filter(t => {
-                                                    const tDate = new Date(t.date);
-                                                    const today = new Date();
-                                                    today.setHours(0,0,0,0);
-                                                    return tDate >= today;
-                                                }).length === 0 && <div className="text-center py-10 text-slate-300 font-bold italic">현재 열려있는 연수가 없습니다.</div>}
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {step === 2 && (
-                                        <div className="space-y-6 md:space-y-8 animate-in flex-1 flex flex-col">
-                                            <div className="text-center space-y-2">
-                                                <h2 className="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight">{isManualMode ? '추가 등록' : '본인 확인'}</h2>
-                                                <p className="text-slate-400 font-medium text-sm sm:text-base">{isManualMode ? '명단에 없는 경우 정보를 직접 입력해 주세요' : '성함을 검색하여 선택해 주세요'}</p>
-                                            </div>
-
-                                            {isManualMode ? (
-                                                <div className="space-y-4 animate-in">
-                                                    <div className="space-y-1">
-                                                        <label className="text-[10px] font-black text-indigo-400 ml-1 uppercase">소속 / 학교명</label>
-                                                        <input type="text" placeholder="예: 하주초등학교, 외부기관 등" value={manualInfo.school} onChange={e => setManualInfo({...manualInfo, school: e.target.value})}
-                                                            className="w-full px-6 py-4 rounded-2xl border-2 border-slate-50 focus:border-indigo-400 bg-slate-50/50 outline-none text-lg font-bold" />
-                                                    </div>
-                                                    <div className="space-y-1">
-                                                        <label className="text-[10px] font-black text-indigo-400 ml-1 uppercase">직위</label>
-                                                        <input type="text" placeholder="예: 교사, 주무관, 강사 등" value={manualInfo.position} onChange={e => setManualInfo({...manualInfo, position: e.target.value})}
-                                                            className="w-full px-6 py-4 rounded-2xl border-2 border-slate-50 focus:border-indigo-400 bg-slate-50/50 outline-none text-lg font-bold" />
-                                                    </div>
-                                                    <div className="space-y-1">
-                                                        <label className="text-[10px] font-black text-indigo-400 ml-1 uppercase">성명</label>
-                                                        <input type="text" placeholder="성함을 입력해 주세요" value={manualInfo.name} onChange={e => setManualInfo({...manualInfo, name: e.target.value})}
-                                                            className="w-full px-6 py-4 rounded-2xl border-2 border-slate-50 focus:border-indigo-400 bg-slate-50/50 outline-none text-lg font-bold" />
-                                                    </div>
-                                                    <button onClick={() => {
-                                                        if (!manualInfo.name || !manualInfo.school) return setCustomAlert({ title: '입력 필요', message: '성함과 소속은 필수입니다.' });
-                                                        setChosenStaff({ name: manualInfo.name, position: manualInfo.position, grade: manualInfo.school });
-                                                        setRegStatus('attended');
-                                                        setStep(4);
-                                                    }} className="w-full py-5 bg-indigo-600 text-white rounded-3xl font-black text-xl shadow-xl shadow-indigo-100 hover:bg-indigo-700 transition-all flex items-center justify-center gap-3">
-                                                        서명 단계로 이동 <ChevronRight size={24} />
-                                                    </button>
-                                                    <button onClick={() => setIsManualMode(false)} className="w-full py-4 text-slate-400 font-bold hover:text-slate-600 transition-colors">명단 검색으로 돌아가기</button>
-                                                </div>
-                                            ) : (
-                                                <>
-                                                    <div className="relative">
-                                                        <div className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 pointer-events-none z-10 flex items-center justify-center">
-                                                            <Search size={22} className="text-slate-300" />
-                                                        </div>
-                                                        <input type="text" placeholder="성함 검색" value={searchName} onChange={e => setSearchName(e.target.value)}
-                                                            className="w-full pl-16 pr-6 py-5 rounded-3xl border-2 border-slate-50 focus:border-indigo-400 bg-slate-50/50 focus:bg-white outline-none text-xl font-bold transition-all shadow-inner" />
-                                                    </div>
-                                                    <div className="space-y-3 max-h-64 overflow-y-auto pr-2 custom-scroll flex-1">
-                                                        {filteredStaffList.map(s => (
-                                                            <button key={s.id} onClick={() => { 
-                                                                setChosenStaff(s); 
-                                                                const alreadyReg = selectedRegs.some(r => r.name === s.name);
-                                                                if (alreadyReg) {
-                                                                    setShowOverwriteConfirm(true);
-                                                                } else {
-                                                                    setStep(3);
-                                                                }
-                                                            }} className="w-full flex items-center justify-between p-5 rounded-2xl border border-slate-50 hover:border-indigo-100 hover:bg-indigo-50/30 transition-all animate-in group">
-                                                                <div><span className="font-black text-slate-700 text-lg">{s.name}</span> <span className="text-xs text-slate-300 font-black ml-3 uppercase tracking-tighter">{s.position}</span></div>
-                                                                <span className="text-xs font-black text-indigo-400 bg-indigo-50 px-3 py-1.5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity">SELECT</span>
-                                                            </button>
-                                                        ))}
-                                                        {searchName.length > 0 && filteredStaffList.length === 0 && (
-                                                            <div className="text-center py-6 flex flex-col items-center gap-4">
-                                                                <p className="text-slate-300 font-bold italic">검색 결과가 없습니다.</p>
-                                                            </div>
-                                                        )}
-                                                        <button onClick={() => setIsManualMode(true)} className="w-full py-5 rounded-2xl border-2 border-dashed border-slate-100 text-slate-400 font-bold hover:border-indigo-200 hover:text-indigo-500 hover:bg-indigo-50/30 transition-all flex flex-col items-center gap-2">
-                                                            <PlusCircle size={24} />
-                                                            <span>명단에 없나요? 직접 추가 등록</span>
-                                                        </button>
-                                                    </div>
-                                                </>
-                                            )}
-                                        </div>
-                                    )}
-
-                                    {step === 3 && (
-                                        <div className="space-y-6 md:space-y-10 animate-in text-center flex-1 flex flex-col justify-center py-4">
-                                            <div className="space-y-3">
-                                                <div className="w-20 h-20 bg-indigo-50 rounded-[2rem] flex items-center justify-center mx-auto mb-4 border-2 border-white shadow-xl">
-                                                    <UserCheck size={36} className="text-indigo-600" />
-                                                </div>
-                                                <h2 className="text-3xl font-black text-slate-800 tracking-tight">{chosenStaff.name}님, 확인되었습니다</h2>
-                                                <p className="text-slate-400 font-medium">참석 여부와 방식의 하나를 선택해 주세요</p>
-                                            </div>
-                                            <div className="grid grid-cols-2 gap-4">
-                                                <button onClick={() => { setRegStatus('attended'); setStep(4); }} className="p-6 md:p-8 rounded-[2rem] border-2 border-slate-50 hover:border-indigo-500 bg-slate-50/30 hover:bg-white transition-all group flex flex-col items-center gap-4 shadow-sm hover:shadow-xl">
-                                                    <div className="w-14 h-14 bg-white text-indigo-600 rounded-2xl flex items-center justify-center shadow-md group-hover:scale-110 transition-transform"><PenTool size={28} /></div>
-                                                    <span className="font-black text-[15px] sm:text-lg text-slate-700 whitespace-nowrap">참석 (서명)</span>
-                                                </button>
-                                                <button onClick={() => { setRegStatus('absent'); setStep(4); }} className="p-6 md:p-8 rounded-[2rem] border-2 border-slate-50 hover:border-rose-500 bg-slate-50/30 hover:bg-white transition-all group flex flex-col items-center gap-4 shadow-sm hover:shadow-xl">
-                                                    <div className="w-14 h-14 bg-white text-rose-500 rounded-2xl flex items-center justify-center shadow-md group-hover:scale-110 transition-transform"><XCircle size={28} /></div>
-                                                    <span className="font-black text-[15px] sm:text-lg text-slate-700 whitespace-nowrap">불참 (기타)</span>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {step === 4 && (
-                                        <div className="space-y-6 md:space-y-8 animate-in text-center flex-1 flex flex-col py-4">
-                                            <div className="space-y-2">
-                                                <h2 className="text-3xl font-black text-slate-800 tracking-tight">
-                                                    {regStatus === 'attended' ? '서명' : '사유 선택'}
-                                                </h2>
-                                                <p className="text-slate-400 font-medium">
-                                                    {regStatus === 'attended' ? '아래 공간에 서명해 주세요' : '불참하시는 사유를 선택해 주세요'}
-                                                </p>
-                                            </div>
-
-                                            {regStatus === 'attended' ? (
-                                                <div className="space-y-6 flex-1 flex flex-col">
-                                                    <div className="canvas-container flex-1 bg-white border-4 border-dashed border-slate-100 rounded-[2rem] relative shadow-inner overflow-hidden min-h-[220px]">
-                                                        <canvas ref={canvasRef} width={1000} height={500}
-                                                            onMouseDown={startDrawing} onMouseMove={draw} onMouseUp={() => setIsDrawing(false)} onMouseLeave={() => setIsDrawing(false)}
-                                                            onTouchStart={startDrawing} onTouchMove={draw} onTouchEnd={() => setIsDrawing(false)}
-                                                            className="absolute inset-0 w-full h-full cursor-crosshair bg-white" title="Signature Area" />
-                                                    </div>
-                                                    <div className="flex justify-between items-center px-2">
-                                                        <button onClick={() => { const ctx = canvasRef.current.getContext('2d'); ctx.clearRect(0, 0, 1000, 500); ctx.beginPath(); }}
-                                                            className="text-xs font-black text-rose-400 hover:text-rose-600 uppercase tracking-widest flex items-center gap-1">
-                                                            <Trash2 size={14} /> 지우기
-                                                        </button>
-                                                        <span className="text-[10px] font-black text-slate-300 italic">서명 후 [등록하기] 버튼을 눌러주세요</span>
-                                                    </div>
-                                                </div>
-                                            ) : (
-                                                <div className="grid grid-cols-2 gap-3 flex-1">
-                                                    {ABSENCE_REASONS.map(r => (
-                                                        <button key={r} onClick={() => setAbsenceReason(r)}
-                                                            className={`p-4 rounded-2xl border-2 transition-all font-black ${absenceReason === r ? 'border-indigo-600 bg-indigo-50 text-indigo-700 shadow-lg' : 'border-slate-50 text-slate-300 bg-white hover:bg-slate-50 hover:text-slate-500'}`}>
-                                                            {r}
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            )}
-
-                                            <button disabled={isLoading || (regStatus === 'absent' && !absenceReason)} onClick={handleRegister}
-                                                className="w-full bg-indigo-600 text-white font-black py-5 rounded-[1.8rem] hover:bg-indigo-700 shadow-xl shadow-indigo-200 transition-all text-xl disabled:bg-slate-200 disabled:shadow-none flex items-center justify-center gap-3">
-                                                {isLoading ? <Loader2 className="animate-spin" /> : <CheckCircle2 size={24} />}
-                                                등록하기
+                            <div className="max-w-xl mx-auto bg-white p-8 rounded-[2.5rem] shadow-2xl min-h-[500px]">
+                                {step === 1 && (
+                                    <div className="space-y-6 animate-in text-center">
+                                        <h2 className="text-2xl font-black">연수 선택</h2>
+                                        {trainings.map(t => (
+                                            <button key={t.id} onClick={()=>{setSelectedTraining(t); setStep(2);}} className="w-full p-6 border-2 rounded-3xl hover:border-indigo-500 text-left flex justify-between">
+                                                <span>{t.title}</span><ChevronRight/>
                                             </button>
+                                        ))}
+                                    </div>
+                                )}
+                                {step === 2 && (
+                                    <div className="space-y-6 animate-in">
+                                        <input type="text" placeholder="성함 검색" className="w-full p-4 border-2 rounded-2xl" value={searchName} onChange={e=>setSearchName(e.target.value)}/>
+                                        <div className="space-y-2">
+                                            {filteredStaffList.map(s => (
+                                                <button key={s.id} onClick={()=>{setChosenStaff(s); setStep(3);}} className="w-full p-4 border rounded-xl text-left font-bold hover:bg-indigo-50">{s.name} ({s.position})</button>
+                                            ))}
                                         </div>
-                                    )}
-
-                                    {step === 5 && (
-                                        <div className="text-center py-10 space-y-10 animate-in flex flex-col items-center justify-center flex-1">
-                                            <div className="relative">
-                                                <div className="absolute inset-0 bg-emerald-400 blur-2xl opacity-20 animate-pulse"></div>
-                                                <div className="relative w-28 h-28 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center border-4 border-white shadow-2xl">
-                                                    <CheckCircle2 size={64} strokeWidth={2.5} />
-                                                </div>
-                                            </div>
-                                            <div className="space-y-4">
-                                                <h2 className="text-4xl font-black text-slate-800 tracking-tighter">등록이 완료되었습니다!</h2>
-                                                <p className="text-slate-400 font-bold px-4 leading-relaxed">성실하게 연수에 참여해 주셔서 감사합니다.<br />이제 창을 닫으셔도 좋습니다.</p>
-                                            </div>
-                                            <div className="w-full max-w-xs pt-4">
-                                                <button onClick={() => { setStep(1); setSearchName(''); setAbsenceReason(''); setSelectedTraining(null); }}
-                                                    className="w-full bg-slate-900 text-white px-8 py-5 rounded-[1.5rem] font-black text-lg btn-hover">처음으로</button>
-                                            </div>
+                                    </div>
+                                )}
+                                {step === 3 && (
+                                    <div className="space-y-8 animate-in text-center py-10">
+                                        <h2 className="text-2xl font-black">{chosenStaff.name}님, 참석하시나요?</h2>
+                                        <div className="flex gap-4">
+                                            <button onClick={()=>{setRegStatus('attended'); setStep(4);}} className="flex-1 p-8 border rounded-3xl font-bold bg-indigo-50 text-indigo-600">참석</button>
+                                            <button onClick={()=>{setRegStatus('absent'); setStep(4);}} className="flex-1 p-8 border rounded-3xl font-bold">불참</button>
                                         </div>
-                                    )}
-                                </div>
-                                <p className="text-center text-[10px] text-slate-300 font-black mt-8 tracking-[0.3em] uppercase opacity-50">School Training Management System v2.0</p>
+                                    </div>
+                                )}
+                                {step === 4 && (
+                                    <div className="space-y-6 animate-in text-center">
+                                        <h2 className="text-2xl font-black">{regStatus==='attended'?'서명해 주세요':'불참 사유'}</h2>
+                                        {regStatus === 'attended' ? (
+                                            <div className="border-4 border-dashed rounded-3xl h-60 bg-slate-50 relative overflow-hidden">
+                                                <canvas ref={canvasRef} width={800} height={400} className="w-full h-full cursor-crosshair"
+                                                    onMouseDown={e=>{setIsDrawing(true); const c=canvasRef.current.getContext('2d'); const rect=canvasRef.current.getBoundingClientRect(); c.beginPath(); c.moveTo((e.clientX-rect.left)*(800/rect.width),(e.clientY-rect.top)*(400/rect.height));}}
+                                                    onMouseMove={e=>{if(!isDrawing)return; const c=canvasRef.current.getContext('2d'); const rect=canvasRef.current.getBoundingClientRect(); c.lineTo((e.clientX-rect.left)*(800/rect.width),(e.clientY-rect.top)*(400/rect.height)); c.stroke();}}
+                                                    onMouseUp={()=>setIsDrawing(false)}/>
+                                            </div>
+                                        ) : (
+                                            <select className="w-full p-4 border rounded-xl" onChange={e=>setAbsenceReason(e.target.value)}>
+                                                {ABSENCE_REASONS.map(r=><option key={r} value={r}>{r}</option>)}
+                                            </select>
+                                        )}
+                                        <button onClick={handleRegister} className="w-full bg-indigo-600 text-white p-5 rounded-3xl font-black text-xl">등록 완료</button>
+                                    </div>
+                                )}
+                                {step === 5 && (
+                                    <div className="text-center py-20 animate-in space-y-6">
+                                        <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto"><CheckCircle2 size={48}/></div>
+                                        <h2 className="text-3xl font-black">등록이 완료되었습니다.</h2>
+                                        <button onClick={()=>{setStep(1); setSearchName('');}} className="px-8 py-3 bg-slate-900 text-white rounded-xl">처음으로</button>
+                                    </div>
+                                )}
                             </div>
                         )}
                     </main>
-
                 </div>
             );
         };
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
     </script>
 </body>
-
 </html>
