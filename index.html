@@ -323,6 +323,16 @@
             const canvasRef = useRef(null);
             const [isDrawing, setIsDrawing] = useState(false);
 
+            // 서명 패드 초기화 (흰색 배경)
+            useEffect(() => {
+                if (step === 4 && regStatus === 'attended' && canvasRef.current) {
+                    const canvas = canvasRef.current;
+                    const ctx = canvas.getContext('2d');
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                }
+            }, [step, regStatus]);
+
             useEffect(() => { fetchInitialData(); }, []);
 
             // 전역 아이콘 동기화 (모든 상태 변화 시 실행)
@@ -1346,11 +1356,11 @@
                                                                 fetchRegistrations(t.id, t.title);
                                                             }} className="w-full group text-left p-6 rounded-3xl border-2 border-slate-50 hover:border-indigo-200 hover:bg-slate-50/50 transition-all flex items-center justify-between">
                                                                     <div className="flex-1">
-                                                                        <p className="font-black text-slate-700 text-lg group-hover:text-indigo-700">{t.title}</p>
-                                                                        <div className="flex gap-4 text-xs text-slate-300 font-bold mt-1.5 uppercase">
-                                                                            <span className="flex items-center gap-1"><Calendar size={12} /> {t.date}</span>
-                                                                            <span className="flex items-center gap-1"><MapPin size={12} /> {t.location}</span>
-                                                                            <span className="flex items-center gap-1"><Clock size={12} /> {formatTime(t.startTime)}{formatTime(t.endTime) ? ` ~ ${formatTime(t.endTime)}` : ' ~'}</span>
+                                                                        <p className="font-black text-slate-700 text-lg group-hover:text-indigo-700 leading-tight">{t.title}</p>
+                                                                        <div className="grid grid-cols-1 xs:grid-cols-2 sm:flex sm:flex-wrap gap-x-4 gap-y-1.5 text-[10px] sm:text-xs text-slate-300 font-bold mt-2 uppercase tracking-tight">
+                                                                            <span className="flex items-center gap-1.5"><Calendar size={13} className="text-indigo-300" /> {t.date}</span>
+                                                                            <span className="flex items-center gap-1.5"><MapPin size={13} className="text-indigo-300" /> {t.location}</span>
+                                                                            <span className="flex items-center gap-1.5"><Clock size={13} className="text-indigo-300" /> {formatTime(t.startTime)}{formatTime(t.endTime) ? ` ~ ${formatTime(t.endTime)}` : ' ~'}</span>
                                                                         </div>
                                                                     </div>
                                                                 <div className="w-10 h-10 bg-slate-50 group-hover:bg-indigo-600 group-hover:text-white rounded-2xl flex items-center justify-center transition-all">
@@ -1475,13 +1485,19 @@
                                             {regStatus === 'attended' ? (
                                                 <div className="space-y-6 flex-1 flex flex-col">
                                                     <div className="canvas-container flex-1 bg-white border-4 border-dashed border-slate-100 rounded-[2rem] relative shadow-inner overflow-hidden min-h-[220px]">
-                                                        <canvas ref={canvasRef} width={1000} height={500}
+                                                        <canvas ref={canvasRef} width={650} height={300}
                                                             onMouseDown={startDrawing} onMouseMove={draw} onMouseUp={() => setIsDrawing(false)} onMouseLeave={() => setIsDrawing(false)}
                                                             onTouchStart={startDrawing} onTouchMove={draw} onTouchEnd={() => setIsDrawing(false)}
                                                             className="absolute inset-0 w-full h-full cursor-crosshair bg-white" title="Signature Area" />
                                                     </div>
                                                     <div className="flex justify-between items-center px-2">
-                                                        <button onClick={() => { const ctx = canvasRef.current.getContext('2d'); ctx.clearRect(0, 0, 1000, 500); ctx.beginPath(); }}
+                                                        <button onClick={() => { 
+                                                            const canvas = canvasRef.current;
+                                                            const ctx = canvas.getContext('2d'); 
+                                                            ctx.fillStyle = '#ffffff';
+                                                            ctx.fillRect(0, 0, canvas.width, canvas.height);
+                                                            ctx.beginPath(); 
+                                                        }}
                                                             className="text-xs font-black text-rose-400 hover:text-rose-600 uppercase tracking-widest flex items-center gap-1">
                                                             <Trash2 size={14} /> 지우기
                                                         </button>
