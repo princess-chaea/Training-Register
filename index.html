@@ -512,6 +512,8 @@
                                 return reg || { name, position: staff?.position || '', grade: staff?.grade || '', status: 'none', content: '' };
                             });
                         } catch (e) { displayList = []; }
+                    }
+
                     const renderTable = (list, startIdx) => `
                         <table style="width: 100%; table-layout: fixed;">
                             <thead>
