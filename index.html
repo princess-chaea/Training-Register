@@ -555,31 +555,36 @@
                         <table style="width: 100%; table-layout: fixed;">
                             <thead>
                                 <tr>
-                                    <th style="width: 35px;">No.</th>
-                                    <th style="width: ${isDual ? '90px' : '180px'};">소속</th>
-                                    <th style="width: ${isDual ? '70px' : '150px'};">담당(직위)</th>
-                                    <th style="width: ${isDual ? '70px' : '150px'};">성명</th>
-                                    <th style="width: ${isDual ? '140px' : '220px'};">서명</th>
+                                    <th style="width: ${isDual ? '35px' : '40px'};">No.</th>
+                                    <th style="width: ${isDual ? '95px' : '200px'};">소속</th>
+                                    <th style="width: ${isDual ? '75px' : '150px'};">담당(직위)</th>
+                                    <th style="width: ${isDual ? '65px' : '150px'};">성명</th>
+                                    <th style="width: ${isDual ? '65px' : '220px'};">서명</th>
                                     <th style="width: auto;">비고</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 ${list.map((reg, idx) => {
                                     const school = reg.grade || '하주초등학교';
+                                    const isAbsent = reg.status === 'absent';
                                     const getImg = (content) => {
                                         if (content && content.startsWith('http')) {
                                             return `<img src="${content}" style="height: ${imgHeight}px; object-fit: contain; margin: 0 auto;" />`;
                                         }
                                         return content || '';
                                     };
+                                    
+                                    const sigDisplay = isAbsent ? '－' : getImg(reg.content);
+                                    const remarkDisplay = isAbsent ? (reg.content || '') : '';
+
                                     return `
                                     <tr style="height: ${rowHeight};">
                                         <td>${startIdx + idx + 1}</td>
-                                        <td style="font-size: 8pt;">${school}</td>
-                                        <td>${reg.position || ''}</td>
+                                        <td style="font-size: 8pt; line-height: 1.1;">${school}</td>
+                                        <td style="font-size: 8pt;">${reg.position || ''}</td>
                                         <td style="font-weight: bold;">${reg.name || ''}</td>
-                                        <td style="padding: 0;">${getImg(reg.content)}</td>
-                                        <td></td>
+                                        <td style="padding: 0;">${sigDisplay}</td>
+                                        <td style="font-size: 8pt;">${remarkDisplay}</td>
                                     </tr>`;
                                 }).join('')}
                             </tbody>
@@ -589,13 +594,13 @@
                     const html = `
                         <html>
                         <head>
-                            <title>${training.title} 연수 등록부</title>
+                            <title>${training.title} 등록부</title>
                             <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
                             <style>
                                 @page { size: A4; margin: 10mm; }
                                 body { font-family: 'Noto Sans KR', sans-serif; padding: 0; margin: 0; }
                                 .container { width: 100%; border: 1.5pt solid black; padding: 5mm; box-sizing: border-box; min-height: 275mm; display: flex; flex-direction: column; }
-                                h1 { font-size: 22pt; font-weight: bold; text-decoration: underline; text-align: center; margin: 0 0 10px 0; }
+                                h1 { font-size: 20pt; font-weight: bold; text-decoration: underline; text-align: center; margin: 0 0 10px 0; }
                                 .info { text-align: right; font-size: 9pt; margin-bottom: 10px; }
                                 .school { font-weight: bold; font-size: 11pt; margin-bottom: 2px; }
                                 .columns { display: flex; gap: 0; width: 100%; flex: 1; }
@@ -626,8 +631,6 @@
                     printWindow.document.write(html);
                     printWindow.document.close();
                 });
-            };
-
             const exportToExcel = (training) => {
                 setIsLoading(true);
                 fetchRegistrations(training.id, training.title).then((regs) => {
@@ -685,22 +688,31 @@
                         const L = leftCol[i] || { name: '', position: '', grade: '', status: '', content: '' };
                         const R = isDualColumn ? (rightCol[i] || { name: '', position: '', grade: '', status: '', content: '' }) : null;
 
+                        const getExcelSig = (item) => {
+                            if (item.status === 'absent') return '－';
+                            return getImgTag(item.content);
+                        };
+                        const getExcelRemark = (item) => {
+                            if (item.status === 'absent') return item.content || '';
+                            return '';
+                        };
+
                         tableRows += `
                             <tr style="height: 75px;">
                                 <td style="border: 1pt solid black; text-align: center; vertical-align: middle; font-size: 8pt;">${L.name ? i + 1 : ''}</td>
-                                <td style="border: 1pt solid black; text-align: center; vertical-align: middle;">${L.grade || (L.name ? '하주초등학교' : '')}</td>
-                                <td style="border: 1pt solid black; text-align: center; vertical-align: middle;">${L.position || ''}</td>
+                                <td style="border: 1pt solid black; text-align: center; vertical-align: middle; font-size: 8pt;">${L.grade || (L.name ? '하주초등학교' : '')}</td>
+                                <td style="border: 1pt solid black; text-align: center; vertical-align: middle; font-size: 8pt;">${L.position || ''}</td>
                                 <td style="border: 1pt solid black; text-align: center; vertical-align: middle; font-weight: bold;">${L.name || ''}</td>
-                                <td style="border: 1pt solid black; text-align: center; vertical-align: middle; padding: 0;">${getImgTag(L.content)}</td>
-                                <td style="border: 1pt solid black;"></td>
-                                ${isDualColumn ? `
+                                <td style="border: 1pt solid black; text-align: center; vertical-align: middle; padding: 0;">${getExcelSig(L)}</td>
+                                <td style="border: 1pt solid black; text-align: center; vertical-align: middle; font-size: 8pt;">${getExcelRemark(L)}</td>
+                                ${R ? `
                                 <td style="width: 15px; border: none;"></td>
                                 <td style="border: 1pt solid black; text-align: center; vertical-align: middle; font-size: 8pt;">${R.name ? i + maxRowsPerCol + 1 : ''}</td>
-                                <td style="border: 1pt solid black; text-align: center; vertical-align: middle;">${R.grade || (R.name ? '하주초등학교' : '')}</td>
-                                <td style="border: 1pt solid black; text-align: center; vertical-align: middle;">${R.position || ''}</td>
+                                <td style="border: 1pt solid black; text-align: center; vertical-align: middle; font-size: 8pt;">${R.grade || (R.name ? '하주초등학교' : '')}</td>
+                                <td style="border: 1pt solid black; text-align: center; vertical-align: middle; font-size: 8pt;">${R.position || ''}</td>
                                 <td style="border: 1pt solid black; text-align: center; vertical-align: middle; font-weight: bold;">${R.name || ''}</td>
-                                <td style="border: 1pt solid black; text-align: center; vertical-align: middle; padding: 0;">${getImgTag(R.content)}</td>
-                                <td style="border: 1pt solid black;"></td>
+                                <td style="border: 1pt solid black; text-align: center; vertical-align: middle; padding: 0;">${getExcelSig(R)}</td>
+                                <td style="border: 1pt solid black; text-align: center; vertical-align: middle; font-size: 8pt;">${getExcelRemark(R)}</td>
                                 ` : ''}
                             </tr>
                         `;
@@ -725,20 +737,20 @@
                             <table border="1" style="border-collapse: collapse; width: 100%;">
                                 <thead>
                                     <tr>
-                                        <th class="header" style="width: 40px;">No.</th>
-                                        <th class="header" style="width: ${isDualColumn ? '120px' : '250px'};">소속(학교)</th>
+                                        <th class="header" style="width: 45px;">No.</th>
+                                        <th class="header" style="width: ${isDualColumn ? '140px' : '250px'};">소속(학교)</th>
                                         <th class="header" style="width: ${isDualColumn ? '100px' : '200px'};">담당(직위)</th>
                                         <th class="header" style="width: ${isDualColumn ? '90px' : '180px'};">성명</th>
-                                        <th class="header" style="width: ${isDualColumn ? '180px' : '300px'};">서명</th>
-                                        <th class="header" style="width: ${isDualColumn ? '120px' : '300px'};">비고</th>
+                                        <th class="header" style="width: ${isDualColumn ? '90px' : '300px'};">서명</th>
+                                        <th class="header" style="width: ${isDualColumn ? '100px' : '300px'};">비고</th>
                                         ${isDualColumn ? `
                                         <th style="width: 15px; border: none;"></th>
-                                        <th class="header" style="width: 40px;">No.</th>
-                                        <th class="header" style="width: 120px;">소속(학교)</th>
+                                        <th class="header" style="width: 45px;">No.</th>
+                                        <th class="header" style="width: 140px;">소속(학교)</th>
                                         <th class="header" style="width: 100px;">담당(직위)</th>
                                         <th class="header" style="width: 90px;">성명</th>
-                                        <th class="header" style="width: 180px;">서명</th>
-                                        <th class="header" style="width: 120px;">비고</th>
+                                        <th class="header" style="width: 90px;">서명</th>
+                                        <th class="header" style="width: 100px;">비고</th>
                                         ` : ''}
                                     </tr>
                                 </thead>
@@ -857,24 +869,24 @@
                             <span>일시: {selectedTraining.date} {formatTime(selectedTraining.startTime)} ~ {formatTime(selectedTraining.endTime)}</span>
                         </div>
 
-                        <table className="w-full border-collapse border-2 border-black text-[10px]">
+                        <table className="w-full border-collapse border-2 border-black text-[9px]">
                             <thead>
                                 <tr className="bg-slate-50">
-                                    <th className="border border-black px-1 py-1 w-12">No.</th>
-                                    <th className="border border-black px-1 py-1 w-32">소속</th>
-                                    <th className="border border-black px-1 py-1 w-28">담당(직위)</th>
-                                    <th className="border border-black px-1 py-1 w-28">성명</th>
-                                    <th className="border border-black px-1 py-1 w-56">서명</th>
-                                    <th className="border border-black px-1 py-1">비고</th>
+                                    <th className="border border-black px-1 py-1 w-10">No.</th>
+                                    <th className="border border-black px-1 py-1 w-24">소속</th>
+                                    <th className="border border-black px-1 py-1 w-20">담당(직위)</th>
+                                    <th className="border border-black px-1 py-1 w-18">성명</th>
+                                    <th className="border border-black px-1 py-1 w-20">서명</th>
+                                    <th className="border border-black px-1 py-1 w-16">비고</th>
                                     {isDualColumn && (
                                         <>
                                             <th className="border-l-2 border-l-black w-2"></th>
-                                            <th className="border border-black px-1 py-1 w-8">No.</th>
-                                            <th className="border border-black px-1 py-1 w-20">소속</th>
-                                            <th className="border border-black px-1 py-1 w-16">담당(직위)</th>
-                                            <th className="border border-black px-1 py-1 w-16">성명</th>
-                                            <th className="border border-black px-1 py-1 w-24">서명</th>
-                                            <th className="border border-black px-1 py-1">비고</th>
+                                            <th className="border border-black px-1 py-1 w-10">No.</th>
+                                            <th className="border border-black px-1 py-1 w-24">소속</th>
+                                            <th className="border border-black px-1 py-1 w-20">담당(직위)</th>
+                                            <th className="border border-black px-1 py-1 w-18">성명</th>
+                                            <th className="border border-black px-1 py-1 w-20">서명</th>
+                                            <th className="border border-black px-1 py-1 w-16">비고</th>
                                         </>
                                     )}
                                 </tr>
@@ -891,23 +903,36 @@
                                         return content || '';
                                     };
 
+                                    const renderRowCells = (item, startNum) => {
+                                        const isAbsent = item.status === 'absent';
+                                        return (
+                                            <>
+                                                <td className="border border-black text-center text-[9px] truncate">{item.name ? startNum : ''}</td>
+                                                <td className="border border-black text-center text-[8px] leading-tight px-0.5">{item.grade || (item.name ? '하주초등학교' : '')}</td>
+                                                <td className="border border-black text-center text-[9px] truncate">{item.position || ''}</td>
+                                                <td className="border border-black text-center font-bold text-[10px] truncate">{item.name || ''}</td>
+                                                <td className="border border-black p-0 text-center text-[10px]">{isAbsent ? '－' : getImg(item.content)}</td>
+                                                <td className="border border-black text-center text-[8px] overflow-hidden">{isAbsent ? (item.content || '') : ''}</td>
+                                            </>
+                                        );
+                                    };
+
                                     return (
                                         <tr key={i} style={{ height: rowHeight }}>
-                                            <td className="border border-black text-center text-xs">{L.name ? i + 1 : ''}</td>
-                                            <td className="border border-black text-center text-xs whitespace-nowrap overflow-hidden">{L.grade || (L.name ? '하주초등학교' : '')}</td>
-                                            <td className="border border-black text-center text-xs">{L.position || ''}</td>
-                                            <td className="border border-black text-center font-bold">{L.name || ''}</td>
-                                            <td className="border border-black p-0">{getImg(L.content)}</td>
-                                            <td className="border border-black"></td>
+                                            {renderRowCells(L, i + 1)}
                                             {isDualColumn && (
                                                 <>
                                                     <td className="border-l-2 border-l-black border-y-0"></td>
-                                                    <td className="border border-black text-center text-xs">{R.name ? i + maxRowsPerCol + 1 : ''}</td>
-                                                    <td className="border border-black text-center text-xs whitespace-nowrap overflow-hidden">{R.grade || (R.name ? '하주초등학교' : '')}</td>
-                                                    <td className="border border-black text-center text-xs">{R.position || ''}</td>
-                                                    <td className="border border-black text-center font-bold">{R.name || ''}</td>
-                                                    <td className="border border-black p-0 text-center">{getImg(R.content)}</td>
-                                                    <td className="border border-black"></td>
+                                                    {R && R.name ? renderRowCells(R, i + maxRowsPerCol + 1) : (
+                                                        <>
+                                                            <td className="border border-black"></td>
+                                                            <td className="border border-black"></td>
+                                                            <td className="border border-black"></td>
+                                                            <td className="border border-black"></td>
+                                                            <td className="border border-black"></td>
+                                                            <td className="border border-black"></td>
+                                                        </>
+                                                    )}
                                                 </>
                                             )}
                                         </tr>
