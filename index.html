@@ -536,7 +536,7 @@
                     // 사용자 지정 엑셀 규준 반영 (행 높이 20 -> 27px, 이미지 0.71x2.12cm -> 27x80px)
                     const rowHeight = isDualColumn ? (maxRowsPerCol > 35 ? '24px' : '27px') : '48px';
                     const imgHeight = isDualColumn ? (maxRowsPerCol > 35 ? '20' : '27') : '42';
-                    const sigWidth = isDualColumn ? '80' : '120';
+                    const sigWidth = isDualColumn ? '70' : '120';
                     const fontSize = isDualColumn ? (maxRowsPerCol > 35 ? '7.5pt' : '8.5pt') : '9pt';
 
                     const leftCol = isDualColumn ? displayList.slice(0, maxRowsPerCol) : displayList;
@@ -546,12 +546,12 @@
                         <table style="width: 100%; table-layout: fixed;">
                             <thead>
                                 <tr>
-                                    <th style="width: ${isDual ? '24px' : '40px'};">No.</th>
-                                    <th style="width: ${isDual ? '76px' : '200px'};">소속</th>
-                                    <th style="width: ${isDual ? '74px' : '150px'};">담당(직위)</th>
-                                    <th style="width: ${isDual ? '58px' : '150px'};">성명</th>
-                                    <th style="width: ${isDual ? '80px' : '220px'};">서명</th>
-                                    <th style="width: ${isDual ? '45px' : 'auto'};">비고</th>
+                                    <th style="width: ${isDual ? '36px' : '40px'};">No.</th>
+                                    <th style="width: ${isDual ? '114px' : '200px'};">소속</th>
+                                    <th style="width: ${isDual ? '111px' : '150px'};">담당(직위)</th>
+                                    <th style="width: ${isDual ? '87px' : '150px'};">성명</th>
+                                    <th style="width: ${isDual ? '118px' : '220px'};">서명</th>
+                                    <th style="width: ${isDual ? '68px' : 'auto'};">비고</th>
                                 </tr>
                             </thead>
                             <tbody style="font-size: ${fontSize};">
@@ -729,20 +729,20 @@
                             <table border="1" style="border-collapse: collapse; width: 100%;">
                                 <thead>
                                     <tr>
-                                        <th class="header" style="width: 24px;">No.</th>
-                                        <th class="header" style="width: ${isDualColumn ? '76px' : '200px'};">소속(학교)</th>
-                                        <th class="header" style="width: ${isDualColumn ? '74px' : '150px'};">담당(직위)</th>
-                                        <th class="header" style="width: ${isDualColumn ? '58px' : '120px'};">성명</th>
-                                        <th class="header" style="width: ${isDualColumn ? '80px' : '250px'};">서명</th>
-                                        <th class="header" style="width: ${isDualColumn ? '45px' : '250px'};">비고</th>
+                                        <th class="header" style="width: 36px;">No.</th>
+                                        <th class="header" style="width: ${isDualColumn ? '114px' : '250px'};">소속(학교)</th>
+                                        <th class="header" style="width: ${isDualColumn ? '111px' : '200px'};">담당(직위)</th>
+                                        <th class="header" style="width: ${isDualColumn ? '87px' : '180px'};">성명</th>
+                                        <th class="header" style="width: ${isDualColumn ? '118px' : '300px'};">서명</th>
+                                        <th class="header" style="width: ${isDualColumn ? '68px' : '300px'};">비고</th>
                                         ${isDualColumn ? `
-                                        <th style="width: 5px; border: none;"></th>
-                                        <th class="header" style="width: 24px;">No.</th>
-                                        <th class="header" style="width: 76px;">소속(학교)</th>
-                                        <th class="header" style="width: 74px;">담당(직위)</th>
-                                        <th class="header" style="width: 58px;">성명</th>
-                                        <th class="header" style="width: 80px;">서명</th>
-                                        <th class="header" style="width: 45px;">비고</th>
+                                        <th style="width: 8px; border: none;"></th>
+                                        <th class="header" style="width: 36px;">No.</th>
+                                        <th class="header" style="width: 114px;">소속(학교)</th>
+                                        <th class="header" style="width: 111px;">담당(직위)</th>
+                                        <th class="header" style="width: 87px;">성명</th>
+                                        <th class="header" style="width: 118px;">서명</th>
+                                        <th class="header" style="width: 68px;">비고</th>
                                         ` : ''}
                                     </tr>
                                 </thead>
