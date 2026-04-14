@@ -173,24 +173,22 @@
         const formatTime = (timeValue) => {
             if (!timeValue) return "";
             try {
-                // "14:30" 형식의 문자열인 경우 그대로 반환
-                if (typeof timeValue === 'string' && /^\d{2}:\d{2}$/.test(timeValue)) {
-                    return timeValue === "00:00" ? "" : timeValue;
+                // "14:30" 또는 "14:30:00" 형식의 문자열인 경우 앞부분만 추출
+                if (typeof timeValue === 'string') {
+                    const match = timeValue.match(/^(\d{2}:\d{2})/);
+                    if (match) return match[1] === "00:00" ? "" : match[1];
                 }
 
                 const date = new Date(timeValue);
                 if (isNaN(date.getTime())) return String(timeValue);
 
-                const hours = date.getHours();
-                const minutes = date.getMinutes();
-                if (hours === 0 && minutes === 0) return ""; // 시트 기본값(00:00) 처리
+                const hours = String(date.getHours()).padStart(2, '0');
+                const minutes = String(date.getMinutes()).padStart(2, '0');
+                
+                // 시트 기본값(00:00) 처리
+                if (hours === "00" && minutes === "00") return "";
 
-                return date.toLocaleTimeString('ko-KR', {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    hour12: false,
-                    timeZone: 'Asia/Seoul'
-                });
+                return `${hours}:${minutes}`;
             } catch (e) {
                 return String(timeValue);
             }
@@ -218,9 +216,13 @@
 
         const formatDateForInput = (dateValue) => {
             if (!dateValue) return "";
+            // 이미 YYYY-MM-DD 형식이면 그대로 반환 (가장 안전)
+            if (typeof dateValue === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateValue)) {
+                return dateValue;
+            }
             try {
                 const d = new Date(dateValue);
-                if (isNaN(d.getTime())) return "";
+                if (isNaN(d.getTime())) return String(dateValue).split('T')[0] || "";
                 const year = d.getFullYear();
                 const month = String(d.getMonth() + 1).padStart(2, '0');
                 const day = String(d.getDate()).padStart(2, '0');
@@ -380,10 +382,12 @@
 
             const handleEditClick = (training) => {
                 setEditId(training.id);
-                const isAll = String(training.targetParticipants).toUpperCase() === 'ALL';
+                // "ALL" 판독 로직 강화 (공백 제거 및 대소문자 무시)
+                const isAll = String(training.targetParticipants || "").trim().toUpperCase() === 'ALL';
+                
                 setNewTraining({
-                    title: training.title,
-                    location: training.location,
+                    title: training.title || '',
+                    location: training.location || '',
                     date: formatDateForInput(training.date),
                     startTime: formatTime(training.startTime),
                     endTime: formatTime(training.endTime),
