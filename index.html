@@ -17,6 +17,15 @@
         body {
             font-family: 'Inter', 'Noto Sans KR', sans-serif;
             overflow-x: hidden;
+            background-color: #f8fafc !important; /* 배경색 고정 */
+            color: #1e293b !important; /* 글자색 고정 */
+        }
+        
+        @media (max-width: 640px) {
+            .mobile-p-4 { padding: 1rem !important; }
+            .mobile-p-6 { padding: 1.5rem !important; }
+            .mobile-text-2xl { font-size: 1.5rem !important; }
+            .mobile-min-h-500 { min-height: 400px !important; }
         }
 
         .font-outfit {
@@ -24,7 +33,7 @@
         }
 
         .glass {
-            background: rgba(255, 255, 255, 0.7);
+            background: rgba(255, 255, 255, 0.9) !important;
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.3);
@@ -303,6 +312,8 @@
                 targetParticipants: [] // List of staff names
             });
 
+            const [isQrMode, setIsQrMode] = useState(false);
+
             const canvasRef = useRef(null);
             const [isDrawing, setIsDrawing] = useState(false);
 
@@ -321,12 +332,14 @@
                     // URL 파라미터 확인 (QR 진입 시 자동 선택)
                     const urlParams = new URLSearchParams(window.location.search);
                     const trainingId = urlParams.get('trainingId');
+                    if (trainingId) setIsQrMode(true);
+                    
                     if (trainingId && loadedTrainings.length > 0) {
                         const target = loadedTrainings.find(t => String(t.id) === String(trainingId));
                         if (target) {
                             setSelectedTraining(target);
                             setStep(2);
-                            fetchRegistrations(trainingId);
+                            fetchRegistrations(trainingId, target.title);
                         }
                     }
                 } catch (err) { console.error(err); }
@@ -835,21 +848,23 @@
                                     <span className="text-[10px] font-bold text-indigo-500 tracking-[0.2em] uppercase mt-1">Training Registrar</span>
                                 </div>
                             </div>
-                            <button
-                                onClick={() => {
-                                    const nextView = view === 'user' ? 'admin' : 'user';
-                                    setView(nextView);
-                                    setStep(1);
-                                    if (nextView === 'admin') {
-                                        setAdminSubView('list');
-                                        setEditId(null);
-                                    }
-                                }}
-                                className="flex items-center gap-2 bg-white border border-slate-200 hover:bg-slate-50 px-5 py-2.5 rounded-2xl text-sm font-bold transition-all shadow-sm"
-                            >
-                                {view === 'user' ? <Settings size={18} className="text-indigo-600" /> : <LogOut size={18} className="text-slate-400" />}
-                                {view === 'user' ? '관리 모드' : '사용자 화면'}
-                            </button>
+                            {(!isQrMode || view === 'admin') && (
+                                <button
+                                    onClick={() => {
+                                        const nextView = view === 'user' ? 'admin' : 'user';
+                                        setView(nextView);
+                                        setStep(1);
+                                        if (nextView === 'admin') {
+                                            setAdminSubView('list');
+                                            setEditId(null);
+                                        }
+                                    }}
+                                    className="flex items-center gap-2 bg-white border border-slate-200 hover:bg-slate-50 px-5 py-2.5 rounded-2xl text-sm font-bold transition-all shadow-sm"
+                                >
+                                    {view === 'user' ? <Settings size={18} className="text-indigo-600" /> : <LogOut size={18} className="text-slate-400" />}
+                                    {view === 'user' ? '관리 모드' : '사용자 화면'}
+                                </button>
+                            )}
                         </div>
                     </nav>
 
@@ -993,7 +1008,17 @@
                                             <div key={t.id} className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6 hover:shadow-md transition-shadow">
                                                 <div className="flex-1">
                                                     <div className="flex items-center gap-2 mb-1">
-                                                        <span className="px-2.5 py-1 bg-indigo-50 text-indigo-600 text-[10px] font-black rounded-lg uppercase tracking-wide">AVAILABLE</span>
+                                                        {(() => {
+                                                            const tDate = new Date(t.date);
+                                                            const today = new Date();
+                                                            today.setHours(0,0,0,0);
+                                                            const isExpired = tDate < today;
+                                                            return isExpired ? (
+                                                                <span className="px-2.5 py-1 bg-slate-100 text-slate-400 text-[10px] font-black rounded-lg uppercase tracking-wide">ENDED</span>
+                                                            ) : (
+                                                                <span className="px-2.5 py-1 bg-indigo-50 text-indigo-600 text-[10px] font-black rounded-lg uppercase tracking-wide">AVAILABLE</span>
+                                                            );
+                                                        })()}
                                                         <span className="text-xs text-slate-400 font-bold">{t.date || new Date().toLocaleDateString()}</span>
                                                     </div>
                                                     <h3 className="font-black text-xl text-slate-800">{t.title}</h3>
@@ -1120,7 +1145,7 @@
                                             </div>
                                             <div className="relative group">
                                                 <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-indigo-500 transition-colors" size={20} />
-                                                <input type="text" placeholder="성함 입력 시 자동 검색" value={searchName} onChange={e => setSearchName(e.target.value)}
+                                                <input type="text" placeholder="성함 검색" value={searchName} onChange={e => setSearchName(e.target.value)}
                                                     className="w-full pl-16 pr-6 py-5 rounded-3xl border-2 border-slate-50 focus:border-indigo-400 bg-slate-50/50 focus:bg-white outline-none text-xl font-bold transition-all shadow-inner" />
                                             </div>
                                             <div className="space-y-3 max-h-64 overflow-y-auto pr-2 custom-scroll">
@@ -1184,25 +1209,25 @@
 
                                             {regStatus === 'attended' ? (
                                                 <div className="space-y-6 flex-1 flex flex-col">
-                                                    <div className="canvas-container flex-1 bg-slate-50 border-4 border-dashed border-slate-100 rounded-[2rem] relative shadow-inner overflow-hidden min-h-[220px]">
+                                                    <div className="canvas-container flex-1 bg-white border-4 border-dashed border-slate-100 rounded-[2rem] relative shadow-inner overflow-hidden min-h-[220px]">
                                                         <canvas ref={canvasRef} width={1000} height={500}
                                                             onMouseDown={startDrawing} onMouseMove={draw} onMouseUp={() => setIsDrawing(false)}
                                                             onTouchStart={startDrawing} onTouchMove={draw} onTouchEnd={() => setIsDrawing(false)}
-                                                            className="absolute inset-0 w-full h-full cursor-crosshair" />
+                                                            className="absolute inset-0 w-full h-full cursor-crosshair bg-white" title="Signature Area" />
                                                     </div>
                                                     <div className="flex justify-between items-center px-2">
                                                         <button onClick={() => { const ctx = canvasRef.current.getContext('2d'); ctx.clearRect(0, 0, 1000, 500); }}
                                                             className="text-xs font-black text-rose-400 hover:text-rose-600 uppercase tracking-widest flex items-center gap-1">
-                                                            <Trash2 size={14} /> 전체 지우기
+                                                            <Trash2 size={14} /> 지우기
                                                         </button>
-                                                        <span className="text-[10px] font-black text-slate-300 italic">서명 후 [등록 완료] 버튼을 눌러주세요</span>
+                                                        <span className="text-[10px] font-black text-slate-300 italic">서명 후 [등록하기] 버튼을 눌러주세요</span>
                                                     </div>
                                                 </div>
                                             ) : (
                                                 <div className="grid grid-cols-2 gap-3 flex-1">
                                                     {ABSENCE_REASONS.map(r => (
                                                         <button key={r} onClick={() => setAbsenceReason(r)}
-                                                            className={`p-4 rounded-2xl border-2 transition-all font-black ${absenceReason === r ? 'border-indigo-600 bg-indigo-50 text-indigo-700 shadow-lg' : 'border-slate-50 text-slate-300 hover:bg-slate-50 hover:text-slate-500'}`}>
+                                                            className={`p-4 rounded-2xl border-2 transition-all font-black ${absenceReason === r ? 'border-indigo-600 bg-indigo-50 text-indigo-700 shadow-lg' : 'border-slate-50 text-slate-300 bg-white hover:bg-slate-50 hover:text-slate-500'}`}>
                                                             {r}
                                                         </button>
                                                     ))}
@@ -1212,7 +1237,7 @@
                                             <button disabled={isLoading || (regStatus === 'absent' && !absenceReason)} onClick={handleRegister}
                                                 className="w-full bg-indigo-600 text-white font-black py-5 rounded-[1.8rem] hover:bg-indigo-700 shadow-xl shadow-indigo-200 transition-all text-xl disabled:bg-slate-200 disabled:shadow-none flex items-center justify-center gap-3">
                                                 {isLoading ? <Loader2 className="animate-spin" /> : <CheckCircle2 size={24} />}
-                                                등록 완료
+                                                등록하기
                                             </button>
                                         </div>
                                     )}
