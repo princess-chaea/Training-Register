@@ -173,22 +173,23 @@
         const formatTime = (timeValue) => {
             if (!timeValue) return "";
             try {
-                // "14:30" 또는 "14:30:00" 형식의 문자열인 경우 앞부분만 추출
-                if (typeof timeValue === 'string') {
-                    const match = timeValue.match(/^(\d{2}:\d{2})/);
-                    if (match) return match[1] === "00:00" ? "" : match[1];
+                const str = String(timeValue).trim();
+                // "14:30:00" 또는 "14:30" 형태의 문자열에서 시:분만 추출
+                const match = str.match(/(\d{1,2}):(\d{1,2})/);
+                if (match) {
+                    const h = match[1].padStart(2, '0');
+                    const m = match[2].padStart(2, '0');
+                    if (h === "00" && m === "00") return "";
+                    return `${h}:${m}`;
                 }
 
+                // Date 객체인 경우
                 const date = new Date(timeValue);
-                if (isNaN(date.getTime())) return String(timeValue);
-
-                const hours = String(date.getHours()).padStart(2, '0');
-                const minutes = String(date.getMinutes()).padStart(2, '0');
-                
-                // 시트 기본값(00:00) 처리
-                if (hours === "00" && minutes === "00") return "";
-
-                return `${hours}:${minutes}`;
+                if (isNaN(date.getTime())) return str;
+                const hh = String(date.getHours()).padStart(2, '0');
+                const mm = String(date.getMinutes()).padStart(2, '0');
+                if (hh === "00" && mm === "00") return "";
+                return `${hh}:${mm}`;
             } catch (e) {
                 return String(timeValue);
             }
@@ -216,17 +217,25 @@
 
         const formatDateForInput = (dateValue) => {
             if (!dateValue) return "";
-            // 이미 YYYY-MM-DD 형식이면 그대로 반환 (가장 안전)
-            if (typeof dateValue === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateValue)) {
-                return dateValue;
-            }
             try {
-                const d = new Date(dateValue);
-                if (isNaN(d.getTime())) return String(dateValue).split('T')[0] || "";
-                const year = d.getFullYear();
-                const month = String(d.getMonth() + 1).padStart(2, '0');
-                const day = String(d.getDate()).padStart(2, '0');
-                return `${year}-${month}-${day}`;
+                const str = String(dateValue).trim();
+                // "2026-04-14..." 또는 "2026. 4. 14." 형태에서 숫자만 추출
+                const match = str.match(/(\d{4})[.-]\s*(\d{1,2})[.-]\s*(\d{1,2})/);
+                if (match) {
+                    const y = match[1];
+                    const m = match[2].padStart(2, '0');
+                    const d = match[3].padStart(2, '0');
+                    return `${y}-${m}-${d}`;
+                }
+                
+                const dObj = new Date(dateValue);
+                if (isNaN(dObj.getTime())) return str.split('T')[0] || "";
+                
+                // ISO 문자열에서 직접 추출 (지연 발생 없는 안전한 방식)
+                const yyyy = dObj.getFullYear();
+                const mm = String(dObj.getMonth() + 1).padStart(2, '0');
+                const dd = String(dObj.getDate()).padStart(2, '0');
+                return `${yyyy}-${mm}-${dd}`;
             } catch (e) {
                 return "";
             }
@@ -382,17 +391,25 @@
 
             const handleEditClick = (training) => {
                 setEditId(training.id);
-                // "ALL" 판독 로직 강화 (공백 제거 및 대소문자 무시)
-                const isAll = String(training.targetParticipants || "").trim().toUpperCase() === 'ALL';
+                
+                // --- 데이터 무결성 보정 (다중 키 확인) ---
+                const title = training.title || training['연수명'] || '';
+                const location = training.location || training['장소'] || '';
+                const date = training.date || training['날짜'] || training['연수일자'] || '';
+                const startTime = training.startTime || training['시작시간'] || training['시작 시간'] || '';
+                const endTime = training.endTime || training['종료시간'] || training['종료 시간'] || '';
+                const participants = training.targetParticipants || training['대상자'] || training['참석대상'] || '';
+
+                const isAll = String(participants || "").trim().toUpperCase() === 'ALL';
                 
                 setNewTraining({
-                    title: training.title || '',
-                    location: training.location || '',
-                    date: formatDateForInput(training.date),
-                    startTime: formatTime(training.startTime),
-                    endTime: formatTime(training.endTime),
+                    title: title,
+                    location: location,
+                    date: formatDateForInput(date),
+                    startTime: formatTime(startTime),
+                    endTime: formatTime(endTime),
                     targetType: isAll ? 'ALL' : 'SELECT',
-                    targetParticipants: isAll ? [] : JSON.parse(training.targetParticipants || '[]')
+                    targetParticipants: isAll ? [] : JSON.parse(participants || '[]')
                 });
                 setAdminSubView('add');
             };
