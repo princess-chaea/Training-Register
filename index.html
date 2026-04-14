@@ -129,31 +129,16 @@
     </div>
 
     <script type="text/babel">
-        const { useState, useRef, useEffect, useMemo } = React;
+        const { useState, useRef, useEffect, useMemo, useLayoutEffect } = React;
 
         // --- Lucide React Helper ---
-        const Icon = ({ name, size = 24, className = "", strokeWidth = 2 }) => {
-            const containerRef = useRef(null);
-
-            useEffect(() => {
-                if (containerRef.current && window.lucide) {
-                    containerRef.current.innerHTML = `<i data-lucide="${name}"></i>`;
-                    window.lucide.createIcons({
-                        targets: [containerRef.current.firstChild],
-                        attrs: {
-                            class: className,
-                            width: size,
-                            height: size,
-                            'stroke-width': strokeWidth
-                        }
-                    });
-                }
-                return () => {
-                    if (containerRef.current) containerRef.current.innerHTML = '';
-                };
-            }, [name, size, className, strokeWidth]);
-
-            return <span ref={containerRef} className={`relative inline-flex items-center justify-center shrink-0 ${className}`} style={{ width: size, height: size, minWidth: size, minHeight: size }}></span>;
+        const Icon = ({ name, size = 20, className = "" }) => {
+            return (
+                <span className={`inline-flex items-center justify-center shrink-0 ${className}`} 
+                      style={{ width: size, height: size, minWidth: size, minHeight: size }}>
+                    <i data-lucide={name} style={{ width: size, height: size }}></i>
+                </span>
+            );
         };
 
         const Users = (props) => <Icon name="users" {...props} />;
@@ -322,6 +307,13 @@
             const [isDrawing, setIsDrawing] = useState(false);
 
             useEffect(() => { fetchInitialData(); }, []);
+
+            // 전역 아이콘 동기화 (모든 상태 변화 시 실행)
+            useLayoutEffect(() => {
+                if (window.lucide) {
+                    window.lucide.createIcons();
+                }
+            }, [step, view, isManualMode, isLoading, trainings, qrModalUrl, customAlert, showOverwriteConfirm]);
 
             const fetchInitialData = async () => {
                 if (!GAS_APP_URL) return;
@@ -823,8 +815,6 @@
                         </div>
                     </div>
                 );
-            }
-
             return (
                 <div className="min-h-screen pb-20 overflow-x-hidden">
                     {isLoading && <div className="loading-bar"></div>}
@@ -1245,8 +1235,10 @@
                                                 </div>
                                             ) : (
                                                 <>
-                                                    <div className="relative group">
-                                                        <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-indigo-500 transition-colors" size={20} />
+                                                    <div className="relative">
+                                                        <div className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 pointer-events-none z-10 flex items-center justify-center">
+                                                            <Search size={22} className="text-slate-300" />
+                                                        </div>
                                                         <input type="text" placeholder="성함 검색" value={searchName} onChange={e => setSearchName(e.target.value)}
                                                             className="w-full pl-16 pr-6 py-5 rounded-3xl border-2 border-slate-50 focus:border-indigo-400 bg-slate-50/50 focus:bg-white outline-none text-xl font-bold transition-all shadow-inner" />
                                                     </div>
