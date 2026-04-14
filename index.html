@@ -505,7 +505,12 @@
                                 return reg || { name, position: staff?.position || '', grade: staff?.grade || '', status: 'none', content: '' };
                             });
                         } catch (e) { displayList = []; }
-                        }
+                    }
+
+                    // 명단 외 추가 등록자(외부 인사 등) 확인 및 합산
+                    const baseNames = displayList.map(item => item.name);
+                    const extras = regs.filter(r => !baseNames.includes(r.name));
+                    displayList = [...displayList, ...extras];
                         
                         const isDualColumn = displayList.length > 20;
                         const half = isDualColumn ? Math.ceil(displayList.length / 2) : displayList.length;
@@ -625,6 +630,11 @@
                             });
                         } catch (e) { displayList = []; }
                     }
+
+                    // 명단 외 추가 등록자(외부 인사 등) 확인 및 합산
+                    const baseNames = displayList.map(item => item.name);
+                    const extras = regs.filter(r => !baseNames.includes(r.name));
+                    displayList = [...displayList, ...extras];
 
                     const isDualColumn = displayList.length > 20;
                     const half = Math.ceil(displayList.length / 2);
