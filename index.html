@@ -555,11 +555,11 @@
                         <table style="width: 100%; table-layout: fixed;">
                             <thead>
                                 <tr>
-                                    <th style="width: 35px;">No.</th>
-                                    <th style="width: ${isDual ? '80px' : '150px'};">소속</th>
+                                    <th style="width: 30px;">No.</th>
+                                    <th style="width: ${isDual ? '70px' : '150px'};">소속</th>
                                     <th style="width: ${isDual ? '60px' : '100px'};">직위</th>
-                                    <th style="width: ${isDual ? '70px' : '120px'};">성명</th>
-                                    <th style="width: ${isDual ? '110px' : '180px'};">서명</th>
+                                    <th style="width: ${isDual ? '65px' : '120px'};">성명</th>
+                                    <th style="width: ${isDual ? '100px' : '180px'};">서명</th>
                                     <th style="width: auto;">비고</th>
                                 </tr>
                             </thead>
@@ -608,7 +608,7 @@
                         </head>
                         <body>
                             <div class="container">
-                                <h1>${training.date ? training.date.substring(0,4) : '2026'} ${training.title} 등록부</h1>
+                                <h1>${training.title} 등록부</h1>
                                 <div class="info">
                                     <div class="school">하주초등학교</div>
                                     <div>장소: ${training.location} | 일시: ${training.date} ${formatTime(training.startTime)}${training.endTime ? ` ~ ${formatTime(training.endTime)}` : ''}</div>
@@ -716,7 +716,7 @@
                             </style>
                         </head>
                         <body>
-                            <h1 style="text-align: center; text-decoration: underline;">${training.date ? training.date.substring(0, 4) : '2026'} ${training.title} 등록부</h1>
+                            <h1 style="text-align: center; text-decoration: underline;">${training.title} 등록부</h1>
                             <div style="text-align: right; font-size: 10pt; font-weight: bold;">하주초등학교</div>
                             <div style="text-align: right; font-size: 10pt;">
                                 장소: ${training.location} | 일시: ${training.date} ${formatTime(training.startTime)} ~ ${formatTime(training.endTime)}
@@ -725,20 +725,20 @@
                             <table border="1" style="border-collapse: collapse; width: 100%;">
                                 <thead>
                                     <tr>
-                                        <th class="header" style="width: 35px;">No.</th>
-                                        <th class="header" style="width: ${isDualColumn ? '120px' : '180px'};">소속(학교)</th>
-                                        <th class="header" style="width: ${isDualColumn ? '80px' : '120px'};">직위</th>
-                                        <th class="header" style="width: ${isDualColumn ? '80px' : '120px'};">성명</th>
-                                        <th class="header" style="width: ${isDualColumn ? '160px' : '220px'};">서명</th>
-                                        <th class="header" style="width: ${isDualColumn ? '100px' : '250px'};">비고</th>
+                                        <th class="header" style="width: 30px;">No.</th>
+                                        <th class="header" style="width: ${isDualColumn ? '90px' : '180px'};">소속(학교)</th>
+                                        <th class="header" style="width: ${isDualColumn ? '70px' : '120px'};">직위</th>
+                                        <th class="header" style="width: ${isDualColumn ? '70px' : '120px'};">성명</th>
+                                        <th class="header" style="width: ${isDualColumn ? '140px' : '220px'};">서명</th>
+                                        <th class="header" style="width: ${isDualColumn ? '80px' : '250px'};">비고</th>
                                         ${isDualColumn ? `
                                         <th style="width: 15px; border: none;"></th>
-                                        <th class="header" style="width: 35px;">No.</th>
-                                        <th class="header" style="width: 120px;">소속(학교)</th>
-                                        <th class="header" style="width: 80px;">직위</th>
-                                        <th class="header" style="width: 80px;">성명</th>
-                                        <th class="header" style="width: 160px;">서명</th>
-                                        <th class="header" style="width: 100px;">비고</th>
+                                        <th class="header" style="width: 30px;">No.</th>
+                                        <th class="header" style="width: 90px;">소속(학교)</th>
+                                        <th class="header" style="width: 70px;">직위</th>
+                                        <th class="header" style="width: 70px;">성명</th>
+                                        <th class="header" style="width: 140px;">서명</th>
+                                        <th class="header" style="width: 80px;">비고</th>
                                         ` : ''}
                                     </tr>
                                 </thead>
@@ -849,7 +849,7 @@
                 return (
                     <div className="bg-white p-8 min-h-screen text-black font-serif print-area" style={{ width: '210mm', margin: '0 auto' }}>
                         <h1 className="text-3xl font-bold text-center mb-4 underline decoration-double underline-offset-8">
-                            {selectedTraining.date ? selectedTraining.date.substring(0, 4) : '2026'} {selectedTraining.title} 등록부
+                            {selectedTraining.title} 등록부
                         </h1>
                         <div className="text-right text-xs font-bold mb-1">하주초등학교</div>
                         <div className="text-right text-sm mb-4 space-x-4">
@@ -857,24 +857,24 @@
                             <span>일시: {selectedTraining.date} {formatTime(selectedTraining.startTime)} ~ {formatTime(selectedTraining.endTime)}</span>
                         </div>
 
-                        <table className="w-full border-collapse border-2 border-black text-sm">
+                        <table className="w-full border-collapse border-2 border-black text-[10px]">
                             <thead>
                                 <tr className="bg-slate-50">
-                                    <th className="border border-black px-1 py-2 w-10">No.</th>
-                                    <th className="border border-black px-2 py-2 w-32">소속</th>
-                                    <th className="border border-black px-1 py-2 w-20">직위</th>
-                                    <th className="border border-black px-1 py-2 w-24">성명</th>
-                                    <th className="border border-black px-2 py-2 w-40">서명</th>
-                                    <th className="border border-black px-2 py-2">비고</th>
+                                    <th className="border border-black px-1 py-1 w-8">No.</th>
+                                    <th className="border border-black px-1 py-1 w-20">소속</th>
+                                    <th className="border border-black px-1 py-1 w-16">직위</th>
+                                    <th className="border border-black px-1 py-1 w-16">성명</th>
+                                    <th className="border border-black px-1 py-1 w-24">서명</th>
+                                    <th className="border border-black px-1 py-1">비고</th>
                                     {isDualColumn && (
                                         <>
                                             <th className="border-l-2 border-l-black w-2"></th>
-                                            <th className="border border-black px-1 py-2 w-10">No.</th>
-                                            <th className="border border-black px-2 py-2 w-32">소속</th>
-                                            <th className="border border-black px-1 py-2 w-20">직위</th>
-                                            <th className="border border-black px-1 py-2 w-24">성명</th>
-                                            <th className="border border-black px-2 py-2 w-40">서명</th>
-                                            <th className="border border-black px-2 py-2">비고</th>
+                                            <th className="border border-black px-1 py-1 w-8">No.</th>
+                                            <th className="border border-black px-1 py-1 w-20">소속</th>
+                                            <th className="border border-black px-1 py-1 w-16">직위</th>
+                                            <th className="border border-black px-1 py-1 w-16">성명</th>
+                                            <th className="border border-black px-1 py-1 w-24">서명</th>
+                                            <th className="border border-black px-1 py-1">비고</th>
                                         </>
                                     )}
                                 </tr>
